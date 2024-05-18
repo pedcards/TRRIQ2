@@ -18,19 +18,27 @@ __Config:
 ExitApp
 
 __GUI_elements:
-progressbar(var1:="",var2:="w200 h20 cBlue vPercent") {
+progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 /*	Creates a minimal progress bar using Title and Params
 	If first var is a pbar object, set the percentage
 */
-	if IsObject(var1) {
-		var1["Percent"].Value := var2
+	if IsObject(title) {
+		title["Percent"].Value := param
 		return
 	}
-	pbar := Gui(,var1)
-	pbar.Opt("+Border +AlwaysOnTop -SysMenu" 
-			((var1="") ? " -Caption" : "")
-	)
-	pbar.AddProgress(var2)
+	width := (RegExMatch(" " param " ","\W[wW](\d+)\W",&par)) 
+		? par[0] : "w200"
+	height := (RegExMatch(" " param " ","\W[hH]\w+\W",&par))
+		? par[0] : "h12"
+	color := (RegExMatch(" " param " ","\W[cC]\w+\W",&par))
+		? par[0] : "cBlue"
+	pbar := Gui()
+	pbar.Opt("+Border +AlwaysOnTop -SysMenu -Caption")
+	if (title) {
+		pbar.SetFont("s16")
+		pbar.AddText(width " Center",title)
+	}
+	pbar.AddProgress(width " " height " " color " vPercent")
 	pbar.Show()
 	return pbar
 }
