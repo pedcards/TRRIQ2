@@ -63,6 +63,36 @@ progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 	return pbar
 }
 
+eventlog(event,verbosity:=1) {
+	/*	verbose 1 or 0 from ini
+		verbosity default 1
+		verbosity set 0 if only during verbose
+	*/
+		global gl
+		
+		score := verbosity + gl.settings["verbose"]
+		if (score<1) {
+			return
+		}
+		user := A_UserName
+		comp := A_ComputerName
+		sessDate := FormatTime(A_Now,"yyyy.MM")											; FormatTime, sessdate, A_Now, yyyy.MM
+		now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 								; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
+		name := gl.TRRIQ_path "\logs\" . sessdate . ".log"
+		txt := now " [" user "/" comp "] PREVGRAB: " event "`n"
+		filePrepend(txt,name)
+}
+
+FilePrepend( Text, Filename ) { 
+/*	from haichen http://www.autohotkey.com/board/topic/80342-fileprependa-insert-text-at-begin-of-file-ansi-text/?p=510640
+*/
+	file:= FileOpen(Filename, "rw")
+	text .= File.Read()
+	file.pos:=0
+	File.Write(text)
+	File.Close()
+}
+
 readIni(section) {
 /*	Reads a set of variables
 
