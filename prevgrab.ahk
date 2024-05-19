@@ -35,6 +35,14 @@ __Config:
 
 }
 
+__MainLoop:
+{
+	eventlog("Initializing.")
+	; progress,,Initializing webdriver...
+	
+
+}
+
 ExitApp
 
 __GUI_elements:
