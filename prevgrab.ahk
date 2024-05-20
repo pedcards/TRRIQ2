@@ -9,8 +9,7 @@ SendMode("Input")
 SetWorkingDir A_ScriptDir
 SetTitleMatchMode("2")
 
-__Config:
-{
+;#region == CONFIGURATION ==============================================================
 	gl := {}
 	pb := progressbar("Initializing...")
 	progressbar(pb,90)
@@ -33,19 +32,19 @@ __Config:
 	gl.inv_ct := 0
 	gl.t0 := A_TickCount
 
-}
+;#endregion
 
-__MainLoop:
-{
+;#region == MAIN LOOP ==================================================================
 	eventlog("Initializing.")
 	; progress,,Initializing webdriver...
 	
 
-}
+
+;#endregion
 
 ExitApp
 
-__GUI_elements:
+;#region == GUI Elements ===============================================================
 progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 /*	Creates a minimal progress bar using Title and Params
 	If first var is a pbar object, set the percentage
@@ -71,6 +70,7 @@ progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 	return pbar
 }
 
+;#region == TEXT Elements ==============================================================
 eventlog(event,verbosity:=1) {
 	/*	verbose 1 or 0 from ini
 		verbosity default 1
@@ -175,6 +175,8 @@ readIni(section) {
 	}
 	return i_res
 }
+
+;#endregion
 
 #Include xml2.ahk
 #Include strx2.ahk
