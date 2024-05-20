@@ -11,8 +11,6 @@ SetTitleMatchMode("2")
 
 ;#region == CONFIGURATION ==============================================================
 	gl := {}
-	pb := progressbar("Initializing...")
-	progressbar(pb,90)
 
 	if InStr(A_ScriptDir,"AhkProjects") {
 		gl.isDevt := true
@@ -36,9 +34,9 @@ SetTitleMatchMode("2")
 
 ;#region == MAIN LOOP ==================================================================
 	eventlog("Initializing.")
-	; progress,,Initializing webdriver...
-	
+	pb := progressbar("Initializing webdriver...")
 
+	
 
 ;#endregion
 
