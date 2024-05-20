@@ -43,17 +43,24 @@ SetTitleMatchMode("2")
 ExitApp
 
 ;#region == GUI Elements ===============================================================
-progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
+progressbar(title:="",param:="",title2:="",title3:="") {
 /*	Creates a minimal progress bar using Title, Params, Subtitle
 	If first var is a pbar object, param=percentage, title2=new title, title3=subtitle
 */
+	local width:="w200", height:="h12", color:="cBlue"
 	if IsObject(title) {
-		title["Percent"].Value := param
+		if IsNumber(param) {
+			title["Percent"].Value := param
+		}
 		if (title2) {
-			title["Title"].Value := title2
+			try {
+				title["Title"].Value := title2
+			} 
 		}
 		if (title3) {
-			title["Subtitle"].Value := title3
+			try {
+				title["Subtitle"].Value := title3
+			} 
 		}
 		return
 	}
@@ -77,6 +84,8 @@ progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 	pbar.Show()
 	return pbar
 }
+
+;#endregion
 
 ;#region == TEXT Elements ==============================================================
 eventlog(event,verbosity:=1) {
