@@ -44,11 +44,17 @@ ExitApp
 
 ;#region == GUI Elements ===============================================================
 progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
-/*	Creates a minimal progress bar using Title and Params
-	If first var is a pbar object, set the percentage
+/*	Creates a minimal progress bar using Title, Params, Subtitle
+	If first var is a pbar object, param=percentage, title2=new title, title3=subtitle
 */
 	if IsObject(title) {
 		title["Percent"].Value := param
+		if (title2) {
+			title["Title"].Value := title2
+		}
+		if (title3) {
+			title["Subtitle"].Value := title3
+		}
 		return
 	}
 	width := (RegExMatch(" " param " ","\W[wW](\d+)\W",&par)) 
@@ -61,9 +67,13 @@ progressbar(title:="",param:="w200 cBlue",title2:="",title3:="") {
 	pbar.Opt("+Border +AlwaysOnTop -SysMenu -Caption")
 	if (title) {
 		pbar.SetFont("s16")
-		pbar.AddText(width " Center",title)
+		pbar.AddText(width " Center vTitle",title)
 	}
 	pbar.AddProgress(width " " height " " color " vPercent")
+	if (title2) {
+		pbar.SetFont("s12")
+		pbar.AddText(width " Center vSubtitle",title2)
+	}
 	pbar.Show()
 	return pbar
 }
