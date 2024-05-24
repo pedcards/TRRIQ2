@@ -237,6 +237,95 @@ PreventiceWebGrab(phase) {
 	return
 
 }
+
+wbUrl(url) {
+/*	Open a URL
+*/
+	gl.wbFail := true
+	loop 3																				; Number of attempts to permit redirects
+	{
+		try 
+		{
+			pb.sub("Launching URL attempt " A_Index)
+			eventlog("Navigating to " url " (attempt " A_index ").")
+			gl.Page.Navigate(url) 														; load URL
+			if !(wbWaitBusy(gl.settings.webwait)) {										; msec before fails
+				eventlog("Failed to load.")
+			}
+			if !(gl.Page.URL = url) {
+				eventlog("Redirected.",0)
+				sleep 1000
+			}
+		}
+		catch as e
+		{
+			eventlog("wbUrl failed with msg: " stregX(e.message "`n","",1,0,"[\r\n]+",1))
+			if instr(e.message,"The RPC server is unavailable") {
+				eventlog("Reloading DOM...")
+				wb := wbOpen()
+			}
+			continue
+		}
+		
+		if instr(gl.Page.URL,gl.login.string) {
+			pb.sub("Sending login")
+			loginErr := preventiceLogin()
+			eventlog("Login " ((loginErr) ? "submitted." : "attempted."))
+			try WinHide("Save password ahk_exe chrome.exe")
+			sleep 1000
+		}
+		if (gl.Page.URL=url) {
+			eventlog("Succeeded.",0)
+			gl.wbFail := false
+			return
+		}
+		else {
+			eventlog("Landed on " gl.Page.URL)
+			sleep 500
+		}
+	}
+	gl.wbFail := true
+	eventlog("Failed all attempts " url)
+	return
+}
+
+wbWaitBusy(maxTick) {
+	startTick:=A_TickCount
+	
+	while InStr(gl.Page.html,"table-body ng-hide") {									; class="table-body ng-hide" present while rendering FTP list
+		if (A_TickCount-startTick > maxTick) {
+			eventlog(gl.Page.url " timed out.")
+			return false
+		}
+		sleep 500
+	} 
+	while InStr(gl.Page.html,"{{progress}}") {											; present when rendering FTP login page
+		if (A_TickCount-startTick > maxTick) {
+			eventlog(gl.Page.url " timed out.")
+			return false
+		}
+		sleep 500
+	} 
+	; while gl.Page.IsLoading() {															; wait until done loading
+	; 	if (A_TickCount-startTick > maxTick) {
+	; 		eventlog(gl.Page.url " timed out.")
+	; 		return false																; break loop if time exceeds maxTick
+	; 	}
+	; 	checkBtn("Message from webpage","OK")											; check if err window present and click OK button
+	; 	sleep 200
+	; }
+	return A_TickCount-startTick
+}
+
+checkBtn(txt,btn) {
+	if (errHWND:=WinExist(txt)) {
+		ControlClick(%btn%,"ahk_id " %errHWND%)
+		eventlog("Message dialog clicked '" btn "'.")
+		sleep 200
+	}
+	return
+}
+
 preventiceLogin() {
 /*	Need to populate and submit user login form
 */
