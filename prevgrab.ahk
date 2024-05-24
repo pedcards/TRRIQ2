@@ -34,24 +34,65 @@ SetTitleMatchMode("2")
 
 ;#region == MAIN LOOP ==================================================================
 	eventlog("Initializing.")
-	pb := progressbar("Initializing browser...","w400")
+	pb := progressbar("Initializing browser...","w400"," ")
 
 	loop 3
 	{
 		eventlog("Browser open attempt " A_index)
 		pb.set(33*A_Index)
-		; wb := wbOpen()																	; start/activate an Chrome/Edge instance
-		; if IsObject(wb) {
-		; 	break
-		wb := ""
+		wb := wbOpen()																	; start/activate an Chrome/Edge instance
+		if IsObject(wb) {
+			break
+		}
 	}
 	if !IsObject(wb) {
 		eventlog("Failed to open browser.")
 		pb.close
 		MsgBox("Failed to open browser","PrevGrab error",262160)
 		ExitApp
+	} else {
+		pb.set(100)
 	}
+	prevtxt := ""
+	webStr := {}
+	wb.visible := gl.settings.isVisible													; for progress bars
+	wb.capabilities.HeadlessMode := gl.settings.isHeadless								; for Chrome/Edge window
+	wb.capabilities.IncognitoMode := gl.settings.isIncognito							; incognito mode does not save passwords
+	gl.Page := wb.NewSession()															; Session in gl.Page
 
+	if ObjHasOwnProp(A_Args,"ftp") {
+		webStr.FTP := readIni("str_ftp")
+		gl.login := readIni("str_ftpLogin")
+
+		PreventiceWebGrab("ftp")
+		gl.FAIL := gl.wbFail
+	} else {
+		; webStr.Enrollment := readIni("str_Enrollment")
+		webStr.Inventory := readIni("str_Inventory")
+		gl.login := readIni("str_Login")
+
+		; PreventiceWebGrab("Enrollment")
+		PreventiceWebGrab("Inventory")
+		if (gl.inv_ct < gl.inv_tot) {
+			gl.FAIL := true
+		}
+		FileDelete(gl.files_dir "\prev.txt")											; writeout each one regardless
+		FileAppend(prevtxt, gl.files_dir "\prev.txt")
+		eventlog("Enroll " gl.enroll_ct ", Inventory " gl.inv_ct ". (" round((A_TickCount-gl.t0)/1000,2) " sec)")
+	
+	}
+	if (gl.FAIL) {																		; Note when a table had failed to load
+		MsgBox("Downloads failed.",262160)
+		eventlog("Critical hit: Downloads failed.")
+	} else {
+		MsgBox("Preventice update complete!",262160)
+	}
+	
+	eventlog("Closing webdriver.")
+	gl.Page.Exit()
+	wb.driver.Exit()
+
+	ExitApp
 
 ;#endregion
 
