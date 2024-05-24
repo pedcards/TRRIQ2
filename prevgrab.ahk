@@ -199,7 +199,45 @@ wbOpen() {
 
 	return wb
 }
+
+PreventiceWebGrab(phase) {
+	web := webStr.%phase%
+	pb.title("Checking " phase)
+
+	wbUrl(web.url)																		; load URL, return DOM in gl.Page
+	if (gl.wbFail) {
+		return
+	}
+	wbWaitBusy(gl.settings.webwait)
+	prvFunc := web.fx
+	loop
+	{
+		pb.title("Page " A_Index)
+		try WinHide("Save password ahk_exe chrome.exe")
+
+		tbl := gl.Page.getElementsByClassName(web.tbl)[0]								; get the Main Table
+		if !IsObject(tbl) {
+			eventlog("PREVGRAB: *** " phase " *** No matching table.")
+			gl.FAIL := true
+			return
+		}
+		
+		body := tbl.getElementsByClassName(web.tblBody)[0]
+		
+		done := %prvFunc%(body)		; parsePreventiceEnrollment() or parsePreventiceInventory() or parsePreventiceFTP()
+		
+		if (done=0) {																	; no new records returned
+			break
+		}
+		
+		PreventiceWebPager(phase,web.changed,web.btn)
+	}
 	
+	gl.Page.Close()																		; release Session object
+	return
+
+}
+
 ;#endregion
 
 ;#region == TEXT Elements ==============================================================
