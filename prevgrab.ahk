@@ -120,6 +120,46 @@ class progressbar
 
 ;#endregion
 
+;#region == WEB Elements ===============================================================
+wbOpen() {
+/*	Use Rufaydium class https://github.com/Xeo786/Rufaydium-Webdriver
+	to use Google Chrome or Microsoft Edge webdriver to retrieve webpage
+*/
+	try cr32Ver := FileGetVersion("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
+	try cr64Ver := FileGetVersion("C:\Program Files\Google\Chrome\Application\chrome.exe")
+	try mseVer := FileGetVersion("C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+	
+	if (cr64Ver) {
+		verNum := cr64Ver
+		driver := "chromedriver"
+		eventlog("Found Chrome (x64) version " verNum)
+	} Else
+	if (cr32Ver) {
+		verNum := cr32Ver
+		driver := "chromedriver"
+		eventlog("Found Chrome (x86) version " verNum)
+	} Else
+	if (mseVer) {
+		verNum := mseVer
+		driver := "msedgedriver"
+		eventlog("Found Edge (x86) version " verNum)
+	} Else {
+		eventlog("Could not find installed Chrome or Edge.")
+		Return
+	}
+	Num :=  strX(verNum,"",0,1,".",1,1)
+
+	exe := A_ScriptDir "\bin\" driver ".exe"
+	if !FileExist(exe) {
+		eventlog("Could not find matching driver. Attempt download.")
+	}
+	wb := Rufaydium(driver)
+
+	return wb
+}
+	
+;#endregion
+
 ;#region == TEXT Elements ==============================================================
 eventlog(event,verbosity:=1) {
 	/*	verbose 1 or 0 from ini
