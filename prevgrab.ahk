@@ -208,9 +208,7 @@ eventlog(event,verbosity:=1) {
 		verbosity default 1
 		verbosity set 0 if only during verbose
 	*/
-		global gl
-		
-		score := verbosity + gl.settings["verbose"]
+		score := verbosity + gl.settings.verbose
 		if (score<1) {
 			return
 		}
@@ -250,7 +248,6 @@ readIni(section) {
 	bbb:27
 	ccc:31
 */
-	global
 	local x, i, key, val, k, v
 		, i_res
 		, i_type := []
@@ -262,24 +259,20 @@ readIni(section) {
 	loop parse x, "`n", "`r"
 	{
 		i := A_LoopField
-		if (i~="(?<!`")[=]") 															; find = not preceded by "
-		{
-			if (i ~= "^=") {															; starts with "=" is an array list
-				i_type.arr := true
-				i_res := Array()
-			} else {																	; "aaa=123" is a var declaration
-				i_type.var := true
-			}
+		if (i ~= "^=") {																; starts is "=" is an array list
+			i_type.arr := true
+			i_res := Array()
 		} 
-		else																			; does not contain a quoted =
-		{
-			if (i~="(?<!`")[:]") {														; find : not preceded by " is an object
-				i_type.obj := true
-				i_res := Map()
-		} else {																		; contains neither = nor : can be an array list
-				i_type.arr := true
-				i_res := Array()
-			}
+		else if (i ~= "(?<!`")[:]") {													; ":" not preceded by " is object
+			i_type.obj := true
+			i_res := Map()
+		} 
+		else if (i~="(?<!`")[=]") { 													; "aaa=123" is a var declaration
+			i_type.var := true
+		}
+		else {																			; contains neither = nor : can be an array list
+			i_type.arr := true
+			i_res := Array()
 		}
 	}
 	if ((i_type.obj) + (i_type.arr) + (i_type.var)) > 1 {								; too many types, return error
@@ -298,7 +291,7 @@ readIni(section) {
 		if (i_type.obj) {
 			key := trim(strX(i,"",1,0,":",1,1),'`"')
 			val := trim(strX(i,":",1,1,"",0),'`"')
-			i_res[key] := val
+			i_res.%key% := val
 		}
 		if (i_type.arr) {
 			i := RegExReplace(i,"^=")													; remove preceding =
