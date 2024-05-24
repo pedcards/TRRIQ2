@@ -34,12 +34,12 @@ SetTitleMatchMode("2")
 
 ;#region == MAIN LOOP ==================================================================
 	eventlog("Initializing.")
-	pb := progressbar("Initializing webdriver...","w400")
+	pb := progressbar("Initializing browser...","w400")
 
 	loop 3
 	{
 		eventlog("Browser open attempt " A_index)
-		progressbar(pb,33*A_Index)
+		pb.set(33*A_Index)
 		; wb := wbOpen()																	; start/activate an Chrome/Edge instance
 		; if IsObject(wb) {
 		; 	break
@@ -47,7 +47,7 @@ SetTitleMatchMode("2")
 	}
 	if !IsObject(wb) {
 		eventlog("Failed to open browser.")
-		pb.Destroy
+		pb.close
 		MsgBox("Failed to open browser","PrevGrab error",262160)
 		ExitApp
 	}
