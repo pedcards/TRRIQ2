@@ -237,6 +237,28 @@ PreventiceWebGrab(phase) {
 	return
 
 }
+preventiceLogin() {
+/*	Need to populate and submit user login form
+*/
+	gl.Page
+		.getElementById(gl.login.attr_user)
+		.SendKey(gl.login.user_name)													; .value := gl.login.user_name
+	
+	gl.Page
+		.getElementById(gl.login.attr_pass)
+		.SendKey(gl.login.user_pass)													; .value := gl.login.user_pass
+	
+	gl.Page
+		.getElementByID(gl.login.attr_btn)
+		.click()
+	
+	if !(wbWaitBusy(gl.settings.webwait)) {												; wait until done loading
+		return false
+	}
+	else {
+		return true
+	}
+}
 
 PreventiceWebPager(phase,chgStr,btnStr) {
 	pg0 := gl.Page.getElementById(chgStr).innerText
