@@ -58,46 +58,64 @@ SetTitleMatchMode("2")
 ExitApp
 
 ;#region == GUI Elements ===============================================================
-progressbar(title:="",param:="",title2:="",title3:="") {
-/*	Creates a minimal progress bar using Title, Params, Subtitle
-	If first var is a pbar object, param=percentage, title2=new title, title3=subtitle
-*/
-	local width:="w200", height:="h12", color:="cBlue"
-	if IsObject(title) {
-		if IsNumber(param) {
-			title["Percent"].Value := param
-		}
-		if (title2) {
-			try {
-				title["Title"].Value := title2
+class progressbar
+{
+	__New(params*) {
+		param := ""
+		title := ""
+		subtitle := ""
+
+		for val in params {
+			if (param="") && (val~="([wW]\d+).*?([hH]\d+)?") {							; matches "w000" or "h000"
+				param := val
 			} 
-		}
-		if (title3) {
-			try {
-				title["Subtitle"].Value := title3
+			else if (title="") {														; first non-param text
+				title := val
 			} 
+			else if (subtitle="") {														; second non-param text
+				subtitle := val
+			}
 		}
-		return
+
+		par := parseParam(param)
+
+		pb := Gui()
+		pb.Opt("+Border +AlwaysOnTop -SysMenu -Caption")
+		if (title) {
+			pb.SetFont("s16")
+			pb.AddText(par.W " Center vTitle",title)
+		}
+		pb.AddProgress(par.W " " par.H " " par.C " vPercent")
+		if (subtitle) {
+			pb.SetFont("s12")
+			pb.AddText(par.W " Center vSubtitle",subtitle)
+		}
+		this.gui := pb
+		pb.Show()
+
+		parseParam(param) {
+			width := (RegExMatch(" " param " ","\W[wW](\d+)\W",&par)) ? par[0] : "w200"
+			height := (RegExMatch(" " param " ","\W[hH]\w+\W",&par)) ? par[0] : "h12"
+			color := (RegExMatch(" " param " ","\W[cC]\w+\W",&par)) ? par[0] : "cBlue"
+			return {W:width,H:height,C:color}
+		}
 	}
-	width := (RegExMatch(" " param " ","\W[wW](\d+)\W",&par)) 
-		? par[0] : "w200"
-	height := (RegExMatch(" " param " ","\W[hH]\w+\W",&par))
-		? par[0] : "h12"
-	color := (RegExMatch(" " param " ","\W[cC]\w+\W",&par))
-		? par[0] : "cBlue"
-	pbar := Gui()
-	pbar.Opt("+Border +AlwaysOnTop -SysMenu -Caption")
-	if (title) {
-		pbar.SetFont("s16")
-		pbar.AddText(width " Center vTitle",title)
+
+	set(val) {
+		try this.gui["Percent"].Value := val
 	}
-	pbar.AddProgress(width " " height " " color " vPercent")
-	if (title2) {
-		pbar.SetFont("s12")
-		pbar.AddText(width " Center vSubtitle",title2)
+	title(val) {
+		try this.gui["Title"].Value := val
 	}
-	pbar.Show()
-	return pbar
+	sub(val) {
+		try this.gui["Subtitle"].Value := val
+	}
+	close() {
+		try {
+			this.gui.Destroy()
+			this.gui := ""
+		}
+	}
 }
 
 ;#endregion
