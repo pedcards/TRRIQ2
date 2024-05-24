@@ -238,6 +238,46 @@ PreventiceWebGrab(phase) {
 
 }
 
+PreventiceWebPager(phase,chgStr,btnStr) {
+	pg0 := gl.Page.getElementById(chgStr).innerText
+	
+	if (tot0 := stRegX(pg0,"i)items.*? of ",1,1,"\d+",0)) {
+		gl.inv_tot := tot0
+	}
+
+	if (phase="Enrollment") {
+		pgNum := gl.enroll_ct
+		gl.Page.getElementById(btnStr).click() 											; click when id=btnStr
+	}
+	if (phase="Inventory") {
+		pgNum := gl.inv_ct
+		progCt := gl.inv_tot
+		if (gl.Page.getElementsByClassName(btnStr)[0].getAttribute("onClick") ~= "return") {
+			return
+		}
+		gl.Page.getElementsByClassName(btnStr)[0].click() 								; click when class=btnstr
+	}
+	
+	t0 := A_TickCount
+	While (A_TickCount-t0 < gl.settings.webwait)
+	{
+		pb.set(100*pgNum/progCt)
+		
+		pg := gl.Page.getElementById(chgStr).innerText
+		if (pg != pg0) {
+			t1:=A_TickCount-t0
+			eventlog(phase " " pgNum " pager (" round(t1/1000,2) " s)"
+					, (t1>5000) ? 1 : 0)
+			return
+		}
+		sleep 50
+	}
+	eventlog(phase " " pgNum " timed out! (" round((A_TickCount-t0)/1000,2) " s)")
+	return
+}
+
+
+		
 ;#endregion
 
 ;#region == TEXT Elements ==============================================================
