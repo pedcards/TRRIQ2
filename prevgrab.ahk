@@ -83,17 +83,19 @@ SetTitleMatchMode("2")
 		eventlog("Enroll " gl.enroll_ct ", Inventory " gl.inv_ct ". (" round((A_TickCount-gl.t0)/1000,2) " sec)")
 	
 	}
-	if (gl.FAIL) {																		; Note when a table had failed to load
-		MsgBox("Downloads failed.",262160)
-		eventlog("Critical hit: Downloads failed.")
-	} else {
-		MsgBox("Preventice update complete!",262160)
-	}
-	
+	pb.close
+
 	eventlog("Closing webdriver.")
 	gl.Page.Close()
 	wb.Exit()
 
+	if (gl.FAIL) {																		; Note when a table had failed to load
+		MsgBox("Downloads failed.","PrevGrab",262160)
+		eventlog("Critical hit: Downloads failed.")
+	} else {
+		MsgBox("Preventice update complete!","PrevGrab",262160)
+	}
+	
 	ExitApp
 
 ;#endregion
@@ -214,12 +216,13 @@ PreventiceWebGrab(phase) {
 	prvFunc := web.fx
 	loop
 	{
-		pb.title("Page " A_Index)
+		pb.title("Parsing inventory")
+		pb.sub("Page " A_Index)
 		try WinHide("Save password ahk_exe chrome.exe")
 
 		tbl := gl.Page.getElementsByClassName(web.tbl)[0]								; get the Main Table
 		if !IsObject(tbl) {
-			eventlog("PREVGRAB: *** " phase " *** No matching table.")
+			eventlog("*** " phase " *** No matching table.")
 			gl.FAIL := true
 			return
 		}
@@ -235,7 +238,6 @@ PreventiceWebGrab(phase) {
 		PreventiceWebPager(phase,web.changed,web.btn)
 	}
 	
-	gl.Page.Close()																		; release Session object
 	return
 
 }
