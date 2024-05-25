@@ -91,8 +91,8 @@ SetTitleMatchMode("2")
 	}
 	
 	eventlog("Closing webdriver.")
-	gl.Page.Exit()
-	wb.driver.Exit()
+	gl.Page.Close()
+	wb.Exit()
 
 	ExitApp
 
