@@ -78,7 +78,7 @@ SetTitleMatchMode("2")
 		if (gl.inv_ct < gl.inv_tot) {
 			gl.FAIL := true
 		}
-		FileDelete(gl.files_dir "\prev.txt")											; writeout each one regardless
+		FileDelete(gl.files_dir "\prev.txt*")											; writeout each one regardless
 		FileAppend(prevtxt, gl.files_dir "\prev.txt")
 		eventlog("Enroll " gl.enroll_ct ", Inventory " gl.inv_ct ". (" round((A_TickCount-gl.t0)/1000,2) " sec)")
 	
