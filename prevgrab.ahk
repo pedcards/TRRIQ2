@@ -27,8 +27,10 @@ SetTitleMatchMode("2")
 	gl.settings := readIni("settings")
 	
 	gl.enroll_ct := 0
-	gl.inv_ct := 0
+	gl.inv_ct := gl.inv_tot := 0
 	gl.t0 := A_TickCount
+	gl.clip := gl.clip0 := ""
+	gl.FAIL := 0
 
 ;#endregion
 
