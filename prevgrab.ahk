@@ -31,6 +31,7 @@ SetTitleMatchMode("2")
 	gl.t0 := A_TickCount
 	gl.clip := gl.clip0 := ""
 	gl.FAIL := 0
+	gl.prevtxt := ""
 
 ;#endregion
 
@@ -55,7 +56,6 @@ SetTitleMatchMode("2")
 	} else {
 		pb.set(100)
 	}
-	prevtxt := ""
 	webStr := {}
 	wb.visible := gl.settings.isVisible													; for progress bars
 	wb.capabilities.HeadlessMode := gl.settings.isHeadless								; for Chrome/Edge window
@@ -79,7 +79,7 @@ SetTitleMatchMode("2")
 			gl.FAIL := true
 		}
 		FileDelete(gl.files_dir "\prev.txt*")											; writeout each one regardless
-		FileAppend(prevtxt, gl.files_dir "\prev.txt")
+		FileAppend(gl.prevtxt, gl.files_dir "\prev.txt")
 		eventlog("Enroll " gl.enroll_ct ", Inventory " gl.inv_ct ". (" round((A_TickCount-gl.t0)/1000,2) " sec)")
 	
 	}
@@ -421,7 +421,7 @@ parsePreventiceInventory(tbl) {
 			continue
 		}
 		
-		prevtxt .= "dev|" res.model "|" res.ser "`n"
+		gl.prevtxt .= "dev|" res.model "|" res.ser "`n"
 	}
 	gl.clip0 := gl.clip																	; set the check for repeat copy
 
