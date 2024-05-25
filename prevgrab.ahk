@@ -389,8 +389,47 @@ PreventiceWebPager(phase,chgStr,btnStr) {
 	return
 }
 
+parsePreventiceInventory(tbl) {
+/*	Parse Preventice website for device inventory
+	Add unique ser nums to /root/inventory/dev[@ser]
+	These will be removed when registered
+*/
+	gl.clip := tbl.innertext
+	if (gl.clip=gl.clip0) {																; no change since last clip
+		Return false
+	}
 
+	lbl := ["button","model","ser"]
+	
+	trows := tbl.getElementsbyTagName("tr")
+	loop trows.length()+1																; loop through rows
+	{
+		r_idx := A_index-1
+		trow := trows[r_idx]
+		tcols := trow.getElementsbyTagName("td")
+		res := []
+		loop lbl.length()																; loop through cols
+		{
+			c_idx := A_Index-1
+			res[lbl[A_index]] := trim(tcols[c_idx].innertext)
+		}
+		gl.inv_ct++
 		
+		if IsObject(wq.selectSingleNode("/root/pending/enroll"
+					. "[dev='" res.model " - " res.ser "']")) {							; exists in Pending
+			eventlog(res.model " - " res.ser " - already in use.",0)
+			continue
+		}
+		
+		prevtxt .= "dev|" res.model "|" res.ser "`n"
+	}
+	gl.clip0 := gl.clip																	; set the check for repeat copy
+
+	return true
+}
+
+
+
 ;#endregion
 
 ;#region == TEXT Elements ==============================================================
