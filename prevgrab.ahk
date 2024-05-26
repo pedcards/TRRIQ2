@@ -199,7 +199,7 @@ wbOpen() {
 	if !FileExist(exe) {
 		eventlog("Could not find matching driver. Attempt download.")
 	}
-	wb := Rufaydium(driver)
+	wb := Rufaydium(driver,,0,0)
 
 	return wb
 }
