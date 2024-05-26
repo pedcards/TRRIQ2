@@ -295,7 +295,7 @@ wbUrl(url) {
 
 wbWaitBusy(maxTick) {
 	startTick:=A_TickCount
-	
+
 	while InStr(gl.Page.html,"table-body ng-hide") {									; class="table-body ng-hide" present while rendering FTP list
 		if (A_TickCount-startTick > maxTick) {
 			eventlog(gl.Page.url " timed out.")
@@ -310,14 +310,14 @@ wbWaitBusy(maxTick) {
 		}
 		sleep 500
 	} 
-	; while gl.Page.IsLoading() {															; wait until done loading
-	; 	if (A_TickCount-startTick > maxTick) {
-	; 		eventlog(gl.Page.url " timed out.")
-	; 		return false																; break loop if time exceeds maxTick
-	; 	}
-	; 	checkBtn("Message from webpage","OK")											; check if err window present and click OK button
-	; 	sleep 200
-	; }
+	while (gl.Page.readyState != "complete") {											; wait until done loading
+		if (A_TickCount-startTick > maxTick) {
+			eventlog(gl.Page.url " timed out.")
+			return false																; break loop if time exceeds maxTick
+		}
+		checkBtn("Message from webpage","OK")											; check if err window present and click OK button
+		sleep 200
+	}
 	return A_TickCount-startTick
 }
 
