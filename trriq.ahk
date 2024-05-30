@@ -17,7 +17,7 @@ SetTitleMatchMode("2")
 
 ;#endregion
 
-;#region == TEXT elements ==============================================================
+;#region == TEXT functions ==============================================================
 eventlog(event,verbosity:=1) {
 	/*	verbose 1 or 0 from ini
 		verbosity default 1
@@ -227,6 +227,9 @@ strQ(var1,txt,null:="") {
 	return (var1="") ? null : RegExReplace(txt,"###",var1)
 }
 
+;#endregion
+
+;#region == OTHER FUNCTIONS ============================================================
 ObjHasValue(aObj, aValue, rx:="") {
 	for key, val in aObj
 		if (rx="RX") {																	; argument 3 is "RX" 
