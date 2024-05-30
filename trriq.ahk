@@ -310,6 +310,29 @@ ObjHasValue(aObj, aValue, rx:="") {
 	return false																		; fails match, return err
 }
 
+filecheck() {
+	if FileExist(".lock") {
+		err:=0
+		pb := progressbar("Waiting to clear lock","File write queued...")
+		loop 50 {
+			if (FileExist(".lock")) {
+				pb.set(p)
+				Sleep 100
+				p += 2
+			} else {
+				err:=1
+				break
+			}
+		}
+		if !(err) {
+			pb.close
+			return error
+		}
+		pb.close
+	} 
+	return
+}
+
 ;#endregion
 
 #Include xml2.ahk
