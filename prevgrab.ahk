@@ -22,7 +22,7 @@ SetTitleMatchMode("2")
 	gl.TRRIQ_path := A_ScriptDir
 	gl.files_dir := gl.TRRIQ_path "\files"
 	gl.pdfTemp := gl.TRRIQ_path "\pdfTemp"
-	wq := xml.new(gl.TRRIQ_path "\worklist.xml")
+	wq := XML(gl.TRRIQ_path "\worklist.xml")
 	
 	gl.settings := readIni("settings")
 	
