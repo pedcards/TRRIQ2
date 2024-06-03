@@ -278,3 +278,4 @@ filecheck() {
 #Include xml2.ahk
 #Include strx2.ahk
 #Include progressbar.ahk
+#Include Peep.v2.ahk																	; This is only for debugging
