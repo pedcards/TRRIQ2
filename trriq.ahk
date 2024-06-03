@@ -11,8 +11,51 @@ SetTitleMatchMode("2")
 
 ;#region == CONFIGURATION ==============================================================
 	gl := {}
+	pb := progressbar("w400","TRRIQ initializing..."," ")
+	
+	/*	User and path
+	*/
+	gl.user := A_UserName
+	gl.userinstance := substr(tobase(A_TickCount,36),-4)
+	gl.comp := A_ComputerName
+	gl.wqfileDT := FileGetTime(".\files\wqupdate")
+	gl.runningVer := FileGetTime(A_ScriptName)
+
+	/*	Determine PROD, DEVT, TEST
+	*/
+	SplitPath(A_ScriptDir,,&fileDir)
+	if InStr(fileDir, "AhkProjects") {
+		gl.isDevt := true
+		try FileDelete(".lock")
+		path:=readIni("devtpaths")
+		eventlog(">>>>> Started in DEVT mode.")
+	} else {
+		gl.isDevt := false
+		path:=readIni("paths")
+		eventlog(">>>>> Started in PROD mode. " A_ScriptName " ver " substr(gl.runningVer,1,12) " " A_Args[1])
+	}
+	if InStr(fileDir,"TEST") {
+		gl.isDevt := True
+		eventlog("***** launched from TEST folder.")
+	}
+	if ObjHasOwnProp(A_Args,"launch") {
+		eventlog("***** launched from legacy shortcut.")
+		FileAppend(A_Now ", " gl.user "|" gl.userinstance "|" A_ComputerName "`n", ".\files\legacy.txt")
+		MsgBox(
+			"Obsolete TRRIQ shortcut!`n`n"
+			. "Please notify Igor Gurvits or Jim Gray to update the shortcut on this machine: " A_ComputerName
+			, "Shortcut error"
+			, 0x30
+		)
+	}
+
+	/*	Read ini vars
+	*/
+	readini("setup")
 
 ;#endregion
+
+ExitApp
 
 ;#region == GUI elements ===============================================================
 
@@ -284,4 +327,6 @@ filecheck() {
 #Include xml2.ahk
 #Include strx2.ahk
 #Include progressbar.ahk
+#Include HostName2.ahk
+
 #Include Peep.v2.ahk																	; This is only for debugging
