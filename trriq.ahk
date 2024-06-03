@@ -10,6 +10,7 @@ SetWorkingDir A_ScriptDir
 SetTitleMatchMode("2")
 
 ;#region == CONFIGURATION ==============================================================
+	gl := {}
 
 ;#endregion
 
@@ -19,14 +20,13 @@ SetTitleMatchMode("2")
 
 ;#region == TEXT functions ==============================================================
 eventlog(event) {
-	global user, userinstance
+	global gl
 
-	comp := A_ComputerName
 	sessDate := FormatTime(A_Now,"yyyy.MM")											; FormatTime, sessdate, A_Now, yyyy.MM
 	now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 								; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
-	name := ".\logs\" . sessdate . ".log"
-	txt := now " [" user "/" comp "/" userinstance "] " event "`n"
-	filePrepend(txt,name)
+	fname := ".\logs\" . sessdate . ".log"
+	txt := now " [" gl.user "/" gl.comp "/" gl.userinstance "] " event "`n"
+	filePrepend(txt,fname)
 }
 
 FilePrepend( Text, Filename ) { 
