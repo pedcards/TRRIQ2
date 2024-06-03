@@ -56,11 +56,11 @@ readIni(section) {
 	bbb:27
 	ccc:31
 */
-	local x, i, key, val, k, v
+	local x, i, key, val
 		, i_res
 		, i_type := []
 		, i_lines := []
-		, iniFile := ".\files\prevgrab.ini"
+		, iniFile := ".\files\trriq.ini"
 	i_type.var := i_type.obj := i_type.arr := false
 
 	x:=IniRead(iniFile,section)
@@ -77,6 +77,7 @@ readIni(section) {
 		} 
 		else if (i~="(?<!`")[=]") { 													; "aaa=123" is a var declaration
 			i_type.var := true
+			i_res := ""
 		}
 		else {																			; contains neither = nor : can be an array list
 			i_type.arr := true
@@ -92,9 +93,10 @@ readIni(section) {
 		if (i_type.var) {
 			key := strX(i,"",1,0,"=",1,1)
 			val := trim(strX(i,"=",1,1,"",1,0),'`"')
-			k := &key
-			v := &val
-			%k% := %v%
+			gl.%key% := val
+			; k := &key
+			; v := &val
+			; %k% := %v%
 		}
 		if (i_type.obj) {
 			key := trim(strX(i,"",1,0,":",1,1),'`"')
