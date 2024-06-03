@@ -18,18 +18,15 @@ SetTitleMatchMode("2")
 ;#endregion
 
 ;#region == TEXT functions ==============================================================
-eventlog(event,verbosity:=1) {
-	/*	verbose 1 or 0 from ini
-		verbosity default 1
-		verbosity set 0 if only during verbose
-	*/
-		user := A_UserName
-		comp := A_ComputerName
-		sessDate := FormatTime(A_Now,"yyyy.MM")											; FormatTime, sessdate, A_Now, yyyy.MM
-		now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 								; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
-		name := ".\logs\" . sessdate . ".log"
-		txt := now " [" user "/" comp "] " event "`n"
-		filePrepend(txt,name)
+eventlog(event) {
+	global user, userinstance
+
+	comp := A_ComputerName
+	sessDate := FormatTime(A_Now,"yyyy.MM")											; FormatTime, sessdate, A_Now, yyyy.MM
+	now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 								; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
+	name := ".\logs\" . sessdate . ".log"
+	txt := now " [" user "/" comp "/" userinstance "] " event "`n"
+	filePrepend(txt,name)
 }
 
 FilePrepend( Text, Filename ) { 
