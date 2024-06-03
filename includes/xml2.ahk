@@ -6,7 +6,8 @@ class XML
 	addElement() = append new element to node object
 	insertElement() = insert new element above node object
 	getText() = return element text if present
-	save() = saves XML with filename param or original filename
+	findXPath() = return xpath to node (needs work)
+	saveXML() = saves XML with filename param or original filename
 */
 	__New(src:="") {
 		this.doc := ComObject("Msxml2.DOMDocument")
@@ -109,7 +110,7 @@ class XML
 		}
 	}
 
-	save(fname:="") {
+	saveXML(fname:="") {
 	/*	Saves XML
 		to fname if passed, otherwise to original filename
 	*/
@@ -119,13 +120,50 @@ class XML
 		this.doc.save(fname)
 	}
 
+	findXPath(node) {
+	/*	Returns xpath of node
+	*/
+		; x := node.nodeType
+		build := ""
+
+		while (node.parentNode) {
+			switch node.nodeType {
+				case 1:																	; 1=Element
+				{
+					index := this.elementIndex(node)
+					build := "/" node.nodeName "[" index "]" . build
+					node := node.parentNode
+				} 
+				case 2:																	; 2=Attribute
+				{
+
+				}
+				case 3:																	; 3=Text
+				{
+
+				}
+				default:
+					
+			}
+		}
+		return build
+	}
+
 /*	====================================================================================
-	INTERNAL METHODS
+	INTERNAL SUPPORT FUNCTIONS
 */
 	isNode(node) {
 		if (node is String) {
 			node := this.doc.selectSingleNode(node)
 		}
 		return node
+	}
+	elementIndex(node) {
+		parent := node.parentNode
+		for candidate in parent.childNodes {
+			if (candidate.nodeName=node.nodeName) {
+				return A_Index
+			}
+		}
 	}
 }
