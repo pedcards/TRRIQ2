@@ -1,6 +1,9 @@
 #Requires AutoHotkey v2
 class progressbar
 {
+	; progressbar params (in any order):
+	; "w400 h12","TITLE","subtitle"
+	; Can only update elements added at creation
 	__New(params*) {
 		param := ""
 		title := ""
