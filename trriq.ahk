@@ -73,9 +73,7 @@ SetTitleMatchMode("2")
 
 	/*	Read outdocs.csv for Cardiologist and Fellow names 
 	*/
-	Docs := readDocs()
-
-
+	Docs := readDocs()																	; returns Docs[site][idx].name
 
 ;#endregion
 
