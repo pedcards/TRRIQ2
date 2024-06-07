@@ -31,7 +31,7 @@ class getLocation
 		this.m_strXmlFilename := ".\files\wkslocation.xml"                         ; path to xml data file that contains workstation information
 		wks := A_ComputerName
 		location := this.GetWksLocation(wks)
-		return location
+		this.location := location
 	}
 
 	;******************************************************************************
@@ -209,15 +209,16 @@ class getLocation
 			facility name {MAIN:GB-SCH-MAIN,...}
 		wksName argument returns the hl7code and hl7name (Preventice facility codes)
 	*/
-		locationList := []
-		locationLong := {}
+		locationList := Map(0,"",1,"")
+		locationLong := Map()
 		locationData := XML(this.m_strXmlFilename)
 		wksList := locationData.SelectSingleNode(this.m_strXmlLocationsPath)
 		loop (wksNodes := wksList.SelectNodes(this.m_strXmlLocationName)).Length
 		{
+			tracked := 1
 			location:= wksNodes.item(A_Index - 1)
-			tracked := !(location.selectSingleNode("tracked").text = "n")
-			tabname := location.selectSingleNode("tabname").text
+			try tabname := location.selectSingleNode("tabname").text
+			try tracked := !(location.selectSingleNode("tracked").text = "n")
 			locationList[tracked] .= tabname . "|"
 		}
 		loop (wksNodes := wksList.SelectNodes(this.m_strXmlLocationName "/alias")).Length
