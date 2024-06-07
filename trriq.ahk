@@ -71,6 +71,12 @@ SetTitleMatchMode("2")
 	; sites.code									= {"MAIN":7343} 4 digit code for sending facility
 	; sites.facility								= {"MAIN":"GB-SCH-SEATTLE"}
 
+	/*	Read outdocs.csv for Cardiologist and Fellow names 
+	*/
+	Docs := readDocs()
+
+
+
 ;#endregion
 
 ExitApp
@@ -346,5 +352,6 @@ filecheck() {
 #Include strx2.ahk
 #Include progressbar.ahk
 #Include HostName.ahk
+#Include updateData.ahk
 
 #Include Peep.v2.ahk																	; This is only for debugging
