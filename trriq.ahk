@@ -75,6 +75,17 @@ SetTitleMatchMode("2")
 	*/
 	Docs := readDocs()																	; returns Docs[site][idx].name
 
+	/*	Generate worklist.xml if missing
+	*/
+	gl.wq_filename := path.data "worklist.xml"
+	if fileexist(gl.wq_filename) {
+		wq := XML(gl.wq_filename)
+	} else {
+		wq := XML("<root/>")
+		wq.addElement("/root","pending")
+		wq.addElement("/root","done")
+		wq.save(gl.wq_filename)
+	}
 ;#endregion
 
 ExitApp
