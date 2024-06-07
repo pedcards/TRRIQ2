@@ -10,11 +10,11 @@ SetWorkingDir A_ScriptDir
 SetTitleMatchMode("2")
 
 ;#region == CONFIGURATION ==============================================================
-	gl := {}
 	pb := progressbar("w400","TRRIQ initializing..."," ")
 	
 	/*	User and path
 	*/
+	gl := {}
 	gl.user := A_UserName
 	gl.userinstance := substr(tobase(A_TickCount,36),-4)
 	gl.comp := A_ComputerName
@@ -52,6 +52,24 @@ SetTitleMatchMode("2")
 	/*	Read ini vars
 	*/
 	readini("setup")
+
+	/*	Get location info
+	*/
+	gl.wksVoid := StrSplit(gl.wksVM, "|")
+	pb.title("Identifying workstation...")
+	wks := GetLocation()
+	if !(wksLoc := wks.location) {
+		pb.Destroy
+		MsgBox("No clinic location specified!`n`nExiting","Location error",262160)
+		ExitApp
+	}
+
+	sites := wks.getSites(wksLoc)
+	; sites.tracked	(aka sites)						= sites we are tracking
+	; sites.ignored (aka sites0)					= sites we are not tracking <tracked>N</tracked> in wkslocation
+	; sites.long									= {CIS:TAB}
+	; sites.code									= {"MAIN":7343} 4 digit code for sending facility
+	; sites.facility								= {"MAIN":"GB-SCH-SEATTLE"}
 
 ;#endregion
 
@@ -327,6 +345,6 @@ filecheck() {
 #Include xml2.ahk
 #Include strx2.ahk
 #Include progressbar.ahk
-#Include HostName2.ahk
+#Include HostName.ahk
 
 #Include Peep.v2.ahk																	; This is only for debugging
