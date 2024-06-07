@@ -92,33 +92,48 @@ class getLocation
 	PromptForLocation()
 	{
 		workstationLocation := ""
+		SelectConfirm := ""
+		SelectedLocation := ""
 
 		locationData := this.GetLocations()                                              ; Function to retrive the location list from the data store
 
 		;Buld and display the dialog box
-		Gui, New, AlwaysOnTop -MaximizeBox -MinimizeBox, Unknown Location
-		Gui, Add, Text, x15 y20 w250 h60,The application is unable to determine your location. Please select your location from the list and confirm that you made the correct selection.
-		Gui, Add, ListBox, vSelectedLocation x15 y70 w245 h200 Sort gLocationList_Click, %locationData%
-		Gui, Add, Text,x100 y290 w72, You selected:
-		Gui, Add, Text, vSelectConfirm x172 y290 w150, %SelectConfirm% 
-		Gui, Add, Button, x160 y315 w100 gConfirmBtn_Click, Confirm
-		Gui, Show, w275 h350
+
+		wksGUI := Gui()
+		wksGUI.Title := "Unknown Location"
+		wksGUI.AddText("x15 y20 w250 h60","The application is unable to determine your location. Please select your location from the list and confirm that you made the correct selection.")
+		wksGUI.AddListBox("vSelectedLocation x15 y70 w245 h200 Sort gLocationList_Click",locationData)
+		wksGUI.AddText("x100 y290 w72","You selected:")
+		wksGUI.AddText("vSelectConfirm x172 y290 w150",SelectConfirm)
+		wksGUI.AddButton("x160 y315 w100 gConfirmBtn_Click","Confirm")
+		wksGUI.Opt("AlwaysOnTop -MaximizeBox -MinimizeBox")
+		wksGUI.Show()
+
+
+		; Gui, New, AlwaysOnTop -MaximizeBox -MinimizeBox, Unknown Location
+		; Gui, Add, Text, x15 y20 w250 h60,The application is unable to determine your location. Please select your location from the list and confirm that you made the correct selection.
+		; Gui, Add, ListBox, vSelectedLocation x15 y70 w245 h200 Sort gLocationList_Click, %locationData%
+		; Gui, Add, Text,x100 y290 w72, You selected:
+		; Gui, Add, Text, vSelectConfirm x172 y290 w150, %SelectConfirm% 
+		; Gui, Add, Button, x160 y315 w100 gConfirmBtn_Click, Confirm
+		; Gui, Show, w275 h350
 		
-		WinWaitClose, Unknown Location                                              ;wait for the user to respond
+		WinWaitClose("Unknown Location")                                              ;wait for the user to respond
 		return %workstationLocation%                                                ;return the selected location
 
 		;******************* Gui Event handlers (subroutines) *********************
 		LocationList_Click:
-			Gui, Submit, Nohide                                                     ; user selected location from list, submit dialog data / keep displaying the dialog
-			GuiControl,, SelectConfirm, %SelectedLocation%                          ; reflect selected value in confirmation text box
+			wksGUI.Submit([0])                                                     ; user selected location from list, submit dialog data / keep displaying the dialog
+			wksGUI.Control()
+			wksGUI.Text := SelectedLocation                          ; reflect selected value in confirmation text box
 		return
 
 		ConfirmBtn_Click:
-			Gui, Submit, Hide                                                       ; User made/confirmed selection, submit data
-			AddWorkstation(SelectedLocation)                                        ; Persist workstation/location to data store
+			wksGUI.Submit([1])
+			this.AddWorkstation(SelectedLocation)                                        ; Persist workstation/location to data store
 			workstationLocation := SelectedLocation                                 ; set the return value to the selected location
-			WinClose, Unknown Location                                              ; Close the dialog
-			Gui, Destroy                                                            ; Release resources
+			WinClose("Unknown Location")                                            ; Close the dialog
+			wksGUI.Destroy()                                                        ; Release resources
 		return
 	}
 
@@ -183,7 +198,7 @@ class getLocation
 		; locationData.TransformXML()
 		; locationData.saveXML()
 		
-		eventlog("New machine " wsnameNode.Text " assigned to location " location)
+		eventlog("New machine " workstation.Text " assigned to location " location)
 	}
 
 	getSites(wksName) {
