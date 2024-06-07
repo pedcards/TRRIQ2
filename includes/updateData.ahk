@@ -8,21 +8,21 @@ readDocs() {
 	
 	pb.title("Checking provider list for updates...")
 	fnameIN_dt := FileGetTime(path.chip "outdocs.xlsx")
-	fnameLOC_dt := FileGetTime(".\files\outdocs.xlsx")
+	fnameLOC_dt := FileGetTime(path.data "outdocs.xlsx")
 
 	if (fnameIN_dt > fnameLOC_dt) {														; chipotle outdocs has been updated
-		FileCopy(path.chip "outdocs.xlsx",".\files\outdocs.xlsx", 1)
+		FileCopy(path.chip "outdocs.xlsx",path.data "outdocs.xlsx", 1)
 
-		oWorkbook := ComObjGet(A_WorkingDir "\files\outdocs.xlsx")
-		oWorkbook.SaveAs(A_WorkingDir "\files\outdocstmp.csv",xlCSV:=6)
+		oWorkbook := ComObjGet(path.data "outdocs.xlsx")						; needs A_WorkingDir "\data\outdocs.xlsx"?
+		oWorkbook.SaveAs(path.data "outdocstmp.csv",xlCSV:=6)
 		oWorkbook := ""
-		FileMove(".\files\outdocstmp.csv",".\files\outdocs.csv", 1)
+		FileMove(path.data "outdocstmp.csv",path.data "outdocs.csv", 1)
 	}
 	
 	pb.title("Scanning providers...")
 	tmpChk := false
 	Docs := Map()
-	Loop Read ".\files\outdocs.csv"
+	Loop Read path.data "outdocs.csv"
 	{
 		tmp := StrSplit(A_LoopReadLine,",","`"")
 		if (A_Index=1) {
@@ -81,12 +81,12 @@ updateCall() {
 	}
 	FileOpen(".lock", "W")
 	
-	if fileexist(".\files\call.xml") {
-		y := XML(".\files\call.xml")
+	if fileexist(path.data "call.xml") {
+		y := XML(path.data "call.xml")
 	} else {
 		y := XML("<root/>")
 		y.addElement("/root","forecast")
-		y.save(".\files\call.xml")
+		y.save(path.data "call.xml")
 	}
 	
 	callChg := false
@@ -97,7 +97,7 @@ updateCall() {
 		pb.title("Updating schedules")
 		pb.subtitle("Syncing...")
 		dest := "pedcards@homer.u.washington.edu:public_html/patlist/call.xml"
-		Run(".\files\pscp.exe -sftp -i .\files\trriq-pr.ppk -p .\files\call.xml" dest,, "Min")
+		Run(".\bin\pscp.exe -sftp -i .\files\trriq-pr.ppk -p .\data\call.xml" dest,, "Min")
 		sleep 500																		; Citrix VM needs longer delay than 200ms to recognize window
 		ConsWin := WinExist("ahk_class ConsoleWindowClass")								; get window ID
 		if WinExist("ahk_id " consWin)
@@ -107,7 +107,7 @@ updateCall() {
 		eventlog("Uploaded call list.")
 	}
 	FileDelete(".lock")
-	FileCopy(".\files\call.xml", path.chip "call.xml" , 1)
+	FileCopy(path.data "call.xml", path.chip "call.xml" , 1)
 	
 	return
 }
@@ -266,7 +266,7 @@ parseForecast(fcRecent) {
 			q.parentNode.removeChild(q)
 		}
 	}
-	y.save(".\files\call.xml")
+	y.save(".\data\call.xml")
 	Eventlog("Electronic Forecast " fcRecent " updated.")
 	callChg := true
 	
@@ -420,7 +420,7 @@ readQgenda() {
 		y.selectSingleNode("/root/forecast").setAttribute("mod",A_Now)					; change forecast[@mod] to now
 	}
 	
-	y.save(".\files\call.xml")
+	y.save(".\data\call.xml")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	callChg := true
 	
