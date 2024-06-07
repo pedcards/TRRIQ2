@@ -21,12 +21,12 @@ readDocs() {
 	
 	pb.title("Scanning providers...")
 	tmpChk := false
-	Docs := Object()
+	Docs := Map()
 	Loop Read ".\files\outdocs.csv"
 	{
 		tmp := StrSplit(A_LoopReadLine,",","`"")
 		if (A_Index=1) {
-			Loop tmp.MaxIndex() {
+			Loop tmp.Length {
 				i := trim(tmp[A_Index])
 				switch i																; grab idx nums for these cols
 				{
@@ -40,25 +40,31 @@ readDocs() {
 			}
 			Continue
 		}
-		if (tmp.1="Name" or tmp.1="end" or tmp.1="") {									; header, end, or blank lines
+		if (tmp[1]="Name" or tmp[1]="end" or tmp[1]="") {								; header, end, or blank lines
 			continue
 		}
 		if (tmp[idxEml]="group") {														; skip group numbers
 			continue
 		}
-		if (tmp.2="" and tmp.3="" and tmp.4="" and tmp.5="" and tmp.6="") {				; Fields 2,3,4 blank = new group
+		if (tmp[2]="" and tmp[3]="" and tmp[4]="" and tmp[5]="") {						; Fields 2,3,4 blank = new group
 			tmpGrp := tmp[idxName]
 			tmpIdx := 0
 			continue
 		}
-		if !(tmp[idxEml]~="i)(seattlechildrens\.org|washington\.edu)") {				; skip non-SCH or non-UW providers
+		if !(tmp[idxEml]~="i)(seattlechildrens\.org|washington\.edu|uw\.edu)") {		; skip non-SCH or non-UW providers
 			continue
+		}
+		try if IsObject(Docs[tmpGrp]) {
+		} 
+		catch {
+			Docs[tmpGrp] := []
 		}
 		tmpIdx += 1
 		tmpPrv := RegExReplace(tmp[idxName],"^(.*?) (.*?)$","$2, $1")					; input FIRST LAST NAME ==> LAST NAME, FIRST
-		Docs[tmpGrp,tmpIdx]:=tmpPrv
-		Docs[tmpGrp ".eml",tmpIdx] := tmp[idxEml]
-		Docs[tmpGrp ".npi",tmpIdx] := tmp[idxNPI]
+		Docs[tmpGrp][tmpIdx] := "here"
+		Docs[tmpGrp][tmpIdx]["name"] := tmpPrv
+		Docs[tmpGrp][tmpIdx]["eml"] := tmp[idxEml]
+		Docs[tmpGrp][tmpIdx]["npi"] := tmp[idxNPI]
 	}
 
 	return Docs
