@@ -20,7 +20,7 @@ class getLocation
 	SelectConfirm := ""
 
 	; **** Globals used as constants (do not change these variables in the code)
-	m_strXmlFilename := ".\files\wkslocation.xml"                         ; path to xml data file that contains workstation information
+	m_strXmlFilename := ".\data\wkslocation.xml"                          ; path to xml data file that contains workstation information
 	m_strXmlLocationsPath := "/root/locations"                            ; xml path to locations node (location names)
 	m_strXmlWorkstationsPath := "/root/workstations"                      ; xml path to workstations node (contains all infomation for workstations)
 	m_strXmlWksNodeName := "workstation"                                  ; name of "workstation" node in the xml data file
@@ -28,7 +28,6 @@ class getLocation
 	m_strXmlLocationName := "location"                                    ; name of the "location" node in the xml data file
 
 	__New() {
-		this.m_strXmlFilename := ".\files\wkslocation.xml"                         ; path to xml data file that contains workstation information
 		wks := A_ComputerName
 		location := this.GetWksLocation(wks)
 		this.location := location
