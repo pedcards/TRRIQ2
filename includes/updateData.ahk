@@ -410,7 +410,7 @@ readQgenda() {
 		
 		fcNode := "/root/forecast/call[@date='" qDate.YMD "']"
 		if !IsObject(y.selectSingleNode(fcNode)) {										; create node if doesn't exist
-			y.addElement("/root/forecast","call","{date:" qDate.YMD "}")
+			y.addElement("/root/forecast","call",{date:qDate.YMD})
 		}
 		
 		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {							; create node for service person if not present
