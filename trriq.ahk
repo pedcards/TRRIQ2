@@ -86,6 +86,12 @@ SetTitleMatchMode("2")
 		wq.addElement("/root","done")
 		wq.save(gl.wq_filename)
 	}
+
+	/*	Read call schedule (Electronic Forecast and Qgenda)
+	*/
+	fcVals := readIni("Forecast")
+	updateCall()
+
 ;#endregion
 
 ExitApp
