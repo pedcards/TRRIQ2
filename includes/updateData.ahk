@@ -95,7 +95,7 @@ updateCall() {
 	
 	if (callChg=true) {
 		pb.title("Updating schedules")
-		pb.subtitle("Syncing...")
+		pb.sub("Syncing...")
 		dest := "pedcards@homer.u.washington.edu:public_html/patlist/call.xml"
 		Run(".\bin\pscp.exe -sftp -i .\files\trriq-pr.ppk -p .\data\call.xml" dest,, "Min")
 		sleep 500																		; Citrix VM needs longer delay than 200ms to recognize window
@@ -117,7 +117,7 @@ readForecast() {
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	eventlog("Check electronic forecast.")
-	pb.subtitle("Scanning forecast files...")
+	pb.sub("Scanning forecast files...")
 	
 	fcLast :=
 	fcNext :=
@@ -166,7 +166,7 @@ readForecast() {
 		}
 		
 		pb.title("Updating schedules")
-		pb.subtitle(fcFile)
+		pb.sub(fcFile)
 		FileCopy(fcFileLong, "fcTemp.xlsx", 1)											; create local copy to avoid conflict if open
 		eventlog("Parsing " fcFileLong)
 		parseForecast(fcRecent)															; parseForecast on this file (unprocessed NEXT or LAST)
@@ -328,7 +328,6 @@ readQgenda() {
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
-/*
 	global y, path, callChg
 	
 	fcMod := substr(y.selectSingleNode("/root/forecast").getAttribute("mod"),1,8) 
@@ -337,28 +336,29 @@ readQgenda() {
 		return
 	}
 	
-	t0 := t1 := A_now
-	t1 += 14, Days
-	FormatTime,t0, %t0%, MM/dd/yyyy
-	FormatTime,t1, %t1%, MM/dd/yyyy
-	IniRead, q_com, .\files\qgenda.ppk, api, com
-	IniRead, q_eml, .\files\qgenda.ppk, api, eml
+	t0 := A_now
+	t1 := DateAdd(t0, 14, "Days")
+	t0 := FormatTime(t0, "MM/dd/yyyy")
+	t1 := FormatTime(t1, "MM/dd/yyyy")
+	q_com := IniRead(path.files "qgenda.ppk", "api", "com")
+	q_eml := IniRead(path.files "qgenda.ppk", "api", "eml")
 	
-	qg_fc := {"CALL":"PM_We_A"
-			, "fCall":"PM_We_F"
-			, "EP Call":"EP"
-			, "ICU":"ICU_A"
-			, "TXP Inpt CICU":"Txp_CICU"
-			, "TXP Inpt Floor":"Txp_Floor"
-			, "IW":"Ward_A"}
+	qg_fc := Map("CALL","PM_We_A"
+			, "fCall","PM_We_F"
+			, "EP Call","EP"
+			, "ICU","ICU_A"
+			, "TXP Inpt CICU","Txp_CICU"
+			, "TXP Inpt Floor","Txp_Floor"
+			, "IW","Ward_A")
 	
-	progress, , Updating schedules, Auth Qgenda...
+	pb.title("Updating schedules")
+	pb.sub("Auth Qgenda...")
 	url := "https://api.qgenda.com/v2/login"
 	str := httpGetter("POST",url,q_eml
 		,"Content-Type=application/x-www-form-urlencoded")
 	qAuth := parseJSON(str)[1]															; MsgBox % qAuth[1].access_token
 	
-	progress, , Updating schedules, Reading Qgenda...
+	pb.sub("Reading Qgenda...")
 	url := "https://api.qgenda.com/v2/schedule"
 		. "?companyKey=" q_com
 		. "&startDate=" t0
@@ -384,20 +384,20 @@ readQgenda() {
 		.	" and not IsStruck"
 		. "&$orderby=Date,TaskName"
 	str := httpGetter("GET",url,
-		,"Authorization= bearer " qAuth.access_token
+		,"Authorization= bearer " qAuth["access_token"]
 		,"Content-Type=application/json")
 	
-	progress, , Updating schedules, Parsing JSON...
+	pb.sub("Parsing JSON...")
 	qOut := parseJSON(str)
 	
-	progress, , Updating schedules, Updating Forecast...
-	Loop, % qOut.MaxIndex()
+	pb.sub("Updating Forecast...")
+	Loop qOut.Count
 	{
 		i := A_Index
-		qDate := parseDate(qOut[i,"Date"])												; Date array
-		qTask := qg_fc[qOut[i,"TaskName"]]												; Call name
-		qNameF := qOut[i,"StaffFName"]
-		qNameL := qOut[i,"StaffLName"]
+		qDate := parseDate(qOut[i]["Date"])												; Date array
+		qTask := qg_fc[qOut[i]["TaskName"]]												; Call name
+		qNameF := qOut[i]["StaffFName"]
+		qNameL := qOut[i]["StaffLName"]
 		if (qNameL~="^[A-Z]{2}[a-z]") {													; Remove first initial if present
 			qNameL := SubStr(qNameL,2)
 		}
@@ -408,24 +408,24 @@ readQgenda() {
 			qnameL:="Friedland-Little"
 		}
 		
-		if !IsObject(y.selectSingleNode("/root/forecast/call[@date='" qDate.YMD "']")) {
-			y.addElement("call","/root/forecast", {date:qDate.YMD})						; create node if doesn't exist
+		fcNode := "/root/forecast/call[@date='" qDate.YMD "']"
+		if !IsObject(y.selectSingleNode(fcNode)) {										; create node if doesn't exist
+			y.addElement("/root/forecast","call","{date:" qDate.YMD "}")
 		}
 		
-		fcNode := "/root/forecast/call[@date='" qDate.YMD "']"
 		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {							; create node for service person if not present
-			y.addElement(qTask,fcNode)
+			y.addElement(fcNode,qTask)
 		}
-		y.setText(fcNode "/" qTask, qNameF " " qNameL)									; setText changes text value for that node
+		y.selectSingleNode(fcNode "/" qTask).text := qNameF " " qNameL					; change text value for that node
+		; y.setText(fcNode "/" qTask, qNameF " " qNameL)	
 		y.selectSingleNode("/root/forecast").setAttribute("mod",A_Now)					; change forecast[@mod] to now
 	}
 	
-	y.save(".\data\call.xml")
+	y.save(path.data "call.xml")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	callChg := true
 	
-return
-*/
+	return
 }
 
 getCall(dt) {
@@ -476,17 +476,16 @@ httpGetter(RequestType:="",URL:="",Payload:="",Header*) {
 /*	more sophisticated WinHttp submitter, request GET or POST
  *	based on https://autohotkey.com/boards/viewtopic.php?p=135125&sid=ebbd793db3b3d459bfb4c42b4ccd090b#p135125
  */
-/*
-	hdr := { "form":"application/x-www-form-urlencoded"
-			,"json":"application/json"
-			,"html":"text/html"}
+	; hdr := [ "form","application/x-www-form-urlencoded"
+	; 		,"json","application/json"
+	; 		,"html","text/html" ]
 	
-	pWHttp := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+	pWHttp := ComObject("WinHttp.WinHttpRequest.5.1")
 	pWHttp.Open(RequestType, URL, 0)
 	
-	loop, % Header.MaxIndex()
+	loop Header.Length
 	{
-		splitIni(Header[A_index],hdr_type,hdr_val) 
+		splitIni(Header[A_index],&hdr_type,&hdr_val) 
 		;~ MsgBox % "'" hdr_type "'`n'" hdr_val "'"
 		pWHttp.SetRequestHeader(hdr_type, hdr_val)
 	}
@@ -499,29 +498,31 @@ httpGetter(RequestType:="",URL:="",Payload:="",Header*) {
 	
 	pWHttp.WaitForResponse()
 	vText := pWHttp.ResponseText
-return vText
-*/
+	
+	return vText
 }
 
 parseJSON(txt) {
-	/*
-	out := {}
+	out := Map()
+	n:=1
 	Loop																		; Go until we say STOP
 	{
 		ind := A_index															; INDex number for whole array
-		ele := strX(txt,"{",n,1, "}",1,1, n)									; Find next ELEment {"label":"value"}
-		if (n > strlen(txt)) {
+		ele := strX(txt,"{",n,1, "}",1,1, &n)									; Find next ELEment {"label":"value"}
+		if (n > StrLen(txt)) {
 			break																; STOP when we reach the end
 		}
+		out[ind] := Map()
 		sub := StrSplit(ele,",")												; Array of SUBelements for this ELEment
-		Loop, % sub.MaxIndex()
+		Loop sub.Length
 		{
-			StringSplit, key, % sub[A_Index] , : , `"							; Split each SUB into label (key1) and value (key2)
-			out[ind,key1] := key2												; Add to the array
+			key := StrSplit(sub[A_Index],":","`"")								; Split each SUB into label (key1) and value (key2)
+			out[ind][key[1]] := key[2]											; Add to the array
+			; StringSplit, key, % sub[A_Index] , : , `"
+			; out[ind,key1] := key2	
 		}
 	}
 	return out
-	*/
 }
 
 #Include xml2.ahk
