@@ -119,11 +119,11 @@ readForecast() {
 	eventlog("Check electronic forecast.")
 	pb.sub("Scanning forecast files...")
 	
-	fcLast :=
-	fcNext :=
-	fcFile := 
-	fcFileLong := 
-	fcRecent :=
+	fcLast := ""
+	fcNext := ""
+	fcFile := ""
+	fcFileLong := "" 
+	fcRecent := ""
 	
 	Wday := FormatTime(A_Now,"Wday")													; Today's day of the week (Sun=1)
 	dp := DateAdd(A_now,2-Wday,"days")													; Get last Monday's date
