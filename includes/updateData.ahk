@@ -417,11 +417,10 @@ readQgenda() {
 			y.addElement(fcNode,qTask)
 		}
 		y.selectSingleNode(fcNode "/" qTask).text := qNameF " " qNameL					; change text value for that node
-		; y.setText(fcNode "/" qTask, qNameF " " qNameL)	
 		y.selectSingleNode("/root/forecast").setAttribute("mod",A_Now)					; change forecast[@mod] to now
 	}
 	
-	y.save(path.data "call.xml")
+	y.saveXML(path.data "call.xml")
 	Eventlog("Qgenda " t0 "-" t1 " updated.")
 	callChg := true
 	
@@ -486,7 +485,6 @@ httpGetter(RequestType:="",URL:="",Payload:="",Header*) {
 	loop Header.Length
 	{
 		splitIni(Header[A_index],&hdr_type,&hdr_val) 
-		;~ MsgBox % "'" hdr_type "'`n'" hdr_val "'"
 		pWHttp.SetRequestHeader(hdr_type, hdr_val)
 	}
 	
@@ -518,8 +516,6 @@ parseJSON(txt) {
 		{
 			key := StrSplit(sub[A_Index],":","`"")								; Split each SUB into label (key1) and value (key2)
 			out[ind][key[1]] := key[2]											; Add to the array
-			; StringSplit, key, % sub[A_Index] , : , `"
-			; out[ind,key1] := key2	
 		}
 	}
 	return out
