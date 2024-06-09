@@ -167,7 +167,7 @@ readForecast() {
 		
 		pb.title("Updating schedules")
 		pb.sub(fcFile)
-		FileCopy(fcFileLong, "fcTemp.xlsx", 1)											; create local copy to avoid conflict if open
+		FileCopy(fcFileLong, path.data "fcTemp.xlsx", 1)								; create local copy to avoid conflict if open
 		eventlog("Parsing " fcFileLong)
 		parseForecast(fcRecent)															; parseForecast on this file (unprocessed NEXT or LAST)
 	}
@@ -195,7 +195,7 @@ parseForecast(fcRecent) {
 		Forecast_val.Insert(tmpStr)
 	}
 	
-	fcArr := readXLSX(A_WorkingDir "\fcTemp.xlsx")
+	fcArr := readXLSX(A_WorkingDir "\data\fcTemp.xlsx")									; ComObject() requires full path
 	fcDate := []																		; array of dates
 
 	Loop fcArr.length																	; read ROWS
