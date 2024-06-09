@@ -196,9 +196,10 @@ parseForecast(fcRecent) {
 	}
 	
 	fcArr := readXLSX(A_WorkingDir "\data\fcTemp.xlsx")									; ComObject() requires full path
-	fcDate := []																		; array of dates
+	fcDate := Map()																		; array of dates
+	getVals := false
 
-	Loop fcArr.length																	; read ROWS
+	Loop fcArr.Count																	; read ROWS
 	{
 		rowNum := A_Index
 		if (rowNum=1) {
@@ -207,7 +208,7 @@ parseForecast(fcRecent) {
 		fcRow := fcArr[rowNum]
 		rowName := ""																	; ROW name (service name)
 
-		Loop fcRow.length																; read COLS
+		Loop fcRow.Count																; read COLS
 		{
 			colNum := A_Index
 			cel := fcRow[colNum]
