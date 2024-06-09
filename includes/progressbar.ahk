@@ -46,7 +46,7 @@ class progressbar
 		}
 	}
 
-	set(val) {
+	set(val:=0) {
 		if (val~="^[+-]") {
 			try this.gui["Percent"].Value += val
 		} else {
