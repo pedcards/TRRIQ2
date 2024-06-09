@@ -1,4 +1,9 @@
-#Requires AutoHotkey v1.1
+#Requires AutoHotkey v2
+
+class HL7
+{
+	
+}
 initHL7() {
 	global hl7, preventiceDDE
 	hl7 := Object()
