@@ -212,13 +212,9 @@ parseForecast(fcRecent) {
 		{
 			colNum := A_Index
 			cel := fcRow[colNum]
-			label := false
-			if (RegExMatch(cel,"\b(\d{1,2})\D(\d{1,2})(\D\d{2,4})?\b",&tmp)) {			; matches date format
+			if (RegExMatch(cel,"\b(\d{1,2})\D(\d{1,2})(\D(\d{2,4}))?\b",&tmp)) {		; matches date format
 				getVals := true
-				if !(tmp.3) {															; get today's YYYY if not given
-					tmp3 := substr(A_now,1,4)
-				}
-				tmpDt := RegExReplace(tmp3,"\D") zDigit(tmp.1) zDigit(tmp.2) 				; tmpDt in format YYYYMMDD
+				tmpDt := ParseDate(cel).YMD									 			; tmpDt in format YYYYMMDD
 				fcDate[colNum] := tmpDt													; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/forecast/call[@date='" tmpDt "']")) {
 					y.addElement("/root/forecast","call", {date:tmpDt})					; create node if doesn't exist
