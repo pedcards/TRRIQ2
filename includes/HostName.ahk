@@ -101,39 +101,35 @@ class getLocation
 		wksGUI := Gui()
 		wksGUI.Title := "Unknown Location"
 		wksGUI.AddText("x15 y20 w250 h60","The application is unable to determine your location. Please select your location from the list and confirm that you made the correct selection.")
-		wksGUI.AddListBox("vSelectedLocation x15 y70 w245 h200 Sort gLocationList_Click",locationData)
+		wksGUI
+			.AddListBox("x15 y70 w245 h200 Sort",locationData)
+			.OnEvent("Change",LocationList_Click)
 		wksGUI.AddText("x100 y290 w72","You selected:")
-		wksGUI.AddText("vSelectConfirm x172 y290 w150",SelectConfirm)
-		wksGUI.AddButton("x160 y315 w100 gConfirmBtn_Click","Confirm")
+		wksGUI_Choice := wksGUI.AddText("x172 y290 w150",SelectConfirm)
+		wksGUI
+			.AddButton("x160 y315 w100","Confirm")
+			.OnEvent("Click",ConfirmBtn_Click)
 		wksGUI.Opt("AlwaysOnTop -MaximizeBox -MinimizeBox")
 		wksGUI.Show()
 
-
-		; Gui, New, AlwaysOnTop -MaximizeBox -MinimizeBox, Unknown Location
-		; Gui, Add, Text, x15 y20 w250 h60,The application is unable to determine your location. Please select your location from the list and confirm that you made the correct selection.
-		; Gui, Add, ListBox, vSelectedLocation x15 y70 w245 h200 Sort gLocationList_Click, %locationData%
-		; Gui, Add, Text,x100 y290 w72, You selected:
-		; Gui, Add, Text, vSelectConfirm x172 y290 w150, %SelectConfirm% 
-		; Gui, Add, Button, x160 y315 w100 gConfirmBtn_Click, Confirm
-		; Gui, Show, w275 h350
-		
 		WinWaitClose("Unknown Location")                                              ;wait for the user to respond
-		return %workstationLocation%                                                ;return the selected location
+		return workstationLocation                                                ;return the selected location
 
 		;******************* Gui Event handlers (subroutines) *********************
-		LocationList_Click:
-			wksGUI.Submit([0])                                                     ; user selected location from list, submit dialog data / keep displaying the dialog
-			wksGUI.Control()
-			wksGUI.Text := SelectedLocation                          ; reflect selected value in confirmation text box
-		return
+		LocationList_Click(param,*) {
+			SelectedLocation := param.text
+			wksGUI_Choice.Text := SelectedLocation
+			return
+		}
 
-		ConfirmBtn_Click:
+		ConfirmBtn_Click(param,*) {
 			wksGUI.Submit([1])
 			this.AddWorkstation(SelectedLocation)                                        ; Persist workstation/location to data store
 			workstationLocation := SelectedLocation                                 ; set the return value to the selected location
 			WinClose("Unknown Location")                                            ; Close the dialog
 			wksGUI.Destroy()                                                        ; Release resources
 		return
+		}
 	}
 
 	;******************************************************************************
@@ -145,19 +141,15 @@ class getLocation
 	;
 	GetLocations()
 	{
-		locationList := ""
+		locationList := []
 		
-		locationData := XML(this.m_strXmlFilename)                       ; Read xml file
+		locationData := XML(this.m_strXmlFilename)                       				; Read xml file
 		
-		wksList := locationData.SelectSingleNode(this.m_strXmlLocationsPath)      ; Retreive Locations node
-		loop (wksNodes := wksList.SelectNodes(this.m_strXmlLocationName)).Length     ; Loop through node and create piped list of locations
+		wksList := locationData.SelectSingleNode(this.m_strXmlLocationsPath)      		; Retreive Locations node
+		loop (wksNodes := wksList.SelectNodes(this.m_strXmlLocationName)).Length     	; Loop through node and create piped list of locations
 		{
 			location:= wksNodes.item(A_Index - 1).selectSingleNode("site").text
-			if (A_Index = 1) {
-				locationList := location                                 ; No pipe symbol before fist location
-			} else {
-				locationList := locationList . "|" . location
-			}
+			locationList.Push(location)													; Add location to array
 		}
 		return locationList
 	}
@@ -179,25 +171,13 @@ class getLocation
 		locationData := XML(this.m_strXmlFilename) 
 		
 		workstations := locationData.SelectSingleNode(this.m_strXmlWorkstationsPath)
-		workstation := locationData.addElement(workstations,this.m_strXmlWksNodeName,A_ComputerName)
+		workstation := locationData.addElement(workstations,this.m_strXmlWksNodeName)
+		workstationName := locationData.addElement(workstation,this.m_strXmlWksName,A_ComputerName)
 		locationData.addElement(workstation,this.m_strXmlLocationName,location)
+		locationData.TransformXML()
 		locationData.saveXML()
-		; workstation := locationData.addChild(this.m_strXmlWorkstationsPath,
-		; 							"element",
-		; 							this.m_strXmlWksNodeName)
 		
-		; wsnameNode := locationData.createNode(1,this.m_strXmlWksName,"")
-		; wsnameNode.Text := A_ComputerName
-		; workstation.appendChild(wsnameNode)
-		
-		; locationNode := locationData.createNode(1,this.m_strXmlLocationName,"")
-		; locationNode.Text := location
-		; workstation.appendChild(locationNode)
-		
-		; locationData.TransformXML()
-		; locationData.saveXML()
-		
-		eventlog("New machine " workstation.Text " assigned to location " location)
+		eventlog("New machine " workstationName.Text " assigned to location " location)
 	}
 
 	getSites(wksName) {
