@@ -116,14 +116,23 @@ SetTitleMatchMode("2")
 	; monSerialStrings := {}
 	; monPdfStrings := {}
 	; monEpicEAP := {}
+
+	monTypes := Map()
 	for key,val in monStrings
 	{
-		; Monitor letter code "H": Order abbrev "HOL": Order list dur "24-hr": Regex type "Pr|Hol": Regex S/N "Mortara": Epic EAP "CVCAR102:HOLTER MONITOR 24 HOUR" 
+		monTypes[key] := Map() 
 		el := strSplit(val,":")
-		monOrderType[el.2]:=el.3																		; String matches for order <mon>
-		monSerialStrings[el.2]:=el.5																	; Regex matches for S/N strings
-		monPdfStrings[el.1]:=el.2																		; Abbrev based on PDF fname
-		monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
+		monTypes[key]["type"] := el[1]																	; Monitor letter code "H"
+		monTypes[key]["abbrev"] := el[2]																; Abbrev for PDF fname "HOL"
+		monTypes[key]["duration"] := el[3]																; Order list dur "24-hr"
+		monTypes[key]["modelRegex"] := el[4]															; Mon type regex "Pr|Hol"
+		monTypes[key]["serial"] := el[5]																; S/n regex "Mortara|Mini SL"
+		monTypes[key]["EAP"] := el[6]																	; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
+
+		; monOrderType[el.2]:=el.3																		; String matches for order <mon>
+		; monSerialStrings[el.2]:=el.5																	; Regex matches for S/N strings
+		; monPdfStrings[el.1]:=el.2																		; Abbrev based on PDF fname
+		; monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
 	}
 
 	pb.sub("HL7 map")
