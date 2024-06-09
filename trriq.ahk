@@ -112,10 +112,10 @@ SetTitleMatchMode("2")
 
 	pb.sub("Monitor strings")
 	monStrings := readIni("Monitors")																	; Monitor key strings
-	monOrderType := {}
-	monSerialStrings := {}
-	monPdfStrings := {}
-	monEpicEAP := {}
+	; monOrderType := {}
+	; monSerialStrings := {}
+	; monPdfStrings := {}
+	; monEpicEAP := {}
 	for key,val in monStrings
 	{
 		; Monitor letter code "H": Order abbrev "HOL": Order list dur "24-hr": Regex type "Pr|Hol": Regex S/N "Mortara": Epic EAP "CVCAR102:HOLTER MONITOR 24 HOUR" 
