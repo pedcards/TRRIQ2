@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0
+#Requires AutoHotkey v2.0
 
 class XML
 {
@@ -65,8 +65,7 @@ class XML
 					newElem.text := p
 				}
 			}
-			node.appendChild(newElem)
-			n := ""
+			return node.appendChild(newElem)
 		}
 	}
 
@@ -93,8 +92,7 @@ class XML
 					newElem.text := p
 				}
 			}
-			node.parentNode.insertBefore(newElem,node)
-			n := ""
+			return node.parentNode.insertBefore(newElem,node)
 		}
 	}
 
