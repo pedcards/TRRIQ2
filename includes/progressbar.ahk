@@ -47,7 +47,11 @@ class progressbar
 	}
 
 	set(val) {
-		try this.gui["Percent"].Value := val
+		if (val~="^[+-]") {
+			try this.gui["Percent"].Value += val
+		} else {
+			try this.gui["Percent"].Value := val
+		}
 	}
 	title(val) {
 		try this.gui["Title"].Value := val
