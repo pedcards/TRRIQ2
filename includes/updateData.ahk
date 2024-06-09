@@ -179,12 +179,11 @@ return
 }
 
 parseForecast(fcRecent) {
-/*
 	global y, path, callChg, fcVals
 	
 	; Initialize some stuff
 	if !IsObject(y.selectSingleNode("/root/forecast")) {								; create if for some reason doesn't exist
-		y.addElement("forecast","/root")
+		y.addElement("/root","forecast")
 	} 
 	Forecast_svc := []
 	Forecast_val := []
@@ -199,7 +198,7 @@ parseForecast(fcRecent) {
 	fcArr := readXLSX(A_WorkingDir "\fcTemp.xlsx")
 	fcDate := []																		; array of dates
 
-	Loop % fcArr.MaxIndex()																; read ROWS
+	Loop fcArr.length																	; read ROWS
 	{
 		rowNum := A_Index
 		if (rowNum=1) {
@@ -208,20 +207,20 @@ parseForecast(fcRecent) {
 		fcRow := fcArr[rowNum]
 		rowName := ""																	; ROW name (service name)
 
-		Loop % fcRow.MaxIndex()															; read COLS
+		Loop fcRow.length																; read COLS
 		{
 			colNum := A_Index
 			cel := fcRow[colNum]
 			label := false
-			if (RegExMatch(cel,"\b(\d{1,2})\D(\d{1,2})(\D\d{2,4})?\b",tmp)) {			; matches date format
+			if (RegExMatch(cel,"\b(\d{1,2})\D(\d{1,2})(\D\d{2,4})?\b",&tmp)) {			; matches date format
 				getVals := true
-				if !(tmp3) {															; get today's YYYY if not given
+				if !(tmp.3) {															; get today's YYYY if not given
 					tmp3 := substr(A_now,1,4)
 				}
-				tmpDt := RegExReplace(tmp3,"\D") zDigit(tmp1) zDigit(tmp2) 				; tmpDt in format YYYYMMDD
+				tmpDt := RegExReplace(tmp3,"\D") zDigit(tmp.1) zDigit(tmp.2) 				; tmpDt in format YYYYMMDD
 				fcDate[colNum] := tmpDt													; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/forecast/call[@date='" tmpDt "']")) {
-					y.addElement("call","/root/forecast", {date:tmpDt})					; create node if doesn't exist
+					y.addElement("/root/forecast","call", {date:tmpDt})					; create node if doesn't exist
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
@@ -236,7 +235,8 @@ parseForecast(fcRecent) {
 				} else {
 					row_name := RegExReplace(cel,"(\s+)|[\/\*\?]","_")					; no match, create ad hoc and replace space, /, \, *, ? with "_"
 				}
-				progress,, Scanning forecast, % row_name
+				pb.title("Scanning forecast")
+				pb.sub(row_name)
 				continue																; results in some ROW NAME, now move to the next column
 			}
 			
@@ -271,7 +271,6 @@ parseForecast(fcRecent) {
 	callChg := true
 	
 	Return
-	*/
 }
 
 readXLSX(file) {
