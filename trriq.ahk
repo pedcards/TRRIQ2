@@ -136,7 +136,7 @@ SetTitleMatchMode("2")
 	}
 
 	pb.sub("HL7 map")
-	; initHL7()																							; HL7 definitions
+	initHL7()																							; HL7 definitions
 	hl7DirMap := {}
 
 	pb.sub("Reading EP list")
@@ -426,5 +426,6 @@ filecheck() {
 #Include progressbar.ahk
 #Include HostName.ahk
 #Include updateData.ahk
+#Include hl7.ahk
 
 #Include Peep.v2.ahk																	; This is only for debugging
