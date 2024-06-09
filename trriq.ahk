@@ -92,6 +92,53 @@ SetTitleMatchMode("2")
 	fcVals := readIni("Forecast")
 	updateCall()
 
+	/*	Initialize rest of vars and strings
+	*/
+	pb.title("Initializing variables")
+	pb.sub("Demographics")
+	pb.set()
+	demVals := readIni("demVals")																		; valid field names for parseClip()
+
+	pb.sub("Indication codes")
+	indCodes := readIni("indCodes")																		; valid indications
+	for key,val in indCodes																				; in option string indOpts
+	{
+		tmpVal := strX(val,"",1,0,":",1)
+		tmpStr := strX(val,":",1,1,"",0)
+		indOpts .= tmpStr "|"
+	}
+
+	pb.sub("Monitor strings")
+	monStrings := readIni("Monitors")																	; Monitor key strings
+	monOrderType := {}
+	monSerialStrings := {}
+	monPdfStrings := {}
+	monEpicEAP := {}
+	for key,val in monStrings
+	{
+		; Monitor letter code "H": Order abbrev "HOL": Order list dur "24-hr": Regex type "Pr|Hol": Regex S/N "Mortara": Epic EAP "CVCAR102:HOLTER MONITOR 24 HOUR" 
+		el := strSplit(val,":")
+		monOrderType[el.2]:=el.3																		; String matches for order <mon>
+		monSerialStrings[el.2]:=el.5																	; Regex matches for S/N strings
+		monPdfStrings[el.1]:=el.2																		; Abbrev based on PDF fname
+		monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
+	}
+
+	pb.sub("HL7 map")
+	; initHL7()																							; HL7 definitions
+	hl7DirMap := {}
+
+	pb.sub("Reading EP list")
+	epList := readIni("epRead")																			; reading EP
+	for key in epList																					; option string epStr
+	{
+		epStr .= key "|"
+	}
+	epStr := Trim(epStr,"|")
+
+	pb.sub("Save recent Cygnus logs")
+	; saveCygnusLogs("all")
+		
 ;#endregion
 
 ExitApp
