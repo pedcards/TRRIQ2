@@ -191,8 +191,8 @@ parseForecast(fcRecent) {
 	{
 		tmpVal := strX(val,"",1,0,":",1)
 		tmpStr := strX(val,":",1,1,"",0)
-		Forecast_svc.Insert(tmpVal)
-		Forecast_val.Insert(tmpStr)
+		Forecast_svc.Push(tmpVal)
+		Forecast_val.Push(tmpStr)
 	}
 	
 	fcArr := readXLSX(A_WorkingDir "\data\fcTemp.xlsx")									; ComObject() requires full path
