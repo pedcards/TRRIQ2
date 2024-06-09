@@ -269,19 +269,20 @@ parseForecast(fcRecent) {
 }
 
 readXLSX(file) {
-	/*
 ; Read XLSX document into array
 	oWorkbook := ComObjGet(file)
 	colArr := ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"] 	; array of column letters
-	arr := {}
+	arr := Map()
 	valsEnd := 0																		; flag when reached the last row
 	valsEndNum := 3																		; number of blank rows to signify end
+	maxCol := 1
 
 	While (valsEnd<valsEndNum)
 	{
 		rowNum := A_Index
-		Progress, % rowNum, % rowNum
-		arr[rowNum] := {}																; create array for row
+		; pb.title(rowNum)
+		pb.set(rowNum)
+		arr[rowNum] := Map()															; create array for row
 		rowHasVals := False																; check for empty row
 		Loop
 		{
@@ -299,7 +300,9 @@ readXLSX(file) {
 				valsEnd++
 			}
 			if (valsEnd=valsEndNum) {
-				arr.Delete(rowNum-valsEndNum+1,rowNum)									; delete end blank rows
+				loop valsEndNum {														; delete end blank rows
+					arr.Delete(rowNum-A_Index+1)
+				}
 				Break
 			}
 			if ((colNum=maxCol) && (cel="")) {											; at maxCol and empty, break this cols loop
@@ -310,11 +313,13 @@ readXLSX(file) {
 	}
 
 	oExcel := oWorkbook.Application
+	pb.set("+20")
 	oExcel.DisplayAlerts := false
+	pb.set("+20")
 	oExcel.quit
+	pb.set("+20")
 
 	Return arr
-	*/
 }
 
 readQgenda() {
