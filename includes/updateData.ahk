@@ -212,6 +212,9 @@ parseForecast(fcRecent) {
 		{
 			colNum := A_Index
 			cel := fcRow[colNum]
+			if (Type(cel)!="String") {													; Replace COM with BLANK
+				cel := ""
+			}
 			if (RegExMatch(cel,"\b(\d{1,2})\D(\d{1,2})(\D(\d{2,4}))?\b",&tmp)) {		; matches date format
 				getVals := true
 				tmpDt := ParseDate(cel).YMD									 			; tmpDt in format YYYYMMDD
