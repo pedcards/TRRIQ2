@@ -246,9 +246,9 @@ parseForecast(fcRecent) {
 			
 			fcNode := "/root/forecast/call[@date='" fcDate[colNum] "']"
 			if !IsObject(y.selectSingleNode(fcNode "/" row_name)) {						; create node for service person if not present
-				y.addElement(row_name,fcNode)
+				y.addElement(fcNode,row_name)
 			}
-			y.setText(fcNode "/" row_name, cleanString(cel))							; setText changes text value for that node
+			y.selectSingleNode(fcNode "/" row_name).text := cleanString(cel)			; setText changes text value for that node
 			
 		}
 	}
@@ -256,17 +256,15 @@ parseForecast(fcRecent) {
 	y.selectSingleNode("/root/forecast").setAttribute("xlsdate",fcRecent)				; change forecast[@xlsdate] to the XLS mod date
 	y.selectSingleNode("/root/forecast").setAttribute("mod",A_Now)						; change forecast[@mod] to now
 
-	loop, % (fcN := y.selectNodes("/root/forecast/call")).length						; Remove old call elements
+	loop (fcN := y.selectNodes("/root/forecast/call")).length							; Remove old call elements
 	{
 		k:=fcN.item(A_index-1)															; each item[0] on forward
-		tmpDt := k.getAttribute("date")													; date attribute
-		tmpDt -= A_Now, Days															; diff dates
-		if (tmpDt < -21) {																; save call schedule for 3 weeks (for TRRIQ)
+		if (DateDiff(A_Now,k.getAttribute("date"),"Days") < -21) {						; save call schedule for 3 weeks (for TRRIQ)
 			q := y.selectSingleNode("/root/forecast/call[@date='" k.getAttribute("date") "']")
 			q.parentNode.removeChild(q)
 		}
 	}
-	y.save(".\data\call.xml")
+	y.saveXML(path.data "call.xml")
 	Eventlog("Electronic Forecast " fcRecent " updated.")
 	callChg := true
 	
@@ -427,17 +425,15 @@ readQgenda() {
 }
 
 getCall(dt) {
-	/*
 	global y
 	callObj := {}
-	Loop, % (callDate:=y.selectNodes("/root/forecast/call[@date='" dt "']/*")).length {
+	Loop (callDate:=y.selectNodes("/root/forecast/call[@date='" dt "']/*")).length {
 		k := callDate.item(A_Index-1)
 		callEl := k.nodeName
 		callVal := k.text
 		callObj[callEl] := callVal
 	}
 	return callObj
-	*/
 }
 
 cleanString(x) {
