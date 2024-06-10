@@ -147,6 +147,9 @@ SetTitleMatchMode("2")
 	; }
 	; epStr := Trim(epStr,"|")
 
+	pb.sub("Screen dimensions")
+	dims := getDims()
+
 	pb.sub("Save recent Cygnus logs")
 	; saveCygnusLogs("all")
 
@@ -161,6 +164,20 @@ SetTitleMatchMode("2")
 ExitApp
 
 ;#region == GUI elements ===============================================================
+getDims() {
+	res := Map()
+
+	res.screen := Map()
+	res.screen.DPI := A_ScreenDPI
+	res.screen.H := A_ScreenHeight
+	res.screen.W := A_ScreenWidth
+
+	res.phase := Map()
+	res.phase.lvH := 450
+	res.phase.lvW := 720
+
+	return res
+}
 
 ;#endregion
 
