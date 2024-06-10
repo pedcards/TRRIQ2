@@ -136,19 +136,25 @@ SetTitleMatchMode("2")
 	}
 
 	pb.sub("HL7 map")
-	initHL7()																							; HL7 definitions
+	hl7 := getHL7()																						; HL7 definitions
 	hl7DirMap := {}
 
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
-	for key in epList																					; option string epStr
-	{
-		epStr .= key "|"
-	}
-	epStr := Trim(epStr,"|")
+	; for key in epList																					; option string epStr
+	; {
+	; 	epStr .= key "|"
+	; }
+	; epStr := Trim(epStr,"|")
 
 	pb.sub("Save recent Cygnus logs")
 	; saveCygnusLogs("all")
+
+	pb.title("Cleaning old .bak files")
+	pb.sub("")
+	cleanBakFiles()
+	pb.close()
+
 		
 ;#endregion
 
@@ -417,6 +423,21 @@ filecheck() {
 		pb.close
 	} 
 	return
+}
+
+cleanBakFiles() {
+	Loop files ".\bak\*.bak"
+	{
+		count++
+	}
+	Loop files ".\bak\*.bak"
+	{
+		pb.set(100*A_Index/count)
+		dt := dateDiff(A_Now,RegExReplace(A_LoopFileName,"\.bak"),"Days")
+		if (dt > 7) {
+			FileDelete(".\bak\" A_LoopFileName)
+		}
+	}
 }
 
 ;#endregion
