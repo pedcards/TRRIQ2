@@ -198,6 +198,179 @@ getDims() {
 	return res
 }
 
+PhaseGUI() {
+	global dims
+	
+	phase := Gui()
+	phase.Opt("+AlwaysOnTop")
+
+
+/*
+	Gui, Add, Text, % "x" lvW+40 " y15 w200 vPhaseNumbers", "`n`n"
+	Gui, Add, GroupBox, % "x" lvW+20 " y0 w220 h65"
+	
+	Gui, Font, Bold
+	Gui, Add, Button
+		, Y+10 wp h40 gPhaseRefresh
+		, Refresh lists
+	Gui, Add, Button
+		, Y+10 wp h40 gPrevGrab Disabled
+		, Check Preventice inventory
+	Gui, Add, Text, wp h50																; space between top buttons and lower buttons
+	Gui, Add, Text, Y+10 wp h24 Center, Register/Prepare a`nHOLTER or EVENT MONITOR
+	Gui, Add, Button
+		, Y+10 wp h40 vRegister gPhaseOrder DISABLED
+		, No active orders
+	Gui, Add, Text, wp h30
+	Gui, Add, Text, Y+10 wp Center		, Transmit
+	Gui, Add, Text, Y+1 wp Center H100	, BG MINI
+	Gui, Font, Normal
+
+	GuiControlGet, btn2, Pos, BG MINI
+
+	btnW := 79
+	btnH := 61
+
+	Gui, Add, Picture
+	, % "Y" btn2Y+20 " X" btn2X+70
+	. " w" btnW " h" btnH " "
+	. " +0x1000 vHolterUpload gPhaseTask"
+	, .\files\BGMini.png
+
+	tmpsite := RegExReplace(sites,"TRI\|")
+	tmpsite := wksloc="Main Campus" ? tmpsite : RegExReplace(tmpsite,site.tab "\|",site.tab "||")
+	Gui, Add, Tab3																		; add Tab bar with tracked sites
+		, -Wrap x10 y10 w%lvW% h%lvH% vWQtab +HwndWQtab
+		, % "ORDERS|" 
+		. (wksloc="Main Campus" ? "INBOX||" : "") 
+		. "Unread|ALL|" tmpsite
+	GuiControlGet, wqDim, Pos, WQtab
+	lvDim := "W" wqDimW-25 " H" wqDimH-35
+	
+	if (wksloc="Main Campus") {
+		GuiControl 
+			, Enable
+			, Check Preventice inventory
+
+		Gui, Tab, INBOX
+		Gui, Add, Listview
+			, % "-Multi Grid BackgroundSilver " lvDim " greadWQlv vWQlv_in hwndHLV_in"
+			, filename|Name|MRN|DOB|Location|Study Date|wqid|Type|Need FTP
+		Gui, ListView, WQlv_in
+		LV_ModifyCol(1,"0")																; filename and path, "0" = hidden
+		LV_ModifyCol(2,"160")															; name
+		LV_ModifyCol(3,"60")															; mrn
+		LV_ModifyCol(4,"80")															; dob
+		LV_ModifyCol(5,"80")															; site
+		LV_ModifyCol(6,"80")															; date
+		LV_ModifyCol(7,"2")																; wqid
+		LV_ModifyCol(8,"40")															; ftype
+		LV_ModifyCol(9,"70 Center")														; ftp
+		CLV_in := new LV_Colors(HLV_in,true,false)
+		CLV_in.Critical := 100
+	}
+	
+	Gui, Tab, ORDERS
+	Gui, Add, Listview
+		, % "-Multi Grid BackgroundSilver ColorRed " lvDim " greadWQorder vWQlv_orders hwndHLV_orders"
+		, filename|Order Date|Name|MRN|Ordering Provider|Monitor
+	Gui, ListView, WQlv_orders
+	LV_ModifyCol(1,"0")																	; filename and path (hidden)
+	LV_ModifyCol(2,"80")																; date
+	LV_ModifyCol(3,"140")																; Name
+	LV_ModifyCol(4,"60")																; MRN
+	LV_ModifyCol(5,"100")																; Prov
+	LV_ModifyCol(6,"70")																; Type
+	
+	Gui, Tab, Unread
+	Gui, Add, Listview
+		, % "-Multi Grid BackgroundSilver ColorRed " lvDim " vWQlv_unread hwndHLV_unread"
+		, Name|MRN|Study Date|Processed|Monitor|Ordering|Assigned EP
+	Gui, ListView, WQlv_unread
+	LV_ModifyCol(1,"140")																; Name
+	LV_ModifyCol(2,"60")																; MRN
+	LV_ModifyCol(3,"80")																; Date
+	LV_ModifyCol(4,"80")																; Processed
+	LV_ModifyCol(5,"70")																; Mon Type
+	LV_ModifyCol(6,"80")																; Ordering
+	LV_ModifyCol(7,"80")																; Assigned EP
+
+	Gui, Tab, ALL
+	Gui, Add, Listview
+		, % "-Multi Grid BackgroundSilver " lvDim " gWQtask vWQlv_all hwndHLV_all"
+		, ID|Enrolled|FedEx|Uploaded|Notes|MRN|Enrolled Name|Device|Provider|Site
+	Gui, ListView, WQlv_all
+	LV_ModifyCol(1,"0")																	; wqid (hidden)
+	LV_ModifyCol(2,"60")																; date
+	LV_ModifyCol(3,"40 Center")															; FedEx
+	LV_ModifyCol(4,"60")																; uploaded
+	LV_ModifyCol(5,"40 Center")															; Notes
+	LV_ModifyCol(6,"60")																; MRN
+	LV_ModifyCol(7,"140")																; Name
+	LV_ModifyCol(8,"130")																; Ser Num
+	LV_ModifyCol(9,"100")																; Prov
+	LV_ModifyCol(10,"80")																; Site
+	CLV_all := new LV_Colors(HLV_all,true,false)
+	CLV_all.Critical := 100
+	
+	Loop, parse, sites, |
+	{
+		i := A_Index
+		site := A_LoopField
+		Gui, Tab, % site
+		Gui, Add, Listview
+			, % "-Multi Grid BackgroundSilver " lvDim " gWQtask vWQlv"i " hwndHLV"i
+			, ID|Enrolled|FedEx|Uploaded|Notes|MRN|Enrolled Name|Device|Provider
+		Gui, ListView, WQlv%i%
+		LV_ModifyCol(1,"0")																	; wqid (hidden)
+		LV_ModifyCol(2,"60")																; date
+		LV_ModifyCol(3,"40 Center")															; FedEx
+		LV_ModifyCol(4,"60")																; uploaded
+		LV_ModifyCol(5,"40 Center")															; Notes
+		LV_ModifyCol(6,"60")																; MRN
+		LV_ModifyCol(7,"140")																; Name
+		LV_ModifyCol(8,"130")																; Ser Num
+		LV_ModifyCol(9,"100")																; Prov
+		CLV_%i% := new LV_Colors(HLV%i%,true,false)
+		CLV_%i%.Critical := 100
+	}
+	WQlist()
+	
+	Menu, menuSys, Add, Change clinic location, changeLoc
+	Menu, menuSys, Add, Generate late returns report, lateReport
+	Menu, menuSys, Add, Generate registration locations report, regReport
+	Menu, menuSys, Add, Update call schedules, updateCall
+	Menu, menuSys, Add, CheckMWU, checkMWUapp											; position for test menu
+	Menu, menuHelp, Add, About TRRIQ, menuTrriq
+	Menu, menuHelp, Add, Instructions..., menuInstr
+	Menu, menuAdmin, Add, Toggle admin mode, toggleAdmin
+	Menu, menuAdmin, Add, Clean tempfiles, CleanTempFiles
+	Menu, menuAdmin, Add, Send notification email, sendEmail
+	Menu, menuAdmin, Add, Find pending leftovers, cleanPending
+	Menu, menuAdmin, Add, Fix WQ device durations, fixDuration							; position for test menu
+	Menu, menuAdmin, Add, Recover DONE record, recoverDone
+	Menu, menuAdmin, Add, Check running users/versions, runningUsers
+	Menu, menuAdmin, Add, Create test order, makeEpicORM
+		
+	Menu, menuBar, Add, System, :menuSys
+	if (user~="i)tchun1|docte") {
+		Menu, menuBar, Add, Admin, :menuAdmin
+	}
+	Menu, menuBar, Add, Help, :menuHelp
+	
+	Gui, Menu, menuBar
+	Gui, Show,, TRRIQ Dashboard
+
+	if (adminMode) {
+		Gui, Color, Fuchsia
+		Gui, Show,, TRRIQ Dashboard - ADMIN MODE
+	}
+	
+	SetTimer, idleTimer, 500
+	return
+*/
+}
+
 ;#endregion
 
 ;#region == TEXT functions ==============================================================
