@@ -161,7 +161,26 @@ SetTitleMatchMode("2")
 		
 ;#endregion
 
-ExitApp
+;#region == MAIN LOOP ==================================================================
+	Loop
+	{
+		PhaseGUI()
+		WinWaitClose("TRRIQ Dashboard")
+		
+		; if (phase="HolterUpload") {
+		; 	eventlog("Start Holter Connect.")
+		; 	hcPhase := "Transfer"
+		; 	HolterConnect(hcPhase)
+		; }
+	}
+	
+	; saveCygnusLogs("all")
+	; checkPreventiceOrdersOut()
+	; cleanDone()
+
+	ExitApp
+	
+;#endregion
 
 ;#region == GUI elements ===============================================================
 getDims() {
