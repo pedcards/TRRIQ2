@@ -20,6 +20,7 @@ SetTitleMatchMode("2")
 	gl.comp := A_ComputerName
 	gl.wqfileDT := FileGetTime(".\files\wqupdate")
 	gl.runningVer := FileGetTime(A_ScriptName)
+	gl.adminMode := false
 
 	/*	Determine PROD, DEVT, TEST
 	*/
@@ -350,7 +351,7 @@ PhaseGUI() {
 		menuHelp.Add("About TRRIQ", menuAbout)
 		menuHelp.Add("Instructions...", menuInstructions)
 	menuAdmin := Menu()
-		menuAdmin.Add("Toggle admin mode", menuAbout) ;, toggleAdmin())
+		menuAdmin.Add("Toggle admin mode", toggleAdmin)
 		menuAdmin.Add("Clean tempfiles", menuAbout) ;, CleanTempFiles())
 		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
 		menuAdmin.Add("Find pending leftovers", menuAbout) ;, cleanPending())
@@ -368,20 +369,24 @@ PhaseGUI() {
 	
 	phase.MenuBar := phaseMenu
 
-	phase.Title := "TRRIQ Dashboard"
+	if (gl.adminMode) {
+		phase.BackColor := "Fuchsia"
+		phase.Title := "TRRIQ Dashboard - ADMIN MODE"
+	} else {
+		phase.Title := "TRRIQ Dashboard"
+	}
 	phase.Show()
 	phase.OnEvent("Close",phaseClose)
-
-	RETURN
 	/*
-		if (adminMode) {
-			Gui, Color, Fuchsia
-			Gui, Show,, TRRIQ Dashboard - ADMIN MODE
-		}
 		
 		SetTimer, idleTimer, 500
 		return
 	*/
+
+	RETURN
+
+	/*	Internal PhaseGUI methods ======================================================
+	 */
 	phaseClose(*) {
 		ask := MsgBox("Really quit TRRIQ?","Exit",262161)
 		If (ask="OK")
@@ -445,6 +450,13 @@ PhaseGUI() {
 		}
 		return
 	}
+
+	toggleAdmin(*) {
+		gl.adminMode := !(gl.adminMode)
+		PhaseGUI()
+		return
+	}
+
 
 }
 
