@@ -346,7 +346,6 @@ PhaseGUI() {
 		menuSys.Add("Generate late returns report", menuAbout) ;,lateReport())
 		menuSys.Add("Generate registration locations report", menuAbout) ;,regReport())
 		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
-		menuSys.Add("CheckMWU", menuAbout) ;, checkMWUapp())											; position for test menu
 	
 	menuHelp := Menu()
 		menuHelp.Add("About TRRIQ", menuAbout)
@@ -422,14 +421,19 @@ PhaseGUI() {
 		return
 	}
 
-
-
 	menuAbout(*) {
-
+		phase.Hide
+		tmp := FileGetTime(A_ScriptName)
+		MsgBox(A_ScriptName " version " substr(tmp,1,12) "`nTerrence Chun, MD","About...",64)
+		phase.Show
+		return
 	}
 
 	menuInstructions(*) {
-
+		phase.Hide
+		MsgBox "How to..."
+		phase.Show
+		return
 	}
 }
 
