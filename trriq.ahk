@@ -216,16 +216,16 @@ PhaseGUI() {
 	btnRefresh := phase.AddButton("Y+10 wp h40","Refresh lists") ; gPhaseRefresh
 		; btnRefresh.OnEvent("Click",PhaseRefresh())
 	btnPrevGrab := phase.AddButton("Y+10 wp h40 Disabled","Check Preventice inventory") ; gPrevGrab
-		; btnPrevGrab.OnEvent("Click",prevGrab())
+		btnPrevGrab.OnEvent("Click",prevgrab)
 	phase.AddText("wp h50")
 	phase.AddText("y+10 wp h24 Center","Register/Prepare a `nHOLTER or EVENT MONITOR")
 	btnOrders := phase.AddButton("y+10 wp h40 vRegister DISABLED","No active orders") ; gPhaseOrder
-		; btnOrders.OnEvent("Click",phaseOrder())
+		btnOrders.OnEvent("Click",phaseOrder)
 	phase.AddText("wp h30")
 	phase.AddText("y+10 wp Center","Transmit")
 	btnBGM := phase.AddText("y+1 wp Center h100","BG MINI")
 		btnBGM.GetPos(&bgmX,&bgmY,&bgmW,&bgmH)
-		; btnBGM.OnEvent("Click",)
+		; btnBGM.OnEvent("Click",holterUpload)
 	phase.SetFont("norm")
 
 	/* 	BG MINI button
@@ -399,6 +399,18 @@ PhaseGUI() {
 		}
 		return alltabs
 	}
+
+	prevGrab(*) {
+		Run("prevgrab.exe")
+		return
+	}
+
+	PhaseOrder(*) {
+		WQtab.Choose("ORDERS")
+		return
+	}
+
+
 
 	menuAbout(*) {
 
