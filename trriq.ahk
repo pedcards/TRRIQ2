@@ -836,7 +836,7 @@ readPrevTxt() {
 				wq.addElement("/root","inventory")
 				devct := true
 			}
-			; parsePrevDev(k)
+			parsePrevDev(k)
 		}
 	}
 	
@@ -855,7 +855,27 @@ readPrevTxt() {
 	
 return	
 }
+
+parsePrevDev(txt) {
+/*	Add new dev to /root/inventory
+ */
+	global wq
+	el := StrSplit(txt,"|")
+	dev := el[2]
+	ser := el[3]
+	res := dev " - " ser
+
+	if IsObject(wq.selectSingleNode("/root/inventory/dev[@ser='" ser "']")) {			; already exists in Inventory
+		return
+	}
 	
+	wq.addElement("/root/inventory","dev",{model:dev,ser:ser})
+	;~ eventlog("Added new Inventory dev " ser)
+	
+	return
+}
+
+
 ;#endregion
 
 ;#region == OTHER FUNCTIONS ============================================================
