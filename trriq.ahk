@@ -483,9 +483,9 @@ WQlist() {
 	fileCheck()
 	FileOpen(".lock", "W")																; Create lock file.
 	
-	wq := XML("worklist.xml")															; refresh WQ
+	wq := XML(path.data "worklist.xml")													; refresh WQ
 	
-	; readPrevTxt()																		; read prev.txt from website
+	readPrevTxt()																		; read prev.txt from website
 	
 	; WQclearSites0()	 																	; move studies from sites0 to DONE
 	
@@ -780,6 +780,80 @@ saveCygnusLogs(all:="") {
 	FileSetTime( , ".\logs\Cygnus\" A_ComputerName)
 	
 	Return
+}
+
+readPrevTxt() {
+/*	Read data files from Preventice:
+		* Patient Status Report_v2.xml sent by email every M-F 6 AM
+		* prev.txt grabbed from prevgrab.exe
+			- Enrollments (inactive, as taken from PSR_v2)
+			- Inventory
+*/
+	global wq
+	
+	pb.title("Updating Patient Status Report data")
+
+	psr := XML(path.data "Patient Status Report_v2.xml")
+		psrdate := parseDate(psr.selectSingleNode("Report").getAttribute("ReportTitle"))	; report date is in Central Time
+		psrDT := psrdate.YMDHMS
+	psrlastDT := wq.selectSingleNode("/root/pending").getAttribute("update")
+	if (psrDT>psrlastDT) {																; check if psrDT more recent
+		pb.sub("Reading registration updates...")
+		dets := psr.selectNodes("//Details_Collection/Details")
+		numdets := dets.length()
+		loop numdets
+		{
+			pb.set(A_Index)
+			k := dets.item(numdets-A_Index)												; read nodes from oldest to newest
+			; parsePrevEnroll(k)
+		}
+		wq.selectSingleNode("/root/pending").setAttribute("update",psrDT)				; set pending[@update] attr
+		eventlog("Patient Status Report " psrDT " updated.")
+
+		; lateReportNotify()
+	}
+
+	filenm := path.data "prev.txt"
+	filedt := FileGetTime(filenm)
+	lastInvDT := wq.selectSingleNode("/root/inventory").getAttribute("update")
+	if (filedt=lastInvDT) {
+		Return
+	}
+	pb.sub("Reading inventory updates...")
+	txt := FileRead(filenm)
+	txt := StrReplace(txt, "`n", "`n",, &n)		 										; count number of lines
+	devct := false
+	
+	loop parse txt, "`r`n", "`r"
+	{
+		pb.set(100*A_Index/n)
+		
+		k := A_LoopField
+		if (k~="^dev\|") {
+			if !(devct) {
+				inv := wq.selectSingleNode("/root/inventory")							; create fresh inventory node
+				inv.parentNode.removeChild(inv)
+				wq.addElement("/root","inventory")
+				devct := true
+			}
+			; parsePrevDev(k)
+		}
+	}
+	
+	loop (devs := wq.selectNodes("/root/inventory/dev")).length							; Find dev that already exist in Pending
+	{
+		k := devs.item(A_Index-1)
+		dev := k.getAttribute("model")
+		ser := k.getAttribute("ser")
+		if IsObject(wq.selectSingleNode("/root/pending/enroll[dev='" dev " - " ser "']")) {	; exists in Pending
+			k.parentNode.removeChild(k)
+			eventlog("Removed inventory ser " ser)
+		}
+	}
+	wq.selectSingleNode("/root/inventory").setAttribute("update",filedt)				; set pending[@update] attr
+	eventlog("Preventice Inventory " fileDT " updated.")
+	
+return	
 }
 	
 ;#endregion
