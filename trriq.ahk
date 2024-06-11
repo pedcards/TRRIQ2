@@ -63,6 +63,7 @@ SetTitleMatchMode("2")
 		MsgBox("No clinic location specified!`n`nExiting","Location error",262160)
 		ExitApp
 	}
+	gl.isMain := (wksLoc~="Main Campus") ? true : false
 
 	sites := wks.getSites(wksLoc)
 	; sites.tracked	(aka sites)						= sites we are tracking
@@ -151,7 +152,7 @@ SetTitleMatchMode("2")
 	dims := getDims()
 
 	pb.sub("Save recent Cygnus logs")
-	saveCygnusLogs("all")
+	; saveCygnusLogs("all")
 
 	pb.title("Cleaning old .bak files")
 	pb.sub("")
@@ -199,176 +200,213 @@ getDims() {
 }
 
 PhaseGUI() {
-	global dims
+	global gl, dims, sites, wksLoc
 	
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
 
+	/*	Phase info box
+	 */
+	phaseNumbers := phase.AddText("x" dims.phase.lvW+40 " y15 w200 vPhaseNumbers", "`n`n")
+	phase.AddGroupBox("x" dims.phase.lvW+20 " y0 w220 h65")
 
-/*
-	Gui, Add, Text, % "x" lvW+40 " y15 w200 vPhaseNumbers", "`n`n"
-	Gui, Add, GroupBox, % "x" lvW+20 " y0 w220 h65"
-	
-	Gui, Font, Bold
-	Gui, Add, Button
-		, Y+10 wp h40 gPhaseRefresh
-		, Refresh lists
-	Gui, Add, Button
-		, Y+10 wp h40 gPrevGrab Disabled
-		, Check Preventice inventory
-	Gui, Add, Text, wp h50																; space between top buttons and lower buttons
-	Gui, Add, Text, Y+10 wp h24 Center, Register/Prepare a`nHOLTER or EVENT MONITOR
-	Gui, Add, Button
-		, Y+10 wp h40 vRegister gPhaseOrder DISABLED
-		, No active orders
-	Gui, Add, Text, wp h30
-	Gui, Add, Text, Y+10 wp Center		, Transmit
-	Gui, Add, Text, Y+1 wp Center H100	, BG MINI
-	Gui, Font, Normal
+	/*	Action buttons
+	 */
+	phase.SetFont("Bold","Verdana")
+	btnRefresh := phase.AddButton("Y+10 wp h40","Refresh lists") ; gPhaseRefresh
+		; btnRefresh.OnEvent("Click",PhaseRefresh())
+	btnPrevGrab := phase.AddButton("Y+10 wp h40 Disabled","Check Preventice inventory") ; gPrevGrab
+		; btnPrevGrab.OnEvent("Click",prevGrab())
+	phase.AddText("wp h50")
+	phase.AddText("y+10 wp h24 Center","Register/Prepare a `nHOLTER or EVENT MONITOR")
+	btnOrders := phase.AddButton("y+10 wp h40 vRegister DISABLED","No active orders") ; gPhaseOrder
+		; btnOrders.OnEvent("Click",phaseOrder())
+	phase.AddText("wp h30")
+	phase.AddText("y+10 wp Center","Transmit")
+	btnBGM := phase.AddText("y+1 wp Center h100","BG MINI")
+		btnBGM.GetPos(&bgmX,&bgmY,&bgmW,&bgmH)
+		; btnBGM.OnEvent("Click",)
+	phase.SetFont("norm")
 
-	GuiControlGet, btn2, Pos, BG MINI
-
+	/* 	BG MINI button
+	 */
 	btnW := 79
 	btnH := 61
-
-	Gui, Add, Picture
-	, % "Y" btn2Y+20 " X" btn2X+70
-	. " w" btnW " h" btnH " "
-	. " +0x1000 vHolterUpload gPhaseTask"
-	, .\files\BGMini.png
-
-	tmpsite := RegExReplace(sites,"TRI\|")
-	tmpsite := wksloc="Main Campus" ? tmpsite : RegExReplace(tmpsite,site.tab "\|",site.tab "||")
-	Gui, Add, Tab3																		; add Tab bar with tracked sites
-		, -Wrap x10 y10 w%lvW% h%lvH% vWQtab +HwndWQtab
-		, % "ORDERS|" 
-		. (wksloc="Main Campus" ? "INBOX||" : "") 
-		. "Unread|ALL|" tmpsite
-	GuiControlGet, wqDim, Pos, WQtab
-	lvDim := "W" wqDimW-25 " H" wqDimH-35
+	btnBGM := phase.AddPicture("y" bgmY+20 " x" bgmX+70 " w" bgmW/3 " h" bgmH/2
+		,".\files\BGMini.png")
 	
-	if (wksloc="Main Campus") {
-		GuiControl 
-			, Enable
-			, Check Preventice inventory
+	/*	MAIN TABVIEW
+	 */
+	phase.SetFont(,"Calibri")
+	siteTabs := makeSiteTab()
+	WQtab := phase.AddTab3("x10 y10 w" dims.phase.lvW " h" dims.phase.lvH 
+		; . " +HwndWQtab -Wrap"
+		, siteTabs)
+		WQtab.GetPos(&wqX,&wqY,&wqW,&wqH)
+	
+	/*	BUILD LISTVIEWS
+	 */
+	lvDim := "w" wqW-25 " h" wqH-35
 
-		Gui, Tab, INBOX
-		Gui, Add, Listview
-			, % "-Multi Grid BackgroundSilver " lvDim " greadWQlv vWQlv_in hwndHLV_in"
-			, filename|Name|MRN|DOB|Location|Study Date|wqid|Type|Need FTP
-		Gui, ListView, WQlv_in
-		LV_ModifyCol(1,"0")																; filename and path, "0" = hidden
-		LV_ModifyCol(2,"160")															; name
-		LV_ModifyCol(3,"60")															; mrn
-		LV_ModifyCol(4,"80")															; dob
-		LV_ModifyCol(5,"80")															; site
-		LV_ModifyCol(6,"80")															; date
-		LV_ModifyCol(7,"2")																; wqid
-		LV_ModifyCol(8,"40")															; ftype
-		LV_ModifyCol(9,"70 Center")														; ftp
-		CLV_in := new LV_Colors(HLV_in,true,false)
-		CLV_in.Critical := 100
+	if (gl.isMain) {
+		btnPrevGrab.Enabled := true
+
+		WQtab.UseTab("INBOX") ; ======================================================== INBOX
+		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
+			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
+		)
+		; HLV_in.OnEvent("DoubleClick",readWQlv())
+		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
+		HLV_in.ModifyCol(2,"160 Center")												; name
+		HLV_in.ModifyCol(3,"60 Center")													; mrn
+		HLV_in.ModifyCol(4,"80 Center")													; dob
+		HLV_in.ModifyCol(5,"80 Center")													; site
+		HLV_in.ModifyCol(6,"80 Center")													; date
+		HLV_in.ModifyCol(7,"2")															; wqid
+		HLV_in.ModifyCol(8,"40 Center")													; ftype
+		HLV_in.ModifyCol(9,"70 Center")													; ftp
+		; CLV_in := new LV_Colors(HLV_in,true,false)
+		; CLV_in.Critical := 100
 	}
-	
-	Gui, Tab, ORDERS
-	Gui, Add, Listview
-		, % "-Multi Grid BackgroundSilver ColorRed " lvDim " greadWQorder vWQlv_orders hwndHLV_orders"
-		, filename|Order Date|Name|MRN|Ordering Provider|Monitor
-	Gui, ListView, WQlv_orders
-	LV_ModifyCol(1,"0")																	; filename and path (hidden)
-	LV_ModifyCol(2,"80")																; date
-	LV_ModifyCol(3,"140")																; Name
-	LV_ModifyCol(4,"60")																; MRN
-	LV_ModifyCol(5,"100")																; Prov
-	LV_ModifyCol(6,"70")																; Type
-	
-	Gui, Tab, Unread
-	Gui, Add, Listview
-		, % "-Multi Grid BackgroundSilver ColorRed " lvDim " vWQlv_unread hwndHLV_unread"
-		, Name|MRN|Study Date|Processed|Monitor|Ordering|Assigned EP
-	Gui, ListView, WQlv_unread
-	LV_ModifyCol(1,"140")																; Name
-	LV_ModifyCol(2,"60")																; MRN
-	LV_ModifyCol(3,"80")																; Date
-	LV_ModifyCol(4,"80")																; Processed
-	LV_ModifyCol(5,"70")																; Mon Type
-	LV_ModifyCol(6,"80")																; Ordering
-	LV_ModifyCol(7,"80")																; Assigned EP
 
-	Gui, Tab, ALL
-	Gui, Add, Listview
-		, % "-Multi Grid BackgroundSilver " lvDim " gWQtask vWQlv_all hwndHLV_all"
-		, ID|Enrolled|FedEx|Uploaded|Notes|MRN|Enrolled Name|Device|Provider|Site
-	Gui, ListView, WQlv_all
-	LV_ModifyCol(1,"0")																	; wqid (hidden)
-	LV_ModifyCol(2,"60")																; date
-	LV_ModifyCol(3,"40 Center")															; FedEx
-	LV_ModifyCol(4,"60")																; uploaded
-	LV_ModifyCol(5,"40 Center")															; Notes
-	LV_ModifyCol(6,"60")																; MRN
-	LV_ModifyCol(7,"140")																; Name
-	LV_ModifyCol(8,"130")																; Ser Num
-	LV_ModifyCol(9,"100")																; Prov
-	LV_ModifyCol(10,"80")																; Site
-	CLV_all := new LV_Colors(HLV_all,true,false)
-	CLV_all.Critical := 100
+	WQtab.UseTab("ORDERS") ; =========================================================== ORDERS
+	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
+		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
+	)
+	; HLV_orders.OnEvent("DoubleClick",readWQorder())
+	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
+	HLV_orders.ModifyCol(2,"80")														; date
+	HLV_orders.ModifyCol(3,"140")														; Name
+	HLV_orders.ModifyCol(4,"60")														; MRN
+	HLV_orders.ModifyCol(5,"100")														; Prov
+	HLV_orders.ModifyCol(6,"70")														; Type
 	
-	Loop, parse, sites, |
+	WQtab.UseTab("Unread") ; =========================================================== UNREAD
+	HLV_unread := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
+		, ["Name","MRN","Study Date","Processed","Monitor","Ordering","Assigned EP"]
+	)
+	HLV_unread.ModifyCol(1,"140")														; Name
+	HLV_unread.ModifyCol(2,"60")														; MRN
+	HLV_unread.ModifyCol(3,"80")														; Date
+	HLV_unread.ModifyCol(4,"80")														; Processed
+	HLV_unread.ModifyCol(5,"70")														; Mon Type
+	HLV_unread.ModifyCol(6,"80")														; Ordering
+	HLV_unread.ModifyCol(7,"80")														; Assigned EP
+
+	WQtab.UseTab("ALL") ; ============================================================== ALL
+	HLV_all := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
+		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
+	)
+	; HLV_all.OnEvent("DoubleClick",WQtask())
+	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
+	HLV_all.ModifyCol(2,"60")															; date
+	HLV_all.ModifyCol(3,"40 Center")													; FedEx
+	HLV_all.ModifyCol(4,"60")															; uploaded
+	HLV_all.ModifyCol(5,"40 Center")													; Notes
+	HLV_all.ModifyCol(6,"60")															; MRN
+	HLV_all.ModifyCol(7,"140")															; Name
+	HLV_all.ModifyCol(8,"130")															; Ser Num
+	HLV_all.ModifyCol(9,"100")															; Prov
+	HLV_all.ModifyCol(10,"80")															; Site
+	; CLV_all := new LV_Colors(HLV_all,true,false)
+	; CLV_all.Critical := 100
+
+	; ================================================================================== LV for each Site
+	HLV1 := HLV2 := HLV3 := HLV4 := HLV5 := HLV6 := HLV7 := HLV8 := HLV9 := ""			; Must declare first, V2 cannot create dynamic variable names
+	loop parse sites.tracked, "|"
 	{
 		i := A_Index
 		site := A_LoopField
-		Gui, Tab, % site
-		Gui, Add, Listview
-			, % "-Multi Grid BackgroundSilver " lvDim " gWQtask vWQlv"i " hwndHLV"i
-			, ID|Enrolled|FedEx|Uploaded|Notes|MRN|Enrolled Name|Device|Provider
-		Gui, ListView, WQlv%i%
-		LV_ModifyCol(1,"0")																	; wqid (hidden)
-		LV_ModifyCol(2,"60")																; date
-		LV_ModifyCol(3,"40 Center")															; FedEx
-		LV_ModifyCol(4,"60")																; uploaded
-		LV_ModifyCol(5,"40 Center")															; Notes
-		LV_ModifyCol(6,"60")																; MRN
-		LV_ModifyCol(7,"140")																; Name
-		LV_ModifyCol(8,"130")																; Ser Num
-		LV_ModifyCol(9,"100")																; Prov
-		CLV_%i% := new LV_Colors(HLV%i%,true,false)
-		CLV_%i%.Critical := 100
+		WQtab.UseTab(site)
+		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
+			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
+		)
+		; HLV%i%.OnEvent("DoubleClick",WQtask())
+		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
+		HLV%i%.ModifyCol(2,"60")														; date
+		HLV%i%.ModifyCol(3,"40 Center")													; FedEx
+		HLV%i%.ModifyCol(4,"60")														; uploaded
+		HLV%i%.ModifyCol(5,"40 Center")													; Notes
+		HLV%i%.ModifyCol(6,"60")														; MRN
+		HLV%i%.ModifyCol(7,"140")														; Name
+		HLV%i%.ModifyCol(8,"130")														; Ser Num
+		HLV%i%.ModifyCol(9,"100")														; Prov
+		; CLV_%i% := new LV_Colors(HLV%i%,true,false)
+		; CLV_%i%.Critical := 100
 	}
-	WQlist()
-	
-	Menu, menuSys, Add, Change clinic location, changeLoc
-	Menu, menuSys, Add, Generate late returns report, lateReport
-	Menu, menuSys, Add, Generate registration locations report, regReport
-	Menu, menuSys, Add, Update call schedules, updateCall
-	Menu, menuSys, Add, CheckMWU, checkMWUapp											; position for test menu
-	Menu, menuHelp, Add, About TRRIQ, menuTrriq
-	Menu, menuHelp, Add, Instructions..., menuInstr
-	Menu, menuAdmin, Add, Toggle admin mode, toggleAdmin
-	Menu, menuAdmin, Add, Clean tempfiles, CleanTempFiles
-	Menu, menuAdmin, Add, Send notification email, sendEmail
-	Menu, menuAdmin, Add, Find pending leftovers, cleanPending
-	Menu, menuAdmin, Add, Fix WQ device durations, fixDuration							; position for test menu
-	Menu, menuAdmin, Add, Recover DONE record, recoverDone
-	Menu, menuAdmin, Add, Check running users/versions, runningUsers
-	Menu, menuAdmin, Add, Create test order, makeEpicORM
-		
-	Menu, menuBar, Add, System, :menuSys
-	if (user~="i)tchun1|docte") {
-		Menu, menuBar, Add, Admin, :menuAdmin
-	}
-	Menu, menuBar, Add, Help, :menuHelp
-	
-	Gui, Menu, menuBar
-	Gui, Show,, TRRIQ Dashboard
 
-	if (adminMode) {
-		Gui, Color, Fuchsia
-		Gui, Show,, TRRIQ Dashboard - ADMIN MODE
-	}
+	/*	POPULATE LISTVIEWS
+	 */
+	; WQlist()
 	
-	SetTimer, idleTimer, 500
-	return
-*/
+	/*	MENUS
+	 */
+	menuSys := Menu()
+		menuSys.Add("Change clinic location", menuAbout) ;,changeloc())
+		menuSys.Add("Generate late returns report", menuAbout) ;,lateReport())
+		menuSys.Add("Generate registration locations report", menuAbout) ;,regReport())
+		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
+		menuSys.Add("CheckMWU", menuAbout) ;, checkMWUapp())											; position for test menu
+	
+	menuHelp := Menu()
+		menuHelp.Add("About TRRIQ", menuAbout)
+		menuHelp.Add("Instructions...", menuInstructions)
+	menuAdmin := Menu()
+		menuAdmin.Add("Toggle admin mode", menuAbout) ;, toggleAdmin())
+		menuAdmin.Add("Clean tempfiles", menuAbout) ;, CleanTempFiles())
+		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
+		menuAdmin.Add("Find pending leftovers", menuAbout) ;, cleanPending())
+		menuAdmin.Add("Fix WQ device durations", menuAbout) ;, fixDuration())							; position for test menu
+		menuAdmin.Add("Recover DONE record", menuAbout) ;, recoverDone())
+		menuAdmin.Add("Check running users/versions", menuAbout) ;, runningUsers())
+		menuAdmin.Add("Create test order", menuAbout) ;, makeEpicORM())
+		
+	phaseMenu := MenuBar()
+		phaseMenu.Add("System",menuSys)
+		if (gl.user~="i)tchun1|docte") {
+			phaseMenu.Add("Admin",menuAdmin)
+		}
+		phaseMenu.Add("Help",menuHelp)
+	
+	phase.MenuBar := phaseMenu
+
+	phase.Title := "TRRIQ Dashboard"
+	phase.Show()
+
+	RETURN
+	/*
+		if (adminMode) {
+			Gui, Color, Fuchsia
+			Gui, Show,, TRRIQ Dashboard - ADMIN MODE
+		}
+		
+		SetTimer, idleTimer, 500
+		return
+	*/
+	makeSiteTab() {
+		alltabs := 
+			["ORDERS"
+			, "INBOX"
+			, "Unread"
+			, "ALL"
+			]
+		if !(gl.isMain) {																	; If not MAIN, remove INBOX
+			alltabs.RemoveAt(2)
+		}
+		for val in StrSplit(sites.tracked,"|")
+		{
+			alltabs.Push(val)
+		}
+		return alltabs
+	}
+
+	menuAbout(*) {
+
+	}
+
+	menuInstructions(*) {
+
+	}
 }
 
 ;#endregion
