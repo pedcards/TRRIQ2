@@ -760,6 +760,38 @@ strQ(var1,txt,null:="") {
 	return (var1="") ? null : RegExReplace(txt,"###",var1)
 }
 
+filterProv(x) {
+/*	Filters out all irregularities and common typos in Provider name from manual entry
+	Returns as {name:"Albers, Erin", site:"CRB"}
+	Provider-Site may be in error
+*/
+	global sites
+	
+	allsites := sites.tracked "|" sites.ignored
+	RegExMatch(x,"i)-(" allsites ")\s*,",&site)
+	x := trim(x)																		; trim leading and trailing spaces
+	x := RegExReplace(x,"i)\s{2,}"," ")													; replace extra spaces
+	x := RegExReplace(x,"i)\s*-\s*(" allsites ")$")										; remove trailing "LOUAY TONI(-tri)"
+	x := RegExReplace(x,"i)( [a-z](\.)? )"," ")											; remove middle initial "STEPHEN P SESLAR" to "Stephen Seslar"
+	x := RegExReplace(x,"i)^Dr(\.)?(\s)?")												; remove preceding "(Dr. )Veronica..."
+	x := RegExReplace(x,"i)^[a-z](\.)?\s")												; remove preceding "(P. )Ruggerie, Dennis"
+	x := RegExReplace(x,"i)\s[a-z](\.)?$")												; remove trailing "Ruggerie, Dennis( P.)"
+	x := RegExReplace(x,"i)\s*-\s*(" allsites ")\s*,",",")								; remove "SCHMER(-YAKIMA), VERONICA"
+	x := RegExReplace(x,"i) (MD|DO)$")													; remove trailing "( MD)"
+	x := RegExReplace(x,"i) (MD|DO),",",")												; replace "Ruggerie MD, Dennis" with "Ruggerie, Dennis"
+	x := RegExReplace(x," NPI: \d{6,}$")												; remove trailing " NPI: xxxxxxxxxx"
+	x := StrTitle(x)																	; convert "RUGGERIE, DENNIS" to "Ruggerie, Dennis"
+	if !InStr(x,", ") {
+		x := strX(x," ",1,1,"",1,0) ", " strX(x,"",1,1," ",1,1)							; convert "DENNIS RUGGERIE" to "RUGGERIE, DENNIS"
+	}
+	x := RegExReplace(x,"^, ")															; remove preceding "(, )Albers" in event this happens
+	if (site[1]="TRI") {																; sometimes site improperly registered as "tri"
+		site[1] := "TRI-CITIES"
+	}
+	return {name:x, site:site[1]}
+}
+
+	
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
@@ -805,7 +837,7 @@ readPrevTxt() {
 		{
 			pb.set(A_Index)
 			k := dets.item(numdets-A_Index)												; read nodes from oldest to newest
-			; parsePrevEnroll(k)
+			parsePrevEnroll(k)
 		}
 		wq.selectSingleNode("/root/pending").setAttribute("update",psrDT)				; set pending[@update] attr
 		eventlog("Patient Status Report " psrDT " updated.")
