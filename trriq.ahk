@@ -427,8 +427,7 @@ PhaseGUI() {
 
 	menuAbout(*) {
 		phase.Hide
-		tmp := FileGetTime(A_ScriptName)
-		MsgBox(A_ScriptName " version " substr(tmp,1,12) "`nTerrence Chun, MD","About...",64)
+		MsgBox(A_ScriptName " version " substr(gl.runningVer,1,12) "`nTerrence Chun, MD","About...",64)
 		phase.Show
 		return
 	}
