@@ -202,6 +202,7 @@ getDims() {
 
 PhaseGUI() {
 	global gl, dims, sites, wksLoc
+		, phase, WQtab
 	
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
@@ -244,6 +245,11 @@ PhaseGUI() {
 		; . " +HwndWQtab -Wrap"
 		, siteTabs)
 		WQtab.GetPos(&wqX,&wqY,&wqW,&wqH)
+		dims.wqTab := Map()
+		dims.wqTab.X := wqX
+		dims.wqTab.Y := wqY
+		dims.wqTab.W := wqW
+		dims.wqTab.H := wqH
 	
 	/*	BUILD LISTVIEWS
 	 */
