@@ -52,12 +52,18 @@ class progressbar
 		} else {
 			try this.gui["Percent"].Value := val
 		}
+		try this.gui.Show()
 	}
 	title(val) {
 		try this.gui["Title"].Value := val
+		try this.gui.Show()
 	}
 	sub(val) {
 		try this.gui["Subtitle"].Value := val
+		try this.gui.Show()
+	}
+	hide() {
+		try this.gui.Hide()
 	}
 	close() {
 		try {
