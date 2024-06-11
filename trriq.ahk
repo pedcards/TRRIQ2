@@ -342,11 +342,10 @@ PhaseGUI() {
 	/*	MENUS
 	 */
 	menuSys := Menu()
-		menuSys.Add("Change clinic location", menuAbout) ;,changeloc())
+		menuSys.Add("Change clinic location", changeLoc)
 		menuSys.Add("Generate late returns report", menuAbout) ;,lateReport())
 		menuSys.Add("Generate registration locations report", menuAbout) ;,regReport())
 		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
-	
 	menuHelp := Menu()
 		menuHelp.Add("About TRRIQ", menuAbout)
 		menuHelp.Add("Instructions...", menuInstructions)
@@ -435,6 +434,18 @@ PhaseGUI() {
 		phase.Show
 		return
 	}
+
+	changeLoc(*) {
+		ask := MsgBox("Current location: " wksLoc "`n`nReally change the clinic location for this PC?`n`nWill restart TRRIQ"
+			, "Change clinic", 262193)
+		If (ask="OK")
+		{
+			wks.clearWorkstation()
+			Reload
+		}
+		return
+	}
+
 }
 
 ;#endregion
