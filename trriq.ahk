@@ -151,7 +151,7 @@ SetTitleMatchMode("2")
 	dims := getDims()
 
 	pb.sub("Save recent Cygnus logs")
-	; saveCygnusLogs("all")
+	saveCygnusLogs("all")
 
 	pb.title("Cleaning old .bak files")
 	pb.sub("")
@@ -581,6 +581,28 @@ strQ(var1,txt,null:="") {
 	return (var1="") ? null : RegExReplace(txt,"###",var1)
 }
 
+;#endregion
+
+;#region == PREVENTICE FUNCTIONS =======================================================
+saveCygnusLogs(all:="") {
+/*	Save copy of Cygnus logs per machine per user
+	"all" creates new mirror
+	Toggle in trriq.ini
+*/
+	folder := A_AppData "\Cygnus\Logs"
+	logpath := ".\logs\Cygnus\" A_ComputerName "\" A_UserName
+	today := "Log_" A_YYYY "-" A_MM "-" A_DD ".log"
+	if (all) {																			; any value will copy entire folder 
+		DirCopy(folder, logpath "\", 1)													; trailing \ copies folder to logpath
+	} else {
+		FileCopy(folder "\" today, logpath "\" today, 1)
+	}
+	FileSetTime( , ".\logs\Cygnus\" A_ComputerName "\" A_UserName)
+	FileSetTime( , ".\logs\Cygnus\" A_ComputerName)
+	
+	Return
+}
+	
 ;#endregion
 
 ;#region == OTHER FUNCTIONS ============================================================
