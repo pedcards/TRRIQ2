@@ -124,9 +124,8 @@ class getLocation
 
 		ConfirmBtn_Click(param,*) {
 			wksGUI.Submit([1])
-			this.AddWorkstation(SelectedLocation)                                        ; Persist workstation/location to data store
+			this.AddWorkstation(SelectedLocation)                                   ; Persist workstation/location to data store
 			workstationLocation := SelectedLocation                                 ; set the return value to the selected location
-			WinClose("Unknown Location")                                            ; Close the dialog
 			wksGUI.Destroy()                                                        ; Release resources
 		return
 		}
