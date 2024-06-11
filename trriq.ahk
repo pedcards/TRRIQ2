@@ -907,8 +907,8 @@ parsePrevEnroll(det) {
 			, id:det.getAttribute("CSN_SecondaryID1") 
 			, duration:det.getAttribute("Study_Duration") }
 
-	if InStr(res.name,"""") {
-		res.name := trim(RegExReplace(res.name,"\"".*?\"""))							; delete "quoted" nicknames
+	if InStr(res.name,"`"") {
+		res.name := trim(RegExReplace(res.name,"\`".*?\`""))							; delete "quoted" nicknames
 	}
 	if (res.dev~=" - $") {																; e.g. "Body Guardian Mini -"
 		res.dev .= res.name																; append string so will not match in enrollcheck
@@ -1076,7 +1076,16 @@ parsePrevEnroll(det) {
 	
 	return
 }
+
+enrollcheck(params) {
+	global wq
 	
+	en := wq.selectSingleNode("//enroll" params)
+	id := en.getAttribute("id")
+	
+; 	returns id if finds a match, else null
+	return id																			
+}
 
 parsePrevDev(txt) {
 /*	Add new dev to /root/inventory
