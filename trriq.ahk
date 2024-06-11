@@ -372,6 +372,7 @@ PhaseGUI() {
 
 	phase.Title := "TRRIQ Dashboard"
 	phase.Show()
+	phase.OnEvent("Close",phaseClose)
 
 	RETURN
 	/*
@@ -383,6 +384,17 @@ PhaseGUI() {
 		SetTimer, idleTimer, 500
 		return
 	*/
+	phaseClose(*) {
+		ask := MsgBox("Really quit TRRIQ?","Exit",262161)
+		If (ask="OK")
+		{
+			; checkPreventiceOrdersOut()
+			; cleanDone()
+			eventlog("<<<<< Session end.")
+			ExitApp
+		}
+	}	
+
 	makeSiteTab() {
 		alltabs := 
 			["ORDERS"
