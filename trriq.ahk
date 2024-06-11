@@ -158,7 +158,7 @@ SetTitleMatchMode("2")
 	pb.title("Cleaning old .bak files")
 	pb.sub("")
 	cleanBakFiles()
-	pb.close()
+	pb.Hide
 
 		
 ;#endregion
@@ -344,7 +344,7 @@ PhaseGUI() {
 
 	/*	POPULATE LISTVIEWS
 	 */
-	; WQlist()
+	WQlist()
 	
 	/*	MENUS
 	 */
@@ -465,9 +465,94 @@ PhaseGUI() {
 
 }
 
+WQlist() {
+/*	Build up listviews from file sources
+	Read and update worklist => wq
+ */
+	global wq, dims, phase, WQtab
+	
+	wqfiles := []
+	fldval := {}
+
+	lvDim := "w" dims.wqTab.W-25 " h" dims.wqTab.H-35
+	
+	checkversion()																		; make sure we are running latest version
+
+	pb.title("Scanning worklist...")
+	
+	fileCheck()
+	FileOpen(".lock", "W")																; Create lock file.
+	
+	wq := XML("worklist.xml")															; refresh WQ
+	
+	; readPrevTxt()																		; read prev.txt from website
+	
+	; WQclearSites0()	 																	; move studies from sites0 to DONE
+	
+	/*	Add all incoming Epic ORDERS to WQlv_orders
+	 /
+	Gui, ListView, WQlv_orders
+	LV_Delete()
+	
+	WQscanEpicOrders()
+	
+	WriteSave(wq)
+	FileDelete, .lock
+	
+	checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
+	
+	/*	Generate Inbox WQlv_in tab for Main Campus user 
+	/
+	if (gl.isMain) {
+		Gui, ListView, WQlv_in
+		LV_Delete()																		; clear the INBOX entries
+		
+		WQpreventiceResults(wqfiles)													; Process incoming Preventice results
+		WQscanHolterPDFs(wqfiles)														; Scan Holter PDFs folder for additional files
+		WQfindMissingWebgrab()															; find <pending> missing <webgrab>
+	}
+	
+	/*	Generate lv for ALL, site tabs, and pending reads
+	/
+	WQpendingTabs()
+
+	WQpendingReads()
+
+	GuiControl, Text, PhaseNumbers
+		,	% "Patients registered in Preventice (" wq.selectNodes("/root/pending/enroll").length ")`n"
+		.	(tmp := parsedate(wq.selectSingleNode("/root/pending").getAttribute("update")))
+		.	"Preventice update: " tmp.MMDD " @ " tmp.hrmin "`n"
+		.	(tmp := parsedate(wq.selectSingleNode("/root/inventory").getAttribute("update")))
+		.	"Inventory update: " tmp.MMDD " @ " tmp.hrmin
+	
+	progress, off
+	return
+*/
+}
+
+
 ;#endregion
 
-;#region == TEXT functions ==============================================================
+;#region == FILE handling elements =====================================================
+checkVersion() {
+/*	Checks running version
+	In event user has not restarted TRRIQ since last update
+ */
+	chk := FileGetTime(A_ScriptName)
+	if (chk != gl.runningVer) {
+		ask := MsgBox("There is an updated version of the script. `nRestart to launch new version?"
+			"New version!", 262193)
+		If (ask="OK")
+			run A_ScriptName
+		ExitApp
+	}
+	return
+}
+
+
+;#endregion
+
+;#region == TEXT functions =============================================================
 eventlog(event) {
 	global gl
 
