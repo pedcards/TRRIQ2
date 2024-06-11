@@ -179,6 +179,16 @@ class getLocation
 		eventlog("New machine " workstationName.Text " assigned to location " location)
 	}
 
+	clearWorkstation() {
+		locationData := XML(this.m_strXmlFilename) 
+		wksList := locationData.SelectSingleNode(this.m_strXmlWorkstationsPath)        ; retreive list of all workstations
+		wksNode := wksList.selectSingleNode(this.m_strXmlWksNodeName "[" this.m_strXmlWksName "='" A_ComputerName "']")
+		wksNode.parentNode.removeChild(wksNode)
+		locationData.TransformXML()
+		locationData.saveXML()
+		eventlog("Removed wks node for " A_ComputerName)
+	}
+
 	getSites(wksName) {
 	/*	reads wkslocation.xls and returns:
 			sites (MAIN|BELLEVUE|EVERETT...) and sites0 (TACOMA|ALASKA...) menus
