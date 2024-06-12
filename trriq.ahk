@@ -914,7 +914,7 @@ parsePrevEnroll(det) {
 		res.dev .= res.name																; append string so will not match in enrollcheck
 	}
 	
-	/*	Ignore sites0 enrollments entirely
+	/*	Ignore sites.ignored enrollments entirely
 	*/
 		if (res.site~=sites.ignored) {
 			Return
@@ -937,17 +937,17 @@ parsePrevEnroll(det) {
 			checkweb(id)
 			return
 		}
-		if (id:=enrollcheck("[name=""" res.name """]"									; 6/6 perfect match
+		if (id:=enrollcheck("[name=`"" res.name "`"]"									; 6/6 perfect match
 			. "[mrn='" res.mrn "']"
 			. "[date='" res.date "']"
 			. "[dev='" res.dev "']"
-			. "[prov=""" res.prov """]"
+			. "[prov=`"" res.prov "`"]"
 			. "[site='" res.site "']" )) {
 			parsePrevElement(id,en,res,"duration")
 			checkweb(id)
 			return
 		}
-		if (id:=enrollcheck("[name=""" res.name """]"									; 4/6 perfect match
+		if (id:=enrollcheck("[name=`"" res.name "`"]"									; 4/6 perfect match
 			. "[mrn='" res.mrn "']"														; everything but PROV or SITE
 			. "[date='" res.date "']"
 			. "[dev='" res.dev "']" )) {
@@ -990,7 +990,7 @@ parsePrevEnroll(det) {
 				wqSetVal(id,"accountnum",en.acctnum)
 				wqSetVal(id,"encnum",en.encnum)
 				wqSetVal(id,"ind",en.ind)
-				removeNode("/root/orders/enroll[@id='" id "']")
+				wq.removeNode("/root/orders/enroll[@id='" id "']")
 				eventlog("addPrevEnroll moved Order ID " id " for " en.name " to Pending.")
 				return
 			}
@@ -1016,8 +1016,8 @@ parsePrevEnroll(det) {
 			if (en.node="done") {
 				return
 			}
-			dt0:= dateDiff(en.date,res.date)
-			if abs(dt0) < 5 {															; res.date less than 5d from en.date
+			dt0:= dateDiff(en.date,res.date,"Days")
+			if abs(dt0) < 7 {															; res.date less than 5d from en.date
 				parsePrevElement(id,en,res,"date")										; prob just needs a date adjustment
 				parsePrevElement(id,en,res,"duration")
 				eventlog("parsePrevEnroll " id "." en.node " adjusted date - only matched MRN+DEV.")
@@ -1027,9 +1027,9 @@ parsePrevEnroll(det) {
 		}
 		if (id:=wq.selectSingleNode("/root/orders/enroll[mrn='" res.mrn "']").getAttribute("id")) {
 			en:=readWQ(id)																; MRN found in Orders
-			dt0:=dateDiff(en.date,res.date)
+			dt0:=dateDiff(en.date,res.date,"Days")
 			
-			if abs(dt0) < 5 {															; res.date less than 5d from en.date
+			if abs(dt0) < 7 {															; res.date less than 5d from en.date
 				addPrevEnroll(id,res)													; create a <pending> record
 				wqSetVal(id,"order",en.order)
 				wqSetVal(id,"accession",en.accession)
@@ -1039,12 +1039,12 @@ parsePrevEnroll(det) {
 				wqSetVal(id,"dev",res.dev)
 				wqSetVal(id,"date",res.date)
 				wqSetVal(id,"ind",en.ind)
-				removeNode("/root/orders/enroll[@id='" id "']")
+				wq.removeNode("/root/orders/enroll[@id='" id "']")
 				eventlog("addPrevEnroll order ID " id " for " en.name " " en.mrn " matched MRN only, moved to Pending.")
 				return
 			}
 		}
-		loop, % (allpend:=wq.selectNodes("/root/pending/enroll[mrn='" res.mrn "']")).Length
+		loop (allpend:=wq.selectNodes("/root/pending/enroll[mrn='" res.mrn "']")).Length
 		{
 			k := allpend.item(A_index-1)
 			kser := k.selectSingleNode("dev").text
@@ -1056,8 +1056,8 @@ parsePrevEnroll(det) {
 
 			id := k.getAttribute("id")
 			kdate := k.selectSingleNode("date").text
-			dt := (res.date-kdate)
-			if abs(dt) between 1 and 5													; if Preventice registration (res.date) off from 1-5 days
+			dt := abs(res.date-kdate)
+			if (dt>1) && (dt<5)															; if Preventice registration (res.date) off from 1-5 days
 			{
 				wqSetVal(id,"date",res.date)
 				wqSetVal(id,"dev",res.dev)
@@ -1068,8 +1068,8 @@ parsePrevEnroll(det) {
 		}																				; anything else is probably a new registration
 		
 	/*	No match (i.e. unique record)
-		*	add new record to PENDING
-		*/
+	*	add new record to PENDING
+	*/
 		id := makeUID()
 		addPrevEnroll(id,res)
 		eventlog("Found novel web registration " res.mrn " " res.name " " res.date ". addPrevEnroll id=" id)
