@@ -129,10 +129,11 @@ hl7line(seg) {
 	if (isOBX) {																		; need to special process OBX[], test result strings
 		if (res.ObsType == "ED") {
 			fldVal.Filename := res.Filename												; file follows
-			nBytes := Base64Dec( res.resValue, Bin )
-			File := FileOpen( path.PrevHL7in . res.Filename, "w")
-			File.RawWrite(Bin, nBytes)
-			File.Close()
+			b64 := res.resValue
+			bin := Base64_Dec(&b64)
+			Fx := FileOpen( path.PrevHL7in . res.Filename, "w")
+			Fx.RawWrite(bin)
+			Fx.Close()
 			;~ seg := "OBX|" fld.2 "|ED|PDFReport"
 		} else {
 			label := res.resCode													; result value
@@ -176,31 +177,27 @@ segField(fld,lbl:="") {
 */
 }
 
-/*
-; https://www.autohotkey.com/boards/viewtopic.php?t=35964
-Base64Dec( ByRef B64, ByRef Bin ) {  ; By SKAN / 18-Aug-2017
-	Local Rqd := 0, BLen := StrLen(B64)                 ; CRYPT_STRING_BASE64 := 0x1
-	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
-         , "UInt",0, "UIntP",Rqd, "Int",0, "Int",0 )
-	VarSetCapacity( Bin, 128 ), VarSetCapacity( Bin, 0 ),  VarSetCapacity( Bin, Rqd, 0 )
-	DllCall( "Crypt32.dll\CryptStringToBinary", "Str",B64, "UInt",BLen, "UInt",0x1
-         , "Ptr",&Bin, "UIntP",Rqd, "Int",0, "Int",0 )
-	Return Rqd
-}
+Base64_Dec(&Src)                                                        ;  By SKAN for ah2 on D672/D672 @ autohotkey.com/r?p=534720
+{
+    Local  EqTo    :=  (SubStr(Src,-2,1) = "=") + (SubStr(Src,-1) = "=")   ;  = count
+        ,  nBytes  :=  (StrLen(Src) - EqTo) * 3 // 4                         ;  Target bytes
+        ,  Trg     :=  Buffer(nBytes)
 
-Base64Enc( ByRef Bin, nBytes, LineLength := 64, LeadingSpaces := 0 ) { ; By SKAN / 18-Aug-2017
-	Local Rqd := 0, B64, B := "", N := 0 - LineLength + 1  ; CRYPT_STRING_BASE64 := 0x1
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin ,"UInt",nBytes, "UInt",0x1, "Ptr",0,   "UIntP",Rqd )
-	VarSetCapacity( B64, Rqd * ( A_Isunicode ? 2 : 1 ), 0 )
-	DllCall( "Crypt32.dll\CryptBinaryToString", "Ptr",&Bin, "UInt",nBytes, "UInt",0x1, "Str",B64, "UIntP",Rqd )
-	If ( LineLength = 64 and ! LeadingSpaces )
-		Return B64
-	B64 := StrReplace( B64, "`r`n" )
-	Loop % Ceil( StrLen(B64) / LineLength )
-		B .= Format("{1:" LeadingSpaces "s}","" ) . SubStr( B64, N += LineLength, LineLength ) . "`n"
-	Return RTrim( B,"`n" )
+    DllCall("Crypt32\CryptStringToBinary", "str",Src, "int",StrLen(Src), "int",0x1, "ptr",Trg, "intp",&nBytes, "int",0, "int",0 )
+
+Return Trg
 }
-*/
+Base64_Enc(&Src)                                                        ;  By SKAN for ah2 on D672/D672 @ autohotkey.com/r?p=534720
+{
+    Local  Bytes  :=  Src.Size
+        ,  RqdCap :=  1 + (( Ceil(Bytes*4/3) + 3 ) & ~0x03)
+        ,  Trg    :=  ""
+
+    VarSetStrCapacity(&Trg, RqdCap - 1)
+    DllCall("Crypt32\CryptBinaryToString", "ptr",Src, "int",Bytes, "int",0x40000001, "str",Trg, "intp",&RqdCap)
+
+Return Trg
+}
 
 buildHL7(seg,params) {
 /*	creates hl7out.msg = "seg|idx|param1|param2|param3|param4|..."
