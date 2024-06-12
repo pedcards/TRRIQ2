@@ -831,7 +831,7 @@ wqSetVal(id,node,val) {
 	val := RegExReplace(val,"\'","^")													; make sure no val ever contains [']
 	
 	if IsObject(k) {
-		wq.setText(newID "/" node,val)
+		k.text := val
 	} else {
 		wq.addElement(newID,node,val)
 	}
