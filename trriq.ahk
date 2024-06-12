@@ -137,9 +137,9 @@ SetTitleMatchMode("2")
 		; monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
 	}
 
-	pb.sub("HL7 map")
-	hl7 := getHL7()																						; HL7 definitions
-	hl7DirMap := {}
+	; pb.sub("HL7 map")
+	; hl7 := getHL7()																						; HL7 definitions
+	; hl7DirMap := {}
 
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
