@@ -9,7 +9,7 @@ class getHL7
 		Reads prevDDE from => this.prevDDE
 		Uses STATIC so doesn't have to reload INI for subsequent calls
 	 */
-		static hl7map, DDE
+		static hl7map, prevDDE
 
 		try if IsObject(hl7map) {
 		} 
@@ -31,10 +31,10 @@ class getHL7
 					hl7map.%i%.%num% := arr[2]											; set hl7.OBX.2 = "Obs Type"
 				}
 			}
-			DDE := readIni("preventiceDDE")												; map hl7 fields to lw fields
+			prevDDE := readIni("preventiceDDE")											; map hl7 fields to lw fields
 		}
 		this.seg := hl7map
-		this.prevDDE := DDE
+		this.DDE := prevDDE
 
 		if (fnam) {
 			this.file := FileRead(fnam)
