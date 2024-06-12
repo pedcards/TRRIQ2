@@ -108,6 +108,30 @@ class XML
 		}
 	}
 
+	removeNode(node) {
+	/*	Removes node
+	*/
+		node := this.isNode(node)
+		try {
+			IsObject(node)
+		} 
+		catch as err {
+			MsgBox("Error: " err.Message)
+			return false
+		} 
+		else {
+			try {
+				node := this.doc.selectSingleNode(node)
+			}
+			catch as err {
+				MsgBox("Error: " err.Message)
+				return false
+			}
+		}
+
+		try node.parentNode.removeChild(node)
+	}
+	
 	saveXML(fname:="") {
 	/*	Saves XML
 		to fname if passed, otherwise to original filename
