@@ -498,7 +498,7 @@ WQlist() {
 	Gui, ListView, WQlv_orders
 	LV_Delete()
 	
-	WQscanEpicOrders()
+	WQscanEpicOrders(lv)
 	
 	WriteSave(wq)
 	FileDelete, .lock
@@ -892,6 +892,233 @@ WQclearSites0() {
 	}
 	Return
 }
+
+WQscanEpicOrders(lv) {
+/*	Scan all incoming Epic orders
+	3-pass method
+*/
+	global wq
+
+	if !IsObject(wq.selectSingleNode("/root/orders")) {
+		wq.addElement("/root","orders")
+	}
+	
+	WQEpicOrdersNew()																	; Process new files
+
+	WQEpicOrdersPrevious()																; Scan previous *Z.hl7 files
+
+	; WQepicOrdersCleanup()																; Remove extraneous orders
+
+	lv.ModifyCol(2,"SortDesc")															; Sort orders LV by date
+
+	Return
+}
+
+WQepicOrdersNew() {
+/*	First pass: process new files
+	Find noval (not renamed) hl7 files in path.EpicHL7in
+	Find matching <enroll> node
+		Skip sites0
+		Skip Name or MRN string varies by more than 15%
+		Skip datediff > 5d
+	Adjust name, order, accession, account, encounter num for <enroll> node
+	Handle corresponding <orders> node
+*/
+	global wq, path, sites, fldVal
+
+	Loop files path.EpicHL7in "*"
+	{
+		e0 := {}
+		fileIn := A_LoopFileName
+		if RegExMatch(fileIn,"_@([a-zA-Z0-9]{4,}).hl7") {								; skip old files
+			continue
+		}
+		processhl7(A_LoopFileFullPath)
+		e0:=parseORM()
+		if InStr(sites0, e0.loc) {														; skip non-tracked orders
+			FileMove, %A_LoopFileFullPath%, % ".\tempfiles\" e0.mrn "_" e0.nameL "_" A_LoopFileName, 1
+			eventlog("Non-tracked order " fileIn " moved to tempfiles. " e0.loc " " e0.mrn " " e0.nameL)
+			continue
+		}
+		eventlog("New order " fileIn ". " e0.name " " e0.mrn )
+		
+		loop, % (ens:=wq.selectNodes("/root/pending/enroll")).Length					; find enroll nodes with result but no order
+		{
+			k := ens.item(A_Index-1)
+			if IsObject(k.selectSingleNode("accession")) {								; skip nodes that already have accession
+				continue
+			}
+			e0.match_NM := fuzzysearch(e0.name,format("{:U}",k.selectSingleNode("name").text))
+			e0.match_MRN := fuzzysearch(e0.mrn,k.selectSingleNode("mrn").text)
+			if (e0.match_NM > 0.15) || (e0.match_MRN > 0.15) {							; Name or MRN vary by more than 15%
+				continue
+			}
+			dt0 := dateDiff(e0.date,k.selectSingleNode("date").text)
+			if abs(dt0) > 5 {															; Date differs by more than 5d
+				Continue
+			}
+
+			id := k.getAttribute("id")
+			e0.match_UID := true
+			
+			if (e0.name != k.selectSingleNode("name").text) {
+				wqSetVal(id,"name",e0.name)
+				eventlog("enroll name " k.selectSingleNode("name").text " changed to " e0.name)
+			}
+			wqSetVal(id,"order",e0.order)
+			wqSetVal(id,"accession",e0.accession)
+			wqSetVal(id,"acctnum",e0.accountnum)
+			wqSetVal(id,"encnum",e0.encnum)	
+			k.setAttribute("id",e0.UID)
+			eventlog("Found pending/enroll=" id " that matches new Epic order " e0.order ". " e0.match_NM)
+			eventlog("enroll id " id " changed to " e0.UID)
+			break
+		}
+		if (e0.match_UID) {
+			FileMove, %A_LoopFileFullPath%, .\tempfiles\*, 1
+			eventlog("Moved: " A_LoopFileFullPath)
+			continue
+		}
+		
+		e0.orderNode := "/root/orders/enroll[order='" e0.order "']"
+		if IsObject(k:=wq.selectSingleNode(e0.orderNode)) {								; ordernum node exists
+			e0.nodeCtrlID := k.selectSingleNode("ctrlID").text
+			if (e0.CtrlID < e0.nodeCtrlID) {											; order CtrlID is older than existing, somehow
+				FileDelete, % path.EpicHL7in fileIn
+				eventlog("Order msg " fileIn " is outdated. " e0.name)
+				continue
+			}
+			if (e0.orderCtrl="CA") {													; CAncel an order
+				FileDelete, % path.EpicHL7in fileIn										; delete this order message
+				FileDelete, % path.EpicHL7in "*_" e0.UID "Z.hl7"						; and the previously processed hl7 file
+				removeNode(e0.orderNode)												; and the accompanying node
+				eventlog("Cancelled order " e0.order ". " e0.name)
+				continue
+			}
+			FileDelete, % path.EpicHL7in "*_" e0.UID "Z.hl7"							; delete previously processed hl7 file
+			removeNode(e0.orderNode)													; and the accompanying node
+			eventlog("Cleared order " e0.order " node. " e0.name)
+		}
+		if (e0.orderCtrl="XO") {														; change an order
+			e0.orderNode := "/root/orders/enroll[accession='" e0.accession "']"
+			k := wq.selectSingleNode(e0.orderNode)
+			e0.nodeUID := k.getAttribute("id")
+			FileDelete, % path.EpicHL7in "*_" e0.nodeUID "Z.hl7"
+			removeNode(e0.orderNode)
+			eventlog("Removed node id " e0.nodeUID " for replacement. " e0.name)
+		}
+		
+		newID := "/root/orders/enroll[@id='" e0.UID "']"								; otherwise create a new node
+			wq.addElement("enroll","/root/orders",{id:e0.UID})
+			wq.addElement("order",newID,e0.order)
+			wq.addElement("accession",newID,e0.accession)
+			wq.addElement("ctrlID",newID,e0.CtrlID)
+			wq.addElement("date",newID,e0.date)
+			wq.addElement("name",newID,e0.name)
+			wq.addElement("mrn",newID,e0.mrn)
+			wq.addElement("sex",newID,e0.sex)
+			wq.addElement("dob",newID,e0.dob)
+			wq.addElement("mon",newID,e0.mon)
+			wq.addElement("prov",newID,e0.prov)
+			wq.addElement("provname",newID,e0.provname)
+			wq.addElement("site",newID,e0.loc)
+			wq.addElement("acctnum",newID,e0.accountnum)
+			wq.addElement("encnum",newID,e0.encnum)
+			wq.addElement("ind",newID,e0.ind)
+		eventlog("Added order ID " e0.UID ". " e0.name)
+		
+		fileOut := (e0.mon="CUTOVER" ? "done\" : "")
+			. e0.MRN "_" 
+			. fldval["PID_nameL"] "^" fldval["PID_nameF"] "_"
+			. e0.date "_"
+			. e0.uid 																	; new ORM filename ends with _[UID]Z.hl7
+			. "Z.hl7"
+		
+		FileMove, %A_LoopFileFullPath%													; and rename ORM file
+			, % path.EpicHL7in . fileOut
+		
+	}
+
+	Return
+}
+
+WQepicOrdersPrevious() {
+/*	Second pass: scan previously added *Z.hl7 files
+	Another chance to clear sites0 and remnant files
+	Add line to Inbox LV
+*/
+/*
+	global path, wq, sites0, monOrderType
+
+	loop, Files, % path.EpicHL7in "*Z.hl7"
+	{
+		e0 := {}
+		fileIn := A_LoopFileName
+		if RegExMatch(fileIn,"_([a-zA-Z0-9]{4,})Z.hl7",i) {								; file appears to have been parsed
+			e0 := readWQ(i1)
+		} else {
+			continue
+		}
+		
+		if InStr(sites0,e0.site) {														; sites0 location
+			FileMove, %A_LoopFileFullPath%, .\tempfiles, 1
+			removeNode("/root/orders/enroll[@id='" i1 "']")
+			eventlog("Non-tracked order " fileIn " moved to tempfiles.")
+			continue
+		}
+		if (e0.node ~= "pending|done") {												; remnant orders file
+			FileMove, %A_LoopFileFullPath%, .\tempfiles, 1
+			eventlog("Leftover HL7 file " fileIn " moved to tempfiles.")
+			continue
+		}
+		
+		LV_Add(""
+			, path.EpicHL7in . fileIn													; filename and path to HolterDir
+			, e0.date																	; date
+			, e0.name																	; name
+			, e0.mrn																	; mrn
+			, e0.provname																; prov
+			, monOrderType[e0.mon] " "													; monitor type
+				. (e0.mon="BGH"															; relabel BGH=>CEM
+				? "CEM"
+				: e0.mon)
+			, "")																		; fulldisc present, make blank
+		GuiControl, Enable, Register
+		GuiControl, Text, Register, Go to ORDERS tab
+	}
+	Return
+*/
+}
+
+WQepicOrdersCleanup() {
+/*	Third pass: remove extraneous orders
+*/
+/*
+	global wq
+
+	loop, % (ens:=wq.selectNodes("/root/orders/enroll")).Length
+	{
+		e0 := {}
+		k := ens.item(A_Index-1)
+		e0.uid := k.getAttribute("id")
+		e0.order := k.selectSingleNode("order").text
+		e0.accession := k.selectSingleNode("accession").text
+		e0.name := k.selectSingleNode("name").text
+		
+		if IsObject(wq.selectSingleNode("/root/pending/enroll[order='" e0.order "'][accession='" e0.accession "']")) {
+			eventlog("Order node " e0.uid " " e0.name " already found in pending.")
+			removenode("/root/orders/enroll[@id='" e0.uid "']")
+		}
+		if IsObject(wq.selectSingleNode("/root/done/enroll[order='" e0.order "'][accession='" e0.accession "']")) {
+			eventlog("Order node " e0.uid " " e0.name " already found in done.")
+			removenode("/root/orders/enroll[@id='" e0.uid "']")
+		}
+	}
+	Return
+*/
+}
+
+	
 
 ;#endregion
 
