@@ -9,31 +9,31 @@ class getHL7
 		Reads prevDDE from => this.prevDDE
 		Uses STATIC so doesn't have to reload INI for subsequent calls
 	 */
-		static hl7map, prevDDE
+		static hl7ref, prevDDE
 
-		try if IsObject(hl7map) {
+		try if IsObject(hl7ref) {
 		} 
 		catch {
 		/*	hl7map and DDE are not declared, so build them
 		 */
-			hl7map := Map()
+			hl7ref := Map()
 			s0 := IniRead(this.inifile)													; s0 = Section headers
 			loop parse s0, "`n", "`r"													; parse s0
 			{
 				i := A_LoopField
-				hl7map.%i% := Map()														; create array for each header
+				hl7ref.%i% := Map()														; create array for each header
 				s1 := IniRead(this.inifile, i)											; s1 = individual header
 				loop parse s1, "`n", "`r"												; parse s1
 				{
 					j := A_LoopField
 					arr := strSplit(j,"=",,2)											; split into arr.1 and arr.2
 					num := arr[1]+0
-					hl7map.%i%.%num% := arr[2]											; set hl7.OBX.2 = "Obs Type"
+					hl7ref.%i%.%num% := arr[2]											; set hl7.OBX.2 = "Obs Type"
 				}
 			}
 			prevDDE := readIni("preventiceDDE")											; map hl7 fields to lw fields
 		}
-		this.seg := hl7map
+		this.ref := hl7ref
 		this.DDE := prevDDE
 
 		if (fnam) {
@@ -79,22 +79,22 @@ class getHL7
 		fld := StrSplit(seg,"|")														; split on `|` field separator into fld array
 		segName := fld[1]																; first array element should be NAME
 		segNum := fld[2]
-		if !IsObject(this.seg.%segName%) {												; no matching hl7 map?
+		if !IsObject(this.ref.%segName%) {												; no matching segment in hl7 reference?
 			MsgBox(seg "-" segName "`nBAD SEGMENT NAME",A_Index)
 			return error																; fail if segment name not allowed
 		}
 
 		isOBX := (segName == "OBX")
-		segMap := this.seg.%segName%													; get the map for this segment name
+		segMap := this.ref.%segName%													; get the reference map for this segment name
 		if (isOBX) {
 			segPre := ""
 		} else {
 			segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")
-			segX := this.seg.%segPre%
-			this.fldval[this.seg.%segPre%] := Map()
+			; segX := this.seg.%segPre%
+			this.fldval[this.seg.%segPre%] := Map()										; create map() for each found segment
 		}
 
-		res := Map()
+		res := Map()																	; values for each field/subfield
 		Loop fld.length()																; step through each of the fld[] strings
 		{
 			i := A_Index
