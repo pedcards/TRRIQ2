@@ -1271,6 +1271,10 @@ parsePrevEnroll(det) {
 			. "[dev='" res.dev "']"
 			. "[prov=`"" res.prov "`"]"
 			. "[site='" res.site "']" )) {
+			en := readWQ(id)
+			if (en.node="done") {
+				return
+			}
 			parsePrevElement(id,en,res,"duration")
 			checkweb(id)
 			return
