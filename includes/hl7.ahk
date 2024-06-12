@@ -37,12 +37,12 @@ class getHL7
 		this.DDE := prevDDE
 
 		if (fnam) {
-			this.file := FileRead(fnam)
-			this.fldval := Map()
-			this.obxval := Map()
-			this.bin := ""
-			this.binfile := ""
-			this.hl7out := ""
+			this.file := FileRead(fnam)													; store the name of this HL7 file	
+			this.fldval := Map()														; values from segment fields
+			this.obxval := Map()														; result values
+			this.bin := ""																; extracted binary
+			this.binfile := ""															; binary filename
+			this.hl7out := ""															; generated HL7 segment
 
 			this.processHL7(fnam)
 		}
@@ -54,7 +54,7 @@ class getHL7
 		txt := FileRead(fnam)
 		txt := StrReplace(txt, "`r`n", "`r")											; convert `r`n to `r
 		txt := StrReplace(txt, "`n", "`r")												; convert `n to `r
-		fldval.hl7 := {}
+		; fldval.hl7 := {}
 		loop parse txt, "`r", "`n"														; parse HL7 message, split on `r, ignore `n
 		{
 			seg := A_LoopField															; read next Segment line
@@ -76,7 +76,6 @@ class getHL7
 		global path
 		multiSeg := "NK1|DG1|NTE"														; segments that may have multiple lines, e.g. NK1
 		
-		res := Map()
 		fld := StrSplit(seg,"|")														; split on `|` field separator into fld array
 		segName := fld[1]																; first array element should be NAME
 		segNum := fld[2]
@@ -86,13 +85,16 @@ class getHL7
 		}
 
 		isOBX := (segName == "OBX")
-		segMap := hl7.seg.%segName%
+		segMap := this.seg.%segName%													; get the map for this segment name
 		if (isOBX) {
 			segPre := ""
 		} else {
 			segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")
+			segX := this.seg.%segPre%
 			this.fldval[this.seg.%segPre%] := Map()
 		}
+
+		res := Map()
 		Loop fld.length()																; step through each of the fld[] strings
 		{
 			i := A_Index
@@ -101,7 +103,7 @@ class getHL7
 			}
 			str := fld[i]																; each segment field
 			val := StrSplit(str,"^")													; array of subelements
-			fldval[this.seg.%segPre%][i-1] := str
+			this.fldval[this.seg.%segPre%][i-1] := str
 
 			strMap := segMap[i-1]														; get hl7 substring that maps to this
 			if (strMap=="") {															; no mapped fields
@@ -143,13 +145,13 @@ class getHL7
 			} else {
 				label := res.resCode													; result value
 				result := strQ(res.resValue, "###")
-				maplab := strQ(this.prevDDE[label],"###",label)							; maps label if hl7->lw map exists
+				maplab := strQ(this.DDE[label],"###",label)								; maps label if hl7->lw map exists
 						. strQ(res.Filename,"_###")        								; add suffix if multiple units in OBX_Filename
-				this.fldval.[segPre maplab] := result
-				this.obxval.[segPre maplab] := result
+				this.fldval[segPre maplab] := result
+				this.obxval[segPre maplab] := result
 			}
 		}
-		fldval.hl7string .= seg "`n"
+		this.fldval.hl7string .= seg "`n"
 
 		return res
 	}
