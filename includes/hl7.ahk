@@ -33,7 +33,7 @@ class getHL7
 			}
 			DDE := readIni("preventiceDDE")												; map hl7 fields to lw fields
 		}
-		this.map := hl7map
+		this.seg := hl7map
 		this.prevDDE := DDE
 
 		if (fnam) {
