@@ -43,22 +43,22 @@ class getHL7
 }
 
 processHL7(fnam) {
-/*
+/*	Read an HL7 file and parse each line
+ */
 	global fldval
-	FileRead, txt, % fnam
-	StringReplace, txt, txt, `r`n, `r														; convert `r`n to `r
-	StringReplace, txt, txt, `n, `r															; convert `n to `r
+	txt := FileRead(fnam)
+	txt := StrReplace(txt, "`r`n", "`r")												; convert `r`n to `r
+	txt := StrReplace(txt, "`n", "`r")													; convert `n to `r
 	fldval.hl7 := {}
-	loop, parse, txt, `r, `n																; parse HL7 message, split on `r, ignore `n
+	loop parse txt, "`r", "`n"															; parse HL7 message, split on `r, ignore `n
 	{
-		seg := A_LoopField																	; read next Segment line
+		seg := A_LoopField																; read next Segment line
 		if (seg=="") {
 			continue
 		}
 		hl7line(seg)
 	}
 	return
-*/
 }
 
 hl7line(seg) {
@@ -68,27 +68,26 @@ hl7line(seg) {
 	field elements stored in res[i] object
 	attempt to map each field to recognized structure for that field element
 */
-/*
 	global hl7, fldVal, path, obxVal
 	multiSeg := "NK1|DG1|NTE"															; segments that may have multiple lines, e.g. NK1
 	res := Object()
 	fld := StrSplit(seg,"|")															; split on `|` field separator into fld array
-	segName := fld.1																	; first array element should be NAME
-	segNum := fld.2
-	if !IsObject(hl7[segName]) {														; no matching hl7 map?
-		MsgBox,,% A_Index, % seg "-" segName "`nBAD SEGMENT NAME"
+	segName := fld[1]																	; first array element should be NAME
+	segNum := fld[2]
+	if !IsObject(hl7.seg[segName]) {													; no matching hl7 map?
+		MsgBox(seg "-" segName "`nBAD SEGMENT NAME",A_Index)
 		return error																	; fail if segment name not allowed
 	}
 
 	isOBX := (segName == "OBX")
-	segMap := hl7[segName]
+	segMap := hl7.seg[segName]
 	if (isOBX) {
 		segPre := ""
 	} else {
 		segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")
-		fldval.hl7[segPre] := {}
+		fldval[hl7.seg[segPre]] := Map()
 	}
-	Loop, % fld.length()																; step through each of the fld[] strings
+	Loop fld.length()																	; step through each of the fld[] strings
 	{
 		i := A_Index
 		if (i<=1) {																		; skip first 2 elements in OBX|2|TX
@@ -96,26 +95,26 @@ hl7line(seg) {
 		}
 		str := fld[i]																	; each segment field
 		val := StrSplit(str,"^")														; array of subelements
-		fldval.hl7[segPre][i-1] := str
+		fldval[hl7[segPre]][i-1] := str
 
 		strMap := segMap[i-1]															; get hl7 substring that maps to this
 		if (strMap=="") {																; no mapped fields
-			loop, % val.length()														; create strMap "^^^" based on subelements in val
+			loop val.length()															; create strMap "^^^" based on subelements in val
 			{
 				strMap .= "z" i "_" A_Index "^"
 			}
 		}
 
-		map := StrSplit(strMap,"^")														; array of substring map
-		loop, % map.length()
+		submap := StrSplit(strMap,"^")													; array of substring map
+		loop submap.length()
 		{
 			j := A_Index
-			if (map[j]=="") {															; skip if map value is null
+			if (submap[j]=="") {														; skip if map value is null
 				continue
 			}
-			x := strQ(segPre,"###_") map[j]												; res.pre_map
+			x := strQ(segPre,"###_") submap[j]											; res.pre_map
 
-			if (map.length()=1) {														; for seg with only 1 map, ensure val is at least popuated with str
+			if (submap.length()=1) {													; for seg with only 1 map, ensure val is at least popuated with str
 				val[j] := str
 			}
 			res[x] := val[j]															; add each mapped result as subelement, res.mapped_name
@@ -138,7 +137,7 @@ hl7line(seg) {
 		} else {
 			label := res.resCode													; result value
 			result := strQ(res.resValue, "###")
-			maplab := strQ(hl7.flds[label],"###",label)								; maps label if hl7->lw map exists
+			maplab := strQ(hl7.seg[flds[label]],"###",label)								; maps label if hl7->lw map exists
 					. strQ(res.Filename,"_###")        								; add suffix if multiple units in OBX_Filename
 			fldVal[segPre maplab] := result
 			obxval[segPre maplab] := result
@@ -147,34 +146,31 @@ hl7line(seg) {
 	fldval.hl7string .= seg "`n"
 
 	return res
-*/
 }
 
 segField(fld,lbl:="") {
-/*
-	res := new XML("<root/>")
+	res := XML("<root/>")
 	split := StrSplit(fld,"~")
-	loop, % split.length()
+	loop split.length()
 	{
 		i := A_index
-		res.addElement("idx","root",{num:i})
+		res.addElement("/root","idx",{num:i})
 		id := "/root/idx[@num='" i "']"
 		subfld := StrSplit(split[i],"^")
 		sublbl := StrSplit(lbl,"^")
-		loop, % subfld.length()
+		loop subfld.length()
 		{
 			j := A_Index
 			k := sublbl[j]
 			if (k="") {
-				res.addElement("node",id,{num:j},subfld[j])
+				res.addElement(id,"node",{num:j},subfld[j])
 			}
 			else {
-				res.addElement(k,id,subfld[j])
+				res.addElement(id,k,subfld[j])
 			}
 		}
 	}
 	return res
-*/
 }
 
 Base64_Dec(&Src)                                                        ;  By SKAN for ah2 on D672/D672 @ autohotkey.com/r?p=534720
@@ -204,12 +200,11 @@ buildHL7(seg,params) {
 	keeps seg counts in hl7out[seg] = idx
 	params is a sparse object with {2:"TX", 3:str1, 5:value, 11:"F", 14:A_now}
 */
-/*
 	global hl7out
 
 	txt := seg
 
-	Loop, % params.MaxIndex()
+	Loop params.MaxIndex()
 	{
 		param := params[A_index]
 
@@ -227,5 +222,4 @@ buildHL7(seg,params) {
 	hl7out.msg .= txt "`n"																; append result to hl7out.msg
 
 	return
-*/
 }
