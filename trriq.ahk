@@ -794,6 +794,79 @@ filterProv(x) {
 	
 ;#endregion
 
+;#region == WQ/Worklist FUNCTIONS ======================================================
+readWQ(idx) {
+	global wq
+	
+	res := {}
+	k := wq.selectSingleNode("//enroll[@id='" idx "']")
+	Loop (ch:=k.selectNodes("*")).Length
+	{
+		i := ch.item(A_Index-1)
+		node := i.nodeName
+		val := i.text
+		res.%node% := val
+	}
+	res.node := k.parentNode.nodeName 
+	
+	return res
+}
+
+wqSetVal(id,node,val) {
+	global wq
+	
+	newID := "/root/pending/enroll[@id='" id "']"
+	k := wq.selectSingleNode(newID "/" node)
+	if (k.text) and (val="") {															; don't overwrite an existing value with null
+		return
+	}
+	val := RegExReplace(val,"\'","^")													; make sure no val ever contains [']
+	
+	if IsObject(k) {
+		wq.setText(newID "/" node,val)
+	} else {
+		wq.addElement(newID,node,val)
+	}
+	
+	return
+}
+
+checkweb(id) {
+	global wq
+
+	en := "//enroll[@id='" id "']"
+	if (wq.selectSingleNode(en "/webgrab").text) {											; webgrab already exists
+		Return
+	} else {
+		wq.addElement(en,"webgrab",A_Now)
+		eventlog("Added webgrab for id " id)
+		Return
+	}
+}
+
+makeUID() {
+	global wq
+	
+	Loop
+	{
+		num1 := Random(10000, 99999)
+		num2 := Random(10000, 99999)
+		num3 := Random(10000, 99999)
+		num := num1 . num2 . num3
+		id := toBase(num,36)
+		if IsObject(wq.selectSingleNode("//enroll[id='" id "']")) {
+			eventlog("makeUID: " id " already in use.")
+			continue
+		} 
+		else {
+			break
+		}
+	}
+	return id
+}
+
+;#endregion
+
 ;#region == PREVENTICE FUNCTIONS =======================================================
 saveCygnusLogs(all:="") {
 /*	Save copy of Cygnus logs per machine per user
@@ -1079,9 +1152,10 @@ parsePrevEnroll(det) {
 
 enrollcheck(params) {
 	global wq
-	
-	en := wq.selectSingleNode("//enroll" params)
-	id := en.getAttribute("id")
+	id := ""
+
+	try en := wq.selectSingleNode("//enroll" params)
+	try id := en.getAttribute("id")
 	
 ; 	returns id if finds a match, else null
 	return id																			
@@ -1106,6 +1180,46 @@ parsePrevDev(txt) {
 	return
 }
 
+parsePrevElement(id,en,res,el) {
+	/*	Update <enroll/el> node with value from result of Preventice txt parse
+	
+		id	= UID
+		en	= enrollment node
+		res	= result obj from Preventice txt
+		el	= element to check
+	*/
+		global wq
+		
+		if (res[el]==en[el]) {																; Attr[el] is same in EN (wq) as RES (txt)
+			return																			; don't do anything
+		}
+		if (en[el]) and (res[el]="") {														; Never overwrite a node with NULL
+			return
+		}
+		
+		wqSetVal(id,el,res[el])
+		eventlog(en.name " (" id ") changed WQ " el " '" en[el] "' ==> '" res[el] "'")
+		
+		return
+	}
+	
+addPrevEnroll(id,res) {
+/*	Create <enroll id> based on res object
+*/
+	global wq
+	
+	newID := "/root/pending/enroll[@id='" id "']"
+	wq.addElement("enroll","/root/pending",{id:id})
+	wq.addElement("date",newID,res.date)
+	wq.addElement("name",newID,res.name)
+	wq.addElement("mrn",newID,res.mrn)
+	wq.addElement("dev",newID,res.dev)
+	wq.addElement("prov",newID,res.prov)
+	wq.addElement("site",newID,res.site)
+	wq.addElement("webgrab",newID,A_Now)
+	
+	return
+}
 
 ;#endregion
 
