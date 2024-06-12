@@ -1023,8 +1023,8 @@ WQepicOrdersNew() {
 		if RegExMatch(fileIn,"_@([a-zA-Z0-9]{4,}).hl7") {								; skip old files
 			continue
 		}
-		processhl7(A_LoopFileFullPath)
-		e0:=parseORM()
+		ord_in := getHL7(A_LoopFileFullPath)
+		; e0:=parseORM()
 		if InStr(sites.ignored, e0.loc) {														; skip non-tracked orders
 			FileMove(A_LoopFileFullPath, ".\tempfiles\" e0.mrn "_" e0.nameL "_" A_LoopFileName, 1)
 			eventlog("Non-tracked order " fileIn " moved to tempfiles. " e0.loc " " e0.mrn " " e0.nameL)
