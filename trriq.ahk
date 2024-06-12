@@ -553,7 +553,92 @@ checkVersion() {
 	return
 }
 
-
+parseORM() {
+/*	parse fldval values to values
+	including aliases for both WQlist and readWQorder
+*/
+	global fldval, sites, indCodes
+	
+	monType:=(tmp:=fldval.OBR_TestName)~="i)14 DAY" ? "BGM"								; for extended recording
+		: tmp~="i)15 DAY" ? "BGM"
+		: tmp~="i)24 HOUR" ? "HOL"														; for short report (includes full disclosure)
+		: tmp~="i)48 HOUR" ? "HOL"
+		: tmp~="i)RECORDER|EVENT" ? "BGH"
+		: tmp~="i)CUTOVER" ? "CUTOVER"
+		: ""
+	
+	switch fldval.PV1_PtClass
+	{
+		case "O":
+			encType := "Outpatient"
+			location := sites.Long[fldval.PV1_Location]
+		case "I":
+			encType := "Inpatient"
+			location := "MAIN"
+		case "OBS":
+			encType := "Inpatient"
+			location := "MAIN"
+		case "DS":
+			encType := "Outpatient"
+			location := "MAIN"
+		case "E":
+			encType := "Inpatient"
+			location := "Emergency"
+		default:
+			encType := "Outpatient"
+			location := fldval.PV1_Location
+	}
+	prov := strQ(fldval.ORC_ProvCode
+			, fldval.ORC_ProvCode "^" fldval.ORC_ProvNameL "^" fldval.ORC_ProvNameF
+			, fldval.OBR_ProviderCode "^" fldval.OBR_ProviderNameL "^" fldval.OBR_ProviderNameF)
+	provname := strQ(fldval.ORC_ProvCode
+			, fldval.ORC_ProvNameL strQ(fldval.ORC_ProvNameF, ", ###")
+			, fldval.OBR_ProviderNameL strQ(fldval.OBR_ProviderNameF, ", ###"))
+	provHL7 := fldval.hl7.ORC.12
+	;~ location := (encType="Outpatient") ? sitesLong[fldval.PV1_Location]
+		;~ : encType
+		
+	if !(indication:=strQ(fldval.OBR_ReasonCode,"###") strQ(fldval.OBR_ReasonText,"^###")) {
+		indText := objhasvalue(fldval,"^Reason for exam","RX")
+		indText := (indText="hl7") ? "" : indText										; no "Reason for exam" returns "hl7", breaks fldval[indtext]
+		indText := RegExReplace(fldval[indText],"Reason for exam->")
+		
+		indCode := objhasvalue(indCodes,indText,"RX")
+		indCode := strX(indCodes[indCode],"",1,0,":",1,1)
+		
+		indication := strQ(indCode,"###") strQ(indText,"^###")
+	}
+	
+	return {date:parseDate(fldval.OBR_StartDateTime).YMD
+		, encDate:parseDate(fldval.PV1_DateTime).YMD
+		, namePID5:fldval.hl7.PID.5
+		, nameL:fldval.PID_NameL
+		, nameF:fldval.PID_NameF
+		, name:fldval.PID_NameL strQ(fldval.PID_NameF,", ###")
+		, mrn:fldval.PID_PatMRN
+		, sex:(fldval.PID_sex~="F") ? "Female" : (fldval.PID_sex~="M") ? "Male" : (fldval.PID_sex~="U") ? "Unknown" : ""
+		, DOB:parseDate(fldval.PID_DOB).MDY
+		, monitor:monType
+		, mon:monType
+		, provider:prov
+		, prov:prov
+		, provname:provname
+		, provORC12:provHL7
+		, type:encType
+		, loc:location
+		, Account:fldval.ORC_ReqNum
+		, accountnum:fldval.PID_AcctNum
+		, encnum:fldval.PV1_VisitNum
+		, order:fldval.ORC_ReqNum
+		, accession:fldval.ORC_FillerNum
+		, UID:tobase(fldval.ORC_ReqNum RegExReplace(fldval.ORC_FillerNum,"[^0-9]"),36)
+		, ind:indication
+		, indication:indication
+		, indicationCode:strQ(fldval.OBR_ReasonCode,"###") strQ(indCode,"###")
+		, orderCtrl:fldval.ORC_OrderCtrl
+		, ctrlID:fldval.MSH_CtrlID}
+}
+	
 ;#endregion
 
 ;#region == TEXT functions =============================================================
