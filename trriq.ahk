@@ -1214,15 +1214,15 @@ parsePrevElement(id,en,res,el) {
 	*/
 		global wq
 		
-		if (res[el]==en[el]) {																; Attr[el] is same in EN (wq) as RES (txt)
-			return																			; don't do anything
+		if (res.%el% == en.%el%) {														; Attr[el] is same in EN (wq) as RES (txt)
+			return																		; don't do anything
 		}
-		if (en[el]) and (res[el]="") {														; Never overwrite a node with NULL
+		if (en.%el%) and (res.%el%="") {												; Never overwrite a node with NULL
 			return
 		}
 		
-		wqSetVal(id,el,res[el])
-		eventlog(en.name " (" id ") changed WQ " el " '" en[el] "' ==> '" res[el] "'")
+		wqSetVal(id,el,res.%el%)
+		eventlog(en.name " (" id ") changed WQ " el " '" en.%el% "' ==> '" res.%el% "'")
 		
 		return
 	}
