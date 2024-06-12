@@ -491,7 +491,7 @@ WQlist() {
 	
 	readPrevTxt()																		; read prev.txt from website
 	
-	; WQclearSites0()	 																	; move studies from sites0 to DONE
+	WQclearSites0()	 																	; move studies from sites0 to DONE
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
 	 /
@@ -867,6 +867,26 @@ makeUID() {
 		}
 	}
 	return id
+}
+
+WQclearSites0() {
+/*	Clear enroll nodes from sites0 locations
+*/
+	global sites, wq
+
+	loop parse sites.ignored, "|"
+	{
+		site := A_LoopField
+		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
+		{
+			k := ens.item(A_Index-1)
+			clone := k.cloneNode(true)
+			wq.selectSingleNode("/root/done").appendChild(clone)						; copy k.clone to DONE
+			k.parentNode.removeChild(k)													; remove k node
+			eventlog("Moved " site " record " k.selectSingleNode("mrn").text " " k.selectSingleNode("name").text)
+		}
+	}
+	Return
 }
 
 ;#endregion
