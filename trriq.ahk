@@ -494,16 +494,18 @@ WQlist() {
 	WQclearSites0()	 																	; move studies from sites0 to DONE
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
-	 /
-	Gui, ListView, WQlv_orders
-	LV_Delete()
+	*/
+	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_orders"])
+	lv.Delete()
 	
+	pb.title("Scanning Epic orders")
+	pb.set()
 	WQscanEpicOrders(lv)
 	
-	WriteSave(wq)
-	FileDelete, .lock
+	; WriteSave(wq)
+	; FileDelete(".lock")
 	
-	checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
+	; checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
 	
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	/
@@ -557,7 +559,7 @@ parseORM() {
 /*	parse fldval values to values
 	including aliases for both WQlist and readWQorder
 */
-	global fldval, sites, indCodes
+/*	global fldval, sites, indCodes
 	
 	monType:=(tmp:=fldval.OBR_TestName)~="i)14 DAY" ? "BGM"								; for extended recording
 		: tmp~="i)15 DAY" ? "BGM"
@@ -637,6 +639,7 @@ parseORM() {
 		, indicationCode:strQ(fldval.OBR_ReasonCode,"###") strQ(indCode,"###")
 		, orderCtrl:fldval.ORC_OrderCtrl
 		, ctrlID:fldval.MSH_CtrlID}
+*/
 }
 	
 ;#endregion
@@ -1009,10 +1012,12 @@ WQepicOrdersNew() {
 	Adjust name, order, accession, account, encounter num for <enroll> node
 	Handle corresponding <orders> node
 */
-	global wq, path, sites, fldVal
+	global wq, path, sites ; fldVal
+	pb.sub("New orders...")
 
 	Loop files path.EpicHL7in "*"
 	{
+		pb.set(A_Index*4)
 		e0 := {}
 		fileIn := A_LoopFileName
 		if RegExMatch(fileIn,"_@([a-zA-Z0-9]{4,}).hl7") {								; skip old files
@@ -1125,7 +1130,6 @@ WQepicOrdersNew() {
 	}
 
 	Return
-*/
 }
 
 WQepicOrdersPrevious() {
