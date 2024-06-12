@@ -244,12 +244,14 @@ PhaseGUI() {
 	WQtab := phase.AddTab3("x10 y10 w" dims.phase.lvW " h" dims.phase.lvH 
 		; . " +HwndWQtab -Wrap"
 		, siteTabs)
-		WQtab.GetPos(&wqX,&wqY,&wqW,&wqH)
+	WQtab.GetPos(&wqX,&wqY,&wqW,&wqH)
 		dims.wqTab := Map()
 		dims.wqTab.X := wqX
 		dims.wqTab.Y := wqY
 		dims.wqTab.W := wqW
 		dims.wqTab.H := wqH
+	dims.hwnd := Map()
+		dims.hwnd["WQtab"] := WQtab.Hwnd
 	
 	/*	BUILD LISTVIEWS
 	 */
@@ -262,6 +264,7 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
+		dims.hwnd["HLV_in"] := HLV_in.Hwnd
 		; HLV_in.OnEvent("DoubleClick",readWQlv())
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -280,6 +283,7 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
+	dims.hwnd["HLV_orders"] := HLV_orders.Hwnd
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
