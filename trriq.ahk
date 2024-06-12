@@ -1020,13 +1020,13 @@ WQepicOrdersNew() {
 		}
 		processhl7(A_LoopFileFullPath)
 		e0:=parseORM()
-		if InStr(sites0, e0.loc) {														; skip non-tracked orders
-			FileMove, %A_LoopFileFullPath%, % ".\tempfiles\" e0.mrn "_" e0.nameL "_" A_LoopFileName, 1
+		if InStr(sites.ignored, e0.loc) {														; skip non-tracked orders
+			FileMove(A_LoopFileFullPath, ".\tempfiles\" e0.mrn "_" e0.nameL "_" A_LoopFileName, 1)
 			eventlog("Non-tracked order " fileIn " moved to tempfiles. " e0.loc " " e0.mrn " " e0.nameL)
 			continue
 		}
 		eventlog("New order " fileIn ". " e0.name " " e0.mrn )
-		
+/*		
 		loop, % (ens:=wq.selectNodes("/root/pending/enroll")).Length					; find enroll nodes with result but no order
 		{
 			k := ens.item(A_Index-1)
@@ -1121,10 +1121,11 @@ WQepicOrdersNew() {
 		
 		FileMove, %A_LoopFileFullPath%													; and rename ORM file
 			, % path.EpicHL7in . fileOut
-		
+*/		
 	}
 
 	Return
+*/
 }
 
 WQepicOrdersPrevious() {
