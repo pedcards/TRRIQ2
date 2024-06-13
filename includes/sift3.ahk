@@ -1,3 +1,4 @@
+#Requires AutoHotkey v2+
 ;Modified SIFT3 wrapper
 ;by Fragman
 ;http://www.autohotkey.com/board/topic/54987-sift3-super-fast-and-accurate-string-distance-algorithm/#entry368694
@@ -20,7 +21,7 @@ FuzzySearch(string1, string2)
 	else
 		return StringDifference(string1, string2)
 	min := 1
-	Loop % lenl - lens + 1
+	Loop lenl - lens + 1
 	{
 		distance := StringDifference(shorter, SubStr(longer, A_Index, lens))
 		if(distance < min)
@@ -38,34 +39,36 @@ FuzzySearch(string1, string2)
 ; - modified code for speed, might lead to different results compared to original code 
 ; - optimized for speed (30% faster then original SIFT3 and 13.3 times faster than basic Levenshtein distance) 
 ;http://www.autohotkey.com/forum/topic59407.html 
-StringDifference(string1, string2, maxOffset=1) {    ;returns a float: between "0.0 = identical" and "1.0 = nothing in common" 
+StringDifference(string1, string2, maxOffset:=1) {    ;returns a float: between "0.0 = identical" and "1.0 = nothing in common" 
   If (string1 = string2) 
     Return (string1 == string2 ? 0/1 : 0.2/StrLen(string1))    ;either identical or (assumption:) "only one" char with different case 
   If (string1 = "" OR string2 = "") 
     Return (string1 = string2 ? 0/1 : 1/1) 
-  StringSplit, n, string1 
-  StringSplit, m, string2 
+  n := StrSplit(string1) 
+  m := StrSplit(string2) 
   ni := 1, mi := 1, lcs := 0 
+  n0 := n.length
+  m0 := m.length
   While((ni <= n0) AND (mi <= m0)) { 
-    If (n%ni% == m%mi%) 
-      EnvAdd, lcs, 1 
-    Else If (n%ni% = m%mi%) 
-      EnvAdd, lcs, 0.8 
+    If (n[ni] == m[mi]) 
+      lcs := lcs + 1 
+    Else If (n[ni] = m[mi]) 
+      lcs := lcs + 0.8 
     Else{ 
-      Loop, %maxOffset%  { 
+      Loop maxOffset  { 
         oi := ni + A_Index, pi := mi + A_Index 
-        If ((n%oi% = m%mi%) AND (oi <= n0)){ 
-            ni := oi, lcs += (n%oi% == m%mi% ? 1 : 0.8) 
+        If ((n[oi] = m[mi]) AND (oi <= n0)){ 
+            ni := oi, lcs += (n[oi] == m[mi] ? 1 : 0.8) 
             Break 
         } 
-        If ((n%ni% = m%pi%) AND (pi <= m0)){ 
-            mi := pi, lcs += (n%ni% == m%pi% ? 1 : 0.8) 
+        If ((n[ni] = m[pi]) AND (pi <= m0)){ 
+            mi := pi, lcs += (n[ni] == m[pi] ? 1 : 0.8) 
             Break 
         } 
       } 
     } 
-    EnvAdd, ni, 1 
-    EnvAdd, mi, 1 
+    ni := ni + 1 
+    mi := mi + 1 
   } 
   Return ((n0 + m0)/2 - lcs) / (n0 > m0 ? n0 : m0) 
 }
