@@ -1023,7 +1023,7 @@ WQepicOrdersNew() {
 		if RegExMatch(fileIn,"_@([a-zA-Z0-9]{4,}).hl7") {								; skip old files
 			continue
 		}
-		ord_in := HL7(A_LoopFileFullPath)
+		ord_in := hl7(A_LoopFileFullPath)
 		fldval := ord_in.fldval
 		e0:=parseORM()
 		if InStr(sites.ignored, e0.loc) {														; skip non-tracked orders
@@ -1032,7 +1032,7 @@ WQepicOrdersNew() {
 			continue
 		}
 		eventlog("New order " fileIn ". " e0.name " " e0.mrn )
-/*		
+		
 		loop, % (ens:=wq.selectNodes("/root/pending/enroll")).Length					; find enroll nodes with result but no order
 		{
 			k := ens.item(A_Index-1)
