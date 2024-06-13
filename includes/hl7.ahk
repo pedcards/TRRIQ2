@@ -39,6 +39,7 @@ class getHL7
 		if (fnam) {
 			this.file := FileRead(fnam)													; store the name of this HL7 file	
 			this.fldval := Map()														; values from segment fields
+			this.fldval["hl7string"] := ""												; to store cumulative string (ultimately same as input file)
 			this.obxval := Map()														; result values
 			this.bin := ""																; extracted binary
 			this.binfile := ""															; binary filename
@@ -162,7 +163,7 @@ class getHL7
 				this.obxval[segPre maplab] := result
 			}
 		}
-		this.fldval.hl7string .= seg "`n"
+		this.fldval["hl7string"] .= seg "`n"
 
 		return res
 	}
