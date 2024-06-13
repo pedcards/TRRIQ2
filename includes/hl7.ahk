@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2
 
-class getHL7
+class hl7
 {
 	inifile := ".\files\hl7.ini"
 
@@ -55,7 +55,6 @@ class getHL7
 		txt := FileRead(fnam)
 		txt := StrReplace(txt, "`r`n", "`r")											; convert `r`n to `r
 		txt := StrReplace(txt, "`n", "`r")												; convert `n to `r
-		; fldval.hl7 := {}
 		loop parse txt, "`r", "`n"														; parse HL7 message, split on `r, ignore `n
 		{
 			seg := A_LoopField															; read next Segment line
@@ -73,7 +72,6 @@ class getHL7
 		field elements stored in res[i] object
 		attempt to map each field to recognized structure for that field element
 	*/
-		; global hl7, fldVal, path, obxVal
 		global path
 		multiSeg := "NK1|DG1|NTE"														; segments that may have multiple lines, e.g. NK1
 		
