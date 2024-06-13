@@ -89,32 +89,39 @@ class getHL7
 		if (isOBX) {
 			segPre := ""
 		} else {
-			segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")
-			; segX := this.seg.%segPre%
-			this.fldval[this.seg.%segPre%] := Map()										; create map() for each found segment
+			segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")				; number PID_1 PID_2 PID_3 if multiple
+			this.fldval[segPre] := Map()												; create value map() for each found segment
 		}
 
 		res := Map()																	; values for each field/subfield
-		Loop fld.length()																; step through each of the fld[] strings
+		Loop fld.Length																	; step through each of the fld[] strings
 		{
 			i := A_Index
 			if (i<=1) {																	; skip first 2 elements in OBX|2|TX
 				continue
 			}
-			str := fld[i]																; each segment field
+			str := fld[i]																; each segment field value, e.g. PID.3(MRN)=1494708
 			val := StrSplit(str,"^")													; array of subelements
-			this.fldval[this.seg.%segPre%][i-1] := str
+			if (str="") {
+				val := [""]
+			}
+			this.fldval[segPre][i-1] := str												; this.fldval["PID"][2]=1494708
 
-			strMap := segMap[i-1]														; get hl7 substring that maps to this
+			try {
+				strMap := segMap.%i-1%													; get hl7 field name that maps to this
+			}
+			catch {
+				strMap := ""
+			}
 			if (strMap=="") {															; no mapped fields
-				loop val.length()														; create strMap "^^^" based on subelements in val
+				loop val.length															; create strMap "^^^" based on subelements in val
 				{
 					strMap .= "z" i "_" A_Index "^"
 				}
 			}
 
 			submap := StrSplit(strMap,"^")												; array of substring map
-			loop submap.length()
+			loop submap.length
 			{
 				j := A_Index
 				if (submap[j]=="") {													; skip if map value is null
@@ -122,7 +129,7 @@ class getHL7
 				}
 				x := strQ(segPre,"###_") submap[j]										; res.pre_map
 
-				if (submap.length()=1) {												; for seg with only 1 map, ensure val is at least popuated with str
+				if (submap.length=1) {													; for seg with only 1 map, ensure val is at least popuated with str
 					val[j] := str
 				}
 				if (j>val.length) {
