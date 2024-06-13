@@ -125,7 +125,11 @@ class getHL7
 				if (submap.length()=1) {												; for seg with only 1 map, ensure val is at least popuated with str
 					val[j] := str
 				}
-				res.%x% := val[j]														; add each mapped result as subelement, res.mapped_name
+				if (j>val.length) {
+					val.length := j
+					val[j] := ""
+				}
+				res[x] := val[j]														; add each mapped result as subelement, res.mapped_name
 
 				if !(isOBX)  {															; non-OBX results
 					this.fldval[x] := val[j]											; populate all fldVal.mapped_name
