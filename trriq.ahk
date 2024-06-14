@@ -1026,25 +1026,26 @@ WQepicOrdersNew() {
 		ord_in := hl7(A_LoopFileFullPath)
 		fldval := ord_in.fldval
 		e0:=parseORM()
-		if InStr(sites.ignored, e0.loc) {														; skip non-tracked orders
+		if InStr(sites.ignored, e0.loc) {												; skip non-tracked orders
 			FileMove(A_LoopFileFullPath, ".\tempfiles\" e0.mrn "_" e0.nameL "_" A_LoopFileName, 1)
 			eventlog("Non-tracked order " fileIn " moved to tempfiles. " e0.loc " " e0.mrn " " e0.nameL)
 			continue
 		}
 		eventlog("New order " fileIn ". " e0.name " " e0.mrn )
 		
-		loop, % (ens:=wq.selectNodes("/root/pending/enroll")).Length					; find enroll nodes with result but no order
+		loop (ens:=wq.selectNodes("/root/pending/enroll")).Length						; find enroll nodes with result but no order
 		{
 			k := ens.item(A_Index-1)
 			if IsObject(k.selectSingleNode("accession")) {								; skip nodes that already have accession
 				continue
 			}
+			pb.sub(k.selectSingleNode("name").text)
 			e0.match_NM := fuzzysearch(e0.name,format("{:U}",k.selectSingleNode("name").text))
 			e0.match_MRN := fuzzysearch(e0.mrn,k.selectSingleNode("mrn").text)
 			if (e0.match_NM > 0.15) || (e0.match_MRN > 0.15) {							; Name or MRN vary by more than 15%
 				continue
 			}
-			dt0 := dateDiff(e0.date,k.selectSingleNode("date").text)
+			dt0 := dateDiff(e0.date,k.selectSingleNode("date").text,"Days")
 			if abs(dt0) > 5 {															; Date differs by more than 5d
 				Continue
 			}
@@ -1065,8 +1066,8 @@ WQepicOrdersNew() {
 			eventlog("enroll id " id " changed to " e0.UID)
 			break
 		}
-		if (e0.match_UID) {
-			FileMove, %A_LoopFileFullPath%, .\tempfiles\*, 1
+		try if (e0.match_UID) {
+			FileMove(A_LoopFileFullPath, ".\tempfiles\*", 1)
 			eventlog("Moved: " A_LoopFileFullPath)
 			continue
 		}
@@ -1075,59 +1076,57 @@ WQepicOrdersNew() {
 		if IsObject(k:=wq.selectSingleNode(e0.orderNode)) {								; ordernum node exists
 			e0.nodeCtrlID := k.selectSingleNode("ctrlID").text
 			if (e0.CtrlID < e0.nodeCtrlID) {											; order CtrlID is older than existing, somehow
-				FileDelete, % path.EpicHL7in fileIn
+				FileDelete(path.EpicHL7in fileIn)
 				eventlog("Order msg " fileIn " is outdated. " e0.name)
 				continue
 			}
 			if (e0.orderCtrl="CA") {													; CAncel an order
-				FileDelete, % path.EpicHL7in fileIn										; delete this order message
-				FileDelete, % path.EpicHL7in "*_" e0.UID "Z.hl7"						; and the previously processed hl7 file
-				removeNode(e0.orderNode)												; and the accompanying node
+				FileDelete(path.EpicHL7in fileIn)										; delete this order message
+				FileDelete(path.EpicHL7in "*_@" e0.UID ".hl7")							; and the previously processed hl7 file
+				wq.removeNode(e0.orderNode)												; and the accompanying node
 				eventlog("Cancelled order " e0.order ". " e0.name)
 				continue
 			}
-			FileDelete, % path.EpicHL7in "*_" e0.UID "Z.hl7"							; delete previously processed hl7 file
-			removeNode(e0.orderNode)													; and the accompanying node
+			FileDelete(path.EpicHL7in "*_@" e0.UID ".hl7")								; delete previously processed hl7 file
+			wq.removeNode(e0.orderNode)													; and the accompanying node
 			eventlog("Cleared order " e0.order " node. " e0.name)
 		}
 		if (e0.orderCtrl="XO") {														; change an order
 			e0.orderNode := "/root/orders/enroll[accession='" e0.accession "']"
 			k := wq.selectSingleNode(e0.orderNode)
 			e0.nodeUID := k.getAttribute("id")
-			FileDelete, % path.EpicHL7in "*_" e0.nodeUID "Z.hl7"
-			removeNode(e0.orderNode)
+			FileDelete(path.EpicHL7in "*_@" e0.nodeUID ".hl7")
+			wq.removeNode(e0.orderNode)
 			eventlog("Removed node id " e0.nodeUID " for replacement. " e0.name)
 		}
 		
 		newID := "/root/orders/enroll[@id='" e0.UID "']"								; otherwise create a new node
-			wq.addElement("enroll","/root/orders",{id:e0.UID})
-			wq.addElement("order",newID,e0.order)
-			wq.addElement("accession",newID,e0.accession)
-			wq.addElement("ctrlID",newID,e0.CtrlID)
-			wq.addElement("date",newID,e0.date)
-			wq.addElement("name",newID,e0.name)
-			wq.addElement("mrn",newID,e0.mrn)
-			wq.addElement("sex",newID,e0.sex)
-			wq.addElement("dob",newID,e0.dob)
-			wq.addElement("mon",newID,e0.mon)
-			wq.addElement("prov",newID,e0.prov)
-			wq.addElement("provname",newID,e0.provname)
-			wq.addElement("site",newID,e0.loc)
-			wq.addElement("acctnum",newID,e0.accountnum)
-			wq.addElement("encnum",newID,e0.encnum)
-			wq.addElement("ind",newID,e0.ind)
+			wq.addElement("/root/orders","enroll",{id:e0.UID})
+			wq.addElement(newID,"order",e0.order)
+			wq.addElement(newID,"accession",e0.accession)
+			wq.addElement(newID,"ctrlID",e0.CtrlID)
+			wq.addElement(newID,"date",e0.date)
+			wq.addElement(newID,"name",e0.name)
+			wq.addElement(newID,"mrn",e0.mrn)
+			wq.addElement(newID,"sex",e0.sex)
+			wq.addElement(newID,"dob",e0.dob)
+			wq.addElement(newID,"mon",e0.mon)
+			wq.addElement(newID,"prov",e0.prov)
+			wq.addElement(newID,"provname",e0.provname)
+			wq.addElement(newID,"site",e0.loc)
+			wq.addElement(newID,"acctnum",e0.accountnum)
+			wq.addElement(newID,"encnum",e0.encnum)
+			wq.addElement(newID,"ind",e0.ind)
 		eventlog("Added order ID " e0.UID ". " e0.name)
 		
 		fileOut := (e0.mon="CUTOVER" ? "done\" : "")
 			. e0.MRN "_" 
-			. fldval["PID_nameL"] "^" fldval["PID_nameF"] "_"
-			. e0.date "_"
+			. fldval["PID_NameL"] "^" fldval["PID_NameF"] "_"
+			. e0.date "_@"
 			. e0.uid 																	; new ORM filename ends with _[UID]Z.hl7
-			. "Z.hl7"
+			. ".hl7"
 		
-		FileMove, %A_LoopFileFullPath%													; and rename ORM file
-			, % path.EpicHL7in . fileOut
-*/		
+		FileMove(A_LoopFileFullPath, path.EpicHL7in . fileOut)							; and rename ORM file
 	}
 
 	Return
@@ -1647,5 +1646,5 @@ cleanBakFiles() {
 #Include HostName.ahk
 #Include updateData.ahk
 #Include hl7.ahk
-
+#Include sift3.ahk
 #Include Peep.v2.ahk																	; This is only for debugging
