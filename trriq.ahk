@@ -139,7 +139,7 @@ SetTitleMatchMode("2")
 
 	; pb.sub("HL7 map")
 	; hl7 := getHL7()																						; HL7 definitions
-	; hl7DirMap := {}
+	hl7DirMap := Map()
 
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
@@ -509,14 +509,14 @@ WQlist() {
 	checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
 	
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
-	/
+	*/
 	if (gl.isMain) {
-		Gui, ListView, WQlv_in
-		LV_Delete()																		; clear the INBOX entries
+		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+		lv.Delete()
 		
-		WQpreventiceResults(wqfiles)													; Process incoming Preventice results
-		WQscanHolterPDFs(wqfiles)														; Scan Holter PDFs folder for additional files
-		WQfindMissingWebgrab()															; find <pending> missing <webgrab>
+		WQpreventiceResults(&wqfiles)													; Process incoming Preventice results
+		; WQscanHolterPDFs(wqfiles)														; Scan Holter PDFs folder for additional files
+		; WQfindMissingWebgrab()															; find <pending> missing <webgrab>
 	}
 	
 	/*	Generate lv for ALL, site tabs, and pending reads
@@ -1245,6 +1245,94 @@ getMonType(val) {
 	}
 	try return monTypes[res]
 }
+
+WQpreventiceResults(&wqfiles) {
+/*	Process each incoming .hl7 RESULT from PREVENTICE
+	Parse OBR line for existing wqid, provider, site
+	Parse PV1 line for study date
+	Exit if this study already in <done>, move hl7 to tempfiles
+	Add line to WQlv_in
+	Add line to wqfiles
+*/
+	global wq, path, sites, monTypes, hl7DirMap		;, monSerialStrings, fldval
+	
+	tmpHolters := ""
+	loop Files path.PrevHL7in "*.hl7"
+	{
+		fileIn := A_LoopFileName
+		x := StrSplit(fileIn,"_")
+		if !(id := hl7dirMap[fileIn]) {													; will be true if have found this wqid in this instance, else null
+			tmptxt := fileread(path.PrevHL7in fileIn)
+			obr:= strsplit(stregX(tmptxt,"\R+OBR",1,0,"\R+",0),"|")						; get OBR segment
+			obr_req := trim(obr.3," ^")													; wqid from Preventice registration (PV1_19)
+			obr_prov := strX(obr.17,"^",1,1,"^",1)
+			obr_site := strX(obr_prov,"-",0,1,"",0)
+			pv1:= strsplit(stregX(tmptxt,"\R+PV1",1,0,"\R+",0),"|")						; get PV1 segment
+			pv1_dt := SubStr(pv1.40,1,8)												; pull out date of entry/registration (will not match for send out)
+			obx1:= InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
+		}
+	}
+			/*			
+			if (obr_site="") {															; no "-site" in OBR.17 name
+				obr_site:="MAIN"
+				eventlog(fileIn " - " obr_prov 
+					. ". No site associated with provider, substituting MAIN. Check ORM and Preventice users.")
+			}
+			if InStr(sites.ignored,obr_site) {
+				eventlog("Unregistered Sites0 report (" fileIn " - " obr_site ")")
+				FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
+				continue
+			}
+			if (readWQ(obr_req).mrn) {													; check if obr_req is valid wqid
+				id := obr_req
+				hl7dirMap[fileIn] := id
+			} 
+			else if (id := findWQid(pv1_dt,x.3).id) { 									; try to find wqid based on date in PV1.40 and mrn
+				hl7dirMap[fileIn] := id
+			}
+			else {																		; can't find wqid, just admit defeat
+				id := ""
+			}
+		}
+		res := readWQ(id)																; wqid should always be present in hl7 downloads
+		if (obx1) {
+			processhl7(path.PrevHL7in . fileIn)											; extract DDE to fldVal, and PDF into hl7Dir
+			dt := ParseDate(res.date)
+			newFnam := strQ(res.mrn
+				, "### " ParseName(res.name).last " " dt.MM "-" dt.DD "-" dt.YYYY "_WQ" id "_H-full.pdf"
+				, fldval.filename)
+			eventlog("Extracted full disclosure PDF from " fileIn " to " newFnam)
+			FileMove, % path.PrevHL7in fldval.filename, % path.holterPDF newFnam , 1
+			FileMove, % path.PrevHL7in fileIn, .\tempfiles\%fileIn%, 1
+			Continue
+	}
+		if (res.node="done") {															; skip if DONE, might be currently in process 
+			eventlog("Report already done (" id ": " res.name " - " res.mrn ", " res.date ")")
+			eventlog("WQlist removing " fileIn)
+			FileMove, % path.PrevHL7in fileIn, .\tempfiles\%fileIn%, 1
+			continue
+		}
+		if !(dev := ObjHasValue(monSerialStrings,res.dev,1)) {							; dev type returns "HL7" if no device in wqid
+			dev := "HL7" 
+		}
+	
+		LV_Add(""
+			, path.PrevHL7in fileIn														; path and filename
+			, strQ(res.Name,"###", x.1 ", " x.2)										; last, first
+			, strQ(res.mrn,"###",x.3)													; mrn
+			, strQ(niceDate(res.dob),"###",niceDate(x.4))								; dob
+			, strQ(res.site,"###",obr_site)												; site
+			, strQ(niceDate(res.date),"###",niceDate(SubStr(x.5,1,8)))					; study date
+			, id																		; wqid
+			, dev																		; device type
+			, (res.duration<3) ? "X":"")												; flag FTP if 1-2 day Holter
+		wqfiles.push(id)
+	}
+*/
+	Return
+}
+
+	
 
 ;#endregion
 
