@@ -1024,7 +1024,7 @@ WQscanEpicOrders(lv) {
 	
 	WQEpicOrdersNew()																	; Process new files
 
-	WQEpicOrdersPrevious()																; Scan previous *Z.hl7 files
+	WQEpicOrdersPrevious(lv)															; Scan previous *Z.hl7 files
 
 	WQepicOrdersCleanup()																; Remove extraneous orders
 
@@ -1163,7 +1163,7 @@ WQepicOrdersNew() {
 	Return
 }
 
-WQepicOrdersPrevious() {
+WQepicOrdersPrevious(lv) {
 /*	Second pass: scan previously added *Z.hl7 files
 	Another chance to clear sites0 and remnant files
 	Add line to Inbox LV
@@ -1193,7 +1193,6 @@ WQepicOrdersPrevious() {
 		}
 		
 		monType := getMonType(e0.mon)
-		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_orders"])
 		lv.Add(""
 			, path.EpicHL7in . fileIn													; filename and path to HolterDir
 			, e0.date																	; date
@@ -1661,6 +1660,7 @@ filecheck() {
 }
 
 cleanBakFiles() {
+	count := 1
 	Loop files ".\bak\*.bak"
 	{
 		count++
