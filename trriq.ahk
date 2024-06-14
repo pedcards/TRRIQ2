@@ -503,8 +503,8 @@ WQlist() {
 	pb.set()
 	WQscanEpicOrders(lv)
 	
-	; WriteSave(wq)
-	; FileDelete(".lock")
+	WriteSave(wq)
+	FileDelete(".lock")
 	
 	; checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
 	
@@ -642,7 +642,37 @@ parseORM() {
 		, orderCtrl:fldval["ORC_OrderCtrl"]
 		, ctrlID:fldval["MSH_CtrlID"]}
 }
+
+WriteSave(z) {
+/*	Saves worklist.xml with integrity check
+	presence of .lock does not matter
+*/
+	global wq, path
 	
+	loop 3
+	{
+		z.transformXML()
+		z.save(path.data "worklist.xml")
+		wltxt := FileRead(path.data "worklist.xml")
+		
+		if InStr(substr(wltxt,-9),"</root>") {
+			valid:=true
+			break
+		}
+		
+		eventlog("WriteSave failed " A_Index)
+		sleep 2000
+	}
+	
+	if (valid=true) {
+		FileCopy(path.data "worklist.xml", ".\bak\" A_Now ".bak")
+		wq := z
+	}
+	
+	return
+}
+	
+
 ;#endregion
 
 ;#region == TEXT functions =============================================================
