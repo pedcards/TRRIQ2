@@ -1140,12 +1140,12 @@ WQepicOrdersPrevious() {
 /*
 	global path, wq, sites0, monOrderType
 
-	loop, Files, % path.EpicHL7in "*Z.hl7"
+	loop Files path.EpicHL7in "*_@*.hl7"
 	{
 		e0 := {}
 		fileIn := A_LoopFileName
-		if RegExMatch(fileIn,"_([a-zA-Z0-9]{4,})Z.hl7",i) {								; file appears to have been parsed
-			e0 := readWQ(i1)
+		if RegExMatch(fileIn,"_@([a-zA-Z0-9]{4,}).hl7",&i) {							; file appears to have been parsed
+			e0 := readWQ(i[1])
 		} else {
 			continue
 		}
