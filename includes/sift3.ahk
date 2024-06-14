@@ -47,9 +47,14 @@ StringDifference(string1, string2, maxOffset:=1) {    ;returns a float: between 
   n := StrSplit(string1) 
   m := StrSplit(string2) 
   ni := 1, mi := 1, lcs := 0 
+  oi := 0, pi := 0
   n0 := n.length
   m0 := m.length
+  ++ n.length
+  ++ m.length
+
   While((ni <= n0) AND (mi <= m0)) { 
+	x := A_Index
     If (n[ni] == m[mi]) 
       lcs := lcs + 1 
     Else If (n[ni] = m[mi]) 
@@ -57,10 +62,17 @@ StringDifference(string1, string2, maxOffset:=1) {    ;returns a float: between 
     Else{ 
       Loop maxOffset  { 
         oi := ni + A_Index, pi := mi + A_Index 
+		if (oi>n0) {
+			n.InsertAt(oi,"")
+		}
         If ((n[oi] = m[mi]) AND (oi <= n0)){ 
-            ni := oi, lcs += (n[oi] == m[mi] ? 1 : 0.8) 
+			ni := oi, lcs += (n[oi] == m[mi] ? 1 : 0.8) 
             Break 
         } 
+		if (pi>m0) {
+			m.length := pi
+			m.InsertAt(pi,"")
+		}
         If ((n[ni] = m[pi]) AND (pi <= m0)){ 
             mi := pi, lcs += (n[ni] == m[pi] ? 1 : 0.8) 
             Break 
