@@ -1137,8 +1137,7 @@ WQepicOrdersPrevious() {
 	Another chance to clear sites0 and remnant files
 	Add line to Inbox LV
 */
-/*
-	global path, wq, sites0, monOrderType
+	global path, wq, monTypes, dims, phase
 
 	loop Files path.EpicHL7in "*_@*.hl7"
 	{
@@ -1150,14 +1149,14 @@ WQepicOrdersPrevious() {
 			continue
 		}
 		
-		if InStr(sites0,e0.site) {														; sites0 location
-			FileMove, %A_LoopFileFullPath%, .\tempfiles, 1
-			removeNode("/root/orders/enroll[@id='" i1 "']")
+		if InStr(sites.ignored,e0.site) {												; sites0 location
+			FileMove(A_LoopFileFullPath, ".\tempfiles", 1)
+			wq.removeNode("/root/orders/enroll[@id='" i[1] "']")
 			eventlog("Non-tracked order " fileIn " moved to tempfiles.")
 			continue
 		}
 		if (e0.node ~= "pending|done") {												; remnant orders file
-			FileMove, %A_LoopFileFullPath%, .\tempfiles, 1
+			FileMove(A_LoopFileFullPath, ".\tempfiles", 1)
 			eventlog("Leftover HL7 file " fileIn " moved to tempfiles.")
 			continue
 		}
