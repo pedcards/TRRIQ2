@@ -204,6 +204,7 @@ PhaseGUI() {
 	global gl, dims, sites, wksLoc
 		, phase, WQtab
 	
+	dims.hwnd := Map()
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
 
@@ -223,6 +224,7 @@ PhaseGUI() {
 	phase.AddText("y+10 wp h24 Center","Register/Prepare a `nHOLTER or EVENT MONITOR")
 	btnOrders := phase.AddButton("y+10 wp h40 vRegister DISABLED","No active orders") ; gPhaseOrder
 		btnOrders.OnEvent("Click",phaseOrder)
+		dims.hwnd["btnOrders"] := btnOrders.Hwnd
 	phase.AddText("wp h30")
 	phase.AddText("y+10 wp Center","Transmit")
 	btnBGM := phase.AddText("y+1 wp Center h100","BG MINI")
@@ -250,7 +252,6 @@ PhaseGUI() {
 		dims.wqTab.Y := wqY
 		dims.wqTab.W := wqW
 		dims.wqTab.H := wqH
-	dims.hwnd := Map()
 		dims.hwnd["WQtab"] := WQtab.Hwnd
 	
 	/*	BUILD LISTVIEWS
@@ -1172,11 +1173,11 @@ WQepicOrdersPrevious() {
 				? "CEM"
 				: e0.mon)
 			, "")																		; fulldisc present, make blank
-		GuiControl, Enable, Register
-		GuiControl, Text, Register, Go to ORDERS tab
+		btn := GuiCtrlFromHwnd(dims.hwnd["btnOrders"])
+			btn.Enabled := true
+			btn.Text := "Go to ORDERS tab"
 	}
 	Return
-*/
 }
 
 WQepicOrdersCleanup() {
