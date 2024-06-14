@@ -1162,6 +1162,7 @@ WQepicOrdersPrevious() {
 			continue
 		}
 		
+		monType := getMonType(e0.mon)
 		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_orders"])
 		lv.Add(""
 			, path.EpicHL7in . fileIn													; filename and path to HolterDir
@@ -1169,7 +1170,7 @@ WQepicOrdersPrevious() {
 			, e0.name																	; name
 			, e0.mrn																	; mrn
 			, e0.provname																; prov
-			, getMonType(e0.mon)["abbrev"] " "												; monitor type
+			, monType["abbrev"] " " monType["duration"] 								; monitor type
 				; . (e0.mon="BGH"															; relabel BGH=>CEM
 				; ? "CEM"
 				; : e0.mon)
