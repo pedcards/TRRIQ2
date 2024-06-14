@@ -506,7 +506,7 @@ WQlist() {
 	WriteSave(wq)
 	FileDelete(".lock")
 	
-	; checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
+	checkPreventiceOrdersOut()															; check registrations that failed upload to Preventice
 	
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	/
@@ -1605,6 +1605,21 @@ addPrevEnroll(id,res) {
 	
 	return
 }
+
+checkPreventiceOrdersOut() {
+	global path
+
+	loop files path.PrevHL7out "Failed\*.txt"
+	{
+		filenm := A_LoopFileName
+		filenmfull := A_LoopFileFullPath
+		eventlog("Resending failed registration: " filenm)
+		FileMove(filenmfull, path.PrevHL7out filenm)
+	}
+
+	return
+}
+
 
 ;#endregion
 
