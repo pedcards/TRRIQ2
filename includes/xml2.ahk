@@ -108,20 +108,19 @@ class XML
 		}
 	}
 
-	removeNode(node) {
+	removeNode(nodein) {
 	/*	Removes node
 	*/
-		node := this.isNode(node)
-		try {
-			IsObject(node)
-		} 
+		try if IsObject(nodein) {
+			node := nodein
+		}
 		catch as err {
 			MsgBox("Error: " err.Message)
 			return false
 		} 
 		else {
 			try {
-				node := this.doc.selectSingleNode(node)
+				node := this.doc.selectSingleNode(nodein)
 			}
 			catch as err {
 				MsgBox("Error: " err.Message)
