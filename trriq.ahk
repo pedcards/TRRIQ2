@@ -1162,16 +1162,17 @@ WQepicOrdersPrevious() {
 			continue
 		}
 		
-		LV_Add(""
+		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_orders"])
+		lv.Add(""
 			, path.EpicHL7in . fileIn													; filename and path to HolterDir
 			, e0.date																	; date
 			, e0.name																	; name
 			, e0.mrn																	; mrn
 			, e0.provname																; prov
-			, monOrderType[e0.mon] " "													; monitor type
-				. (e0.mon="BGH"															; relabel BGH=>CEM
-				? "CEM"
-				: e0.mon)
+			, getMonType(e0.mon)["abbrev"] " "												; monitor type
+				; . (e0.mon="BGH"															; relabel BGH=>CEM
+				; ? "CEM"
+				; : e0.mon)
 			, "")																		; fulldisc present, make blank
 		btn := GuiCtrlFromHwnd(dims.hwnd["btnOrders"])
 			btn.Enabled := true
@@ -1208,7 +1209,17 @@ WQepicOrdersCleanup() {
 */
 }
 
-	
+getMonType(val) {
+	res := 0
+	for key,arr in monTypes
+	{
+		if ObjHasValue(arr,val) {
+			res := A_Index
+			break
+		}
+	}
+	try return monTypes[res]
+}
 
 ;#endregion
 
