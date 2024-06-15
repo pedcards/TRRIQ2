@@ -908,9 +908,10 @@ filterProv(x) {
 		x := strX(x," ",1,1,"",1,0) ", " strX(x,"",1,1," ",1,1)							; convert "DENNIS RUGGERIE" to "RUGGERIE, DENNIS"
 	}
 	x := RegExReplace(x,"^, ")															; remove preceding "(, )Albers" in event this happens
-	if (site="") {
+	if (site="") {																		; no site, substitute "MAIN"
 		site := Map()
 		site[1] := "MAIN"
+		eventlog("filterProv: " x " - No site found, substituting MAIN.")
 	}
 	if (site[1]="TRI") {																; sometimes site improperly registered as "tri"
 		site[1] := "TRI-CITIES"
