@@ -516,13 +516,13 @@ WQlist() {
 		
 		WQpreventiceResults(&wqfiles)													; Process incoming Preventice results
 		WQscanHolterPDFs(&wqfiles)														; Scan Holter PDFs folder for additional files
-		; WQfindMissingWebgrab()															; find <pending> missing <webgrab>
+		WQfindMissingWebgrab()															; find <pending> missing <webgrab>
 	}
 	
 	/*	Generate lv for ALL, site tabs, and pending reads
-	/
+	*/
 	WQpendingTabs()
-
+/*
 	WQpendingReads()
 
 	GuiControl, Text, PhaseNumbers
@@ -1573,6 +1573,41 @@ findWQid(DT:="",MRN:="",ser:="") {
 	return {id:x.getAttribute("id"),node:x.parentNode.nodeName}								; returns {id,node}; or null (error) if no match
 }
 		
+WQfindMissingWebgrab() {
+/*	Scan <pending> for missing webgrab
+	no webgrab means no registration received at Preventice for some reason
+*/
+	global wq, path, monStrings
+	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+
+	loop (ens:=wq.selectNodes("/root/pending/enroll")).Length
+	{
+		try en := ens.item(A_Index-1)
+		try id := en.getAttribute("id")
+		try wb := en.selectSingleNode("webgrab").Text
+		if !(wb) {
+			res := readwq(id)
+			dt := dateDiff(res.date,A_Now,"Days")
+			if (dt < 5) {																; ignore for 5 days to allow reg/sendout to process
+				Continue
+			}
+			lv.Add(""
+				, path.holterPDF val													; filename and path to HolterDir
+				, strQ(res.Name,"###",strX(val,"",1,0,"_",1))							; name from wqid or filename
+				, strQ(res.mrn,"###",strX(val,"_",1,1,"_",1))							; mrn
+				, strQ(res.dob,"###")													; dob
+				, strQ(res.site,"###","???")											; site
+				, strQ(nicedate(res.date),"###")										; study date
+				, id																	; wqid
+				, ObjHasValue(monStrings,res.dev,1)										; study type
+				, "No Reg"																; fulldisc present, make blank
+				, "X")
+			; CLV_in.Row(LV_GetCount(),,"red")
+		}
+	}
+	Return
+}
+
 
 ;#endregion
 
