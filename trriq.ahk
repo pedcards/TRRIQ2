@@ -1613,32 +1613,44 @@ WQpendingTabs() {
 	Generate ALL tab
 	Add each <enroll> to corresponding site
 */
-	global wq, sites, ;CLV_all
+	global wq, sites, phase ;CLV_all
 
+	lv_all := phase.LV["HLV_all"]
+	lv_all.Delete()
+	lv := Map()
 	
-	Gui, ListView, WQlv_all
-	LV_Delete()
-	
-	Loop, parse, sites, |
+	Loop parse sites.tracked, "|"
 	{
 		i := A_Index
 		site := A_LoopField
-		Gui, ListView, WQlv%i%
-		LV_Delete()																		; refresh each respective LV
-		Loop, % (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
+		lv[i] := phase.LV["HLV" i]
+		lv[i].Delete()
+		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
 			k := ens.item(A_Index-1)
 			id	:= k.getAttribute("id")
 			e0 := readWQ(id)
-			dt := dateDiff(e0.date)
+			dt := dateDiff(e0.date,A_Now,"Days")
 			e0.dev := RegExReplace(e0.dev,"BodyGuardian","BG")
+			try (e0.fedex)
+			catch {
+				e0.fedex := ""
+			}
+			try (e0.sent)
+			catch {
+				e0.sent := ""
+			}
+			try (e0.notes)
+			catch {
+				e0.notes := ""
+			}
+
 			;~ if (InStr(e0.dev,"BG") && (dt < 30)) {									; skip BGH less than 30 days
 				;~ continue
 			;~ }
-			CLV_col := (dt-e0.duration > 10) ? "red" : ""
+			; CLV_col := (dt-e0.duration > 10) ? "red" : ""
 			
-			Gui, ListView, WQlv%i%														; add to clinic loc listview
-			LV_Add(""
+			lv[i].Add(""																; add to clinic loc listview
 				,id
 				,e0.date
 				,strQ(e0.fedex,"X")
@@ -1649,11 +1661,10 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			if (CLV_col) {
-				CLV_%i%.Row(LV_GetCount(),,CLV_col)
-			}
-			Gui, ListView, WQlv_all														; add to ALL listview
-			LV_Add(""
+			; if (CLV_col) {
+			; 	CLV_%i%.Row(LV_GetCount(),,CLV_col)
+			; }
+			lv_all.Add(""																; add to ALL listview
 				,id
 				,e0.date
 				,strQ(e0.fedex,"X")
@@ -1664,18 +1675,15 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			if (CLV_col) {
-				CLV_all.Row(LV_GetCount(),,CLV_col)
-			}
+			; if (CLV_col) {
+			; 	CLV_all.Row(LV_GetCount(),,CLV_col)
+			; }
 		}
-		Gui, ListView, WQlv%i%
-		LV_ModifyCol(2,"Sort")
+		lv[i].ModifyCol(2,"Sort")
 	}
-	Gui, ListView, WQlv_all														
-	LV_ModifyCol(2,"Sort")
+	lv_all.ModifyCol(2,"Sort")
 
 	Return
-*/
 }
 
 	
