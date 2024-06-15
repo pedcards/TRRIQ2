@@ -266,7 +266,7 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
-		phase.LV["HLV_in"] := HLV_in
+		phase.LV["in"] := HLV_in
 		; HLV_in.OnEvent("DoubleClick",readWQlv())
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -285,7 +285,7 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
-	phase.LV["HLV_orders"] := HLV_orders
+	phase.LV["orders"] := HLV_orders
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
@@ -298,6 +298,7 @@ PhaseGUI() {
 	HLV_unread := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["Name","MRN","Study Date","Processed","Monitor","Ordering","Assigned EP"]
 	)
+	phase.LV["unread"] := HLV_unread
 	HLV_unread.ModifyCol(1,"140")														; Name
 	HLV_unread.ModifyCol(2,"60")														; MRN
 	HLV_unread.ModifyCol(3,"80")														; Date
@@ -311,7 +312,7 @@ PhaseGUI() {
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
 	; HLV_all.OnEvent("DoubleClick",WQtask())
-	phase.LV["HLV_all"] := HLV_all
+	phase.LV["all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
 	HLV_all.ModifyCol(3,"40 Center")													; FedEx
@@ -335,7 +336,7 @@ PhaseGUI() {
 		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.LV["HLV" i] := HLV%i%
+		phase.LV[i] := HLV%i%
 		; HLV%i%.OnEvent("DoubleClick",WQtask())
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
@@ -499,7 +500,7 @@ WQlist() {
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
 	*/
-	lv := phase.LV["HLV_orders"]
+	lv := phase.LV["orders"]
 	lv.Delete()
 	
 	pb.title("Scanning Epic orders")
@@ -514,7 +515,7 @@ WQlist() {
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	*/
 	if (gl.isMain) {
-		lv := phase.LV["HLV_in"]
+		lv := phase.LV["in"]
 		lv.Delete()
 		
 		WQpreventiceResults(&wqfiles,&lv)												; Process incoming Preventice results
@@ -1615,7 +1616,7 @@ WQpendingTabs() {
 */
 	global wq, sites, phase ;CLV_all
 
-	lv_all := phase.LV["HLV_all"]
+	lv_all := phase.LV["all"]
 	lv_all.Delete()
 	lv := Map()
 	
@@ -1623,7 +1624,7 @@ WQpendingTabs() {
 	{
 		i := A_Index
 		site := A_LoopField
-		lv[i] := phase.LV["HLV" i]
+		lv[i] := phase.LV[i]
 		lv[i].Delete()
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
