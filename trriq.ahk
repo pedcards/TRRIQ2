@@ -768,6 +768,10 @@ readIni(section) {
 	return i_res
 }
 
+niceDate(x) {
+	return ParseDate(x).MDY
+}
+
 ParseDate(x) {
 	mo := ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 	moStr := "Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec"
