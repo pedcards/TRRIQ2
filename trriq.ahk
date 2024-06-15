@@ -919,6 +919,63 @@ filterProv(x) {
 	return {name:x, site:site[1]}
 }
 
+ParseName(x) {
+/*	Determine first and last name
+*/
+	if (x="") {
+		return error
+	}
+	x := trim(x)																		; trim edges
+	x := RegExReplace(x," \w "," ")														; remove middle initial: Troy A Johnson => Troy Johnson
+	x := RegExReplace(x,"(,.*?)( \w)$","$1")											; remove trailing MI: Johnston, Troy A => Johnston, Troy
+	x := RegExReplace(x,"i),?( JR| III| IV)$")											; Filter out name suffixes
+	x := RegExReplace(x,"\s+"," ",&ct)													; Count " "
+	
+	if InStr(x,",") 																	; Last, First
+	{
+		last := trim(strX(x,"",1,0,",",1,1))
+		first := trim(strX(x,",",1,1,"",0))
+	}
+	else if RegExMatch(x "<","O)^\d{8,}\^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {	; 12345678^Chun^Terrence
+		last := q[1]
+		first := q[2]
+	}
+	else if RegExMatch(x "<","O)^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {			; Jingleheimer Schmidt^John Jacob
+		last := q[1]
+		first := q[2]
+	}
+	else if (ct=1)																		; First Last
+	{
+		first := strX(x,"",1,0," ",1)
+		last := strX(x," ",1,1,"",0)
+	}
+	else if (ct>1)																		; James Jacob Jingleheimer Schmidt
+	{
+		x0 := x																			; make a copy to disassemble
+		n := 1
+		Loop
+		{
+			x0 := strX(x0," ",n,1,"",0)													; cut from first " " to end
+			if (x0="") {
+				q := trim(q,"|")
+				break
+			}
+			q .= x0 "|"																	; add to button q
+		}
+		last := cmsgbox("Name check",x "`n" RegExReplace(x,".","--") "`nWhat is the patient's`nLAST NAME?",q)
+		if (last~="close|xClose") {
+			return {first:"",last:x}
+		}
+		first := RegExReplace(x," " last)
+	}
+	
+	return {first:first
+			, last:last
+			, firstlast:first " " last
+			, lastfirst:last ", " first 
+			, init:substr(first,1,1) substr(last,1,1) }
+}
+	
 	
 ;#endregion
 
