@@ -992,9 +992,16 @@ ParseName(x) {
 readWQ(idx) {
 	global wq
 	
-	res := {}
+	res := Map()
 	k := wq.selectSingleNode("//enroll[@id='" idx "']")
-	Loop (ch:=k.selectNodes("*")).Length
+	try {
+		ch:=k.selectNodes("*")
+	}
+	catch {
+		return ""
+	}
+
+	Loop ch.Length
 	{
 		i := ch.item(A_Index-1)
 		node := i.nodeName
