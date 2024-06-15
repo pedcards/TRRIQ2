@@ -1324,18 +1324,19 @@ WQpreventiceResults(&wqfiles) {
 	{
 		fileIn := A_LoopFileName
 		x := StrSplit(fileIn,"_")
-		if !(id := hl7dirMap[fileIn]) {													; will be true if have found this wqid in this instance, else null
+		try  {
+			id := hl7dirMap[fileIn]														; will be true if have found this wqid in this instance, else null
+		}
+		catch {																			; can't match, so derive it
 			tmptxt := fileread(path.PrevHL7in fileIn)
 			obr:= strsplit(stregX(tmptxt,"\R+OBR",1,0,"\R+",0),"|")						; get OBR segment
-			obr_req := trim(obr.3," ^")													; wqid from Preventice registration (PV1_19)
-			obr_prov := strX(obr.17,"^",1,1,"^",1)
-			obr_site := strX(obr_prov,"-",0,1,"",0)
-			pv1:= strsplit(stregX(tmptxt,"\R+PV1",1,0,"\R+",0),"|")						; get PV1 segment
-			pv1_dt := SubStr(pv1.40,1,8)												; pull out date of entry/registration (will not match for send out)
-			obx1:= InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
-		}
-	}
-			/*			
+			obr_req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
+			obr_prov := strX(obr[17],"^",1,1,"^",1)
+			obr_site := strX(obr_prov,"-",1,1,"",0)
+			pv1 := strsplit(stregX(tmptxt,"\R+PV1",1,0,"\R+",0),"|")					; get PV1 segment
+			pv1_dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
+			obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
+						
 			if (obr_site="") {															; no "-site" in OBR.17 name
 				obr_site:="MAIN"
 				eventlog(fileIn " - " obr_prov 
@@ -1350,7 +1351,7 @@ WQpreventiceResults(&wqfiles) {
 				id := obr_req
 				hl7dirMap[fileIn] := id
 			} 
-			else if (id := findWQid(pv1_dt,x.3).id) { 									; try to find wqid based on date in PV1.40 and mrn
+			else if (id := findWQid(pv1_dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
 				hl7dirMap[fileIn] := id
 			}
 			else {																		; can't find wqid, just admit defeat
@@ -1359,27 +1360,29 @@ WQpreventiceResults(&wqfiles) {
 		}
 		res := readWQ(id)																; wqid should always be present in hl7 downloads
 		if (obx1) {
-			processhl7(path.PrevHL7in . fileIn)											; extract DDE to fldVal, and PDF into hl7Dir
+			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldVal, and PDF into hl7Dir
+			fldval := res_in.fldval
 			dt := ParseDate(res.date)
 			newFnam := strQ(res.mrn
 				, "### " ParseName(res.name).last " " dt.MM "-" dt.DD "-" dt.YYYY "_WQ" id "_H-full.pdf"
 				, fldval.filename)
 			eventlog("Extracted full disclosure PDF from " fileIn " to " newFnam)
-			FileMove, % path.PrevHL7in fldval.filename, % path.holterPDF newFnam , 1
-			FileMove, % path.PrevHL7in fileIn, .\tempfiles\%fileIn%, 1
+			FileMove(path.PrevHL7in fldval.filename, path.holterPDF newFnam , 1)
+			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			Continue
-	}
+		}
 		if (res.node="done") {															; skip if DONE, might be currently in process 
 			eventlog("Report already done (" id ": " res.name " - " res.mrn ", " res.date ")")
 			eventlog("WQlist removing " fileIn)
-			FileMove, % path.PrevHL7in fileIn, .\tempfiles\%fileIn%, 1
+			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			continue
 		}
-		if !(dev := ObjHasValue(monSerialStrings,res.dev,1)) {							; dev type returns "HL7" if no device in wqid
+		if !(dev := ObjHasValue(monStrings,res.dev,1)) {								; dev type returns "HL7" if no device in wqid
 			dev := "HL7" 
 		}
 	
-		LV_Add(""
+		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+		lv.Add(""
 			, path.PrevHL7in fileIn														; path and filename
 			, strQ(res.Name,"###", x.1 ", " x.2)										; last, first
 			, strQ(res.mrn,"###",x.3)													; mrn
@@ -1391,7 +1394,6 @@ WQpreventiceResults(&wqfiles) {
 			, (res.duration<3) ? "X":"")												; flag FTP if 1-2 day Holter
 		wqfiles.push(id)
 	}
-*/
 	Return
 }
 
