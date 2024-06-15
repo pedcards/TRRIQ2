@@ -953,6 +953,7 @@ ParseName(x) {
 	{
 		x0 := x																			; make a copy to disassemble
 		n := 1
+		q := []
 		Loop
 		{
 			x0 := strX(x0," ",n,1,"",0)													; cut from first " " to end
@@ -960,10 +961,10 @@ ParseName(x) {
 				q := trim(q,"|")
 				break
 			}
-			q .= x0 "|"																	; add to button q
+			q.Push(x0)																	; add to button q
 		}
-		last := cmsgbox("Name check",x "`n" RegExReplace(x,".","--") "`nWhat is the patient's`nLAST NAME?",q)
-		if (last~="close|xClose") {
+		last := cmsgbox("Name check",x "`n" RegExReplace(x,".","--") "`nWhat is the patient's`nLAST NAME?",q,"Q")
+		if (last~="xClose") {
 			return {first:"",last:x}
 		}
 		first := RegExReplace(x," " last)
