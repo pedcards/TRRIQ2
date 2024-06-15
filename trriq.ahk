@@ -515,7 +515,7 @@ WQlist() {
 		lv.Delete()
 		
 		WQpreventiceResults(&wqfiles)													; Process incoming Preventice results
-		; WQscanHolterPDFs(wqfiles)														; Scan Holter PDFs folder for additional files
+		WQscanHolterPDFs(&wqfiles)														; Scan Holter PDFs folder for additional files
 		; WQfindMissingWebgrab()															; find <pending> missing <webgrab>
 	}
 	
@@ -1395,6 +1395,162 @@ WQpreventiceResults(&wqfiles) {
 		wqfiles.push(id)
 	}
 	Return
+}
+WQscanHolterPDFs(&wqfiles) {
+/*	Scan Holter PDFs folder for additional files
+*/
+	global path, pdfList, monStrings, dims
+	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+
+	findfullPDF()																		; read Holter PDF dir into pdfList
+	for key,val in pdfList
+	{
+		RegExMatch(val,"O)_WQ([A-Z0-9]+)_([A-Z])(-full)?\.pdf",&fnID)					; get filename WQID if PDF has been renamed (fnid.1 = wqid, fnid.2 = type, fnid.3=full)
+		id := fnID[1]
+		ftype := strQ(monStrings[fnID[2]],"###","???")
+		if (k:=ObjHasValue(wqfiles,id)) {												; found a PDF file whose wqid matches an hl7 in wqfiles
+			lv.Modify(k,"Col9","")														; clear the "X" in the FullDisc column
+			continue																	; skip rest of processing
+		}
+		if (fnID[3]) {																	; Do not add PDF file if not in WQLV
+			eventlog(val " does not match ID in WQLV.")
+			Continue
+		}
+		res := readwq(id)																; get values for wqid if valid, else null
+		
+		lv.Add(""
+			, path.holterPDF val														; filename and path to HolterDir
+			, strQ(res.Name,"###",strX(val,"",1,0,"_",1))								; name from wqid or filename
+			, strQ(res.mrn,"###",strX(val,"_",1,1,"_",1))								; mrn
+			, strQ(res.dob,"###")														; dob
+			, strQ(res.site,"###","???")												; site
+			, strQ(nicedate(res.date),"###")											; study date
+			, id																		; wqid
+			, ftype																		; study type
+			, "")																		; fulldisc present, make blank
+		if (id) {
+			wqfiles.push(id)															; add non-null wqid to wqfiles
+		}
+	}
+
+	lv.ModifyCol(6,"Sort")																; date
+
+	Return
+}
+	
+findFullPdf(wqid:="") {
+/*	Scans HolterDir for potential full disclosure PDFs
+	maybe rename if appropriate
+*/
+	global path, fldval, pdfList ; , AllowSavedPDF
+	
+	pdfList := []																		; clear list to add to WQlist
+	pdfScanPages := 3
+	
+	fileCount := ComObject("Scripting.FileSystemObject").GetFolder(path.holterPDF).Files.Count
+	
+	pb.title("Scanning PDFs folder")
+	Loop files path.holterPDF "*.pdf"
+	{
+		fileIn := A_LoopFileFullPath													; full path and filename
+		fname := A_LoopFileName															; full filename
+		fnam := RegExReplace(fname,"i)\.pdf")											; filename without ext
+		pb.sub(fname)
+		pb.set(100*A_Index/fileCount)
+		
+		;---Skip any PDFs that have already been processed or are in the middle of being processed
+		if (fname~="i)-short\.pdf") {
+			RegExMatch(fname,"Oi)^\d+\s(.*?)\s([\d-]+)-short.pdf$",&x)
+			fnam := path.AccessHL7out "..\ArchiveHL7\*" x[1] "_" ParseDate(x[2]).YMD "*"
+			if FileExist(fnam) {
+				FileDelete(fileIn)
+				eventlog("Report signed. Removed leftover " fName )
+			}
+			continue
+		}
+		if (fname~="i)-sh\.pdf")
+			continue
+
+		if (fname~="i)-full\.pdf") {
+			fnamID := stregX(fname,"_WQ",1,1,"_H",1)
+			fnamMRN := readWQ(fnamID).mrn
+			fnamDate := strX(fname," ",0,1,"_WQ",0,3)
+			if FileExist(path.holterPDF "FullDisclosure\" fnamMRN "*" fnamDate "*.pdf") {
+				FileDelete(fileIn)
+				eventlog("Found complete PDF, deleted " fname)
+				Continue
+			}
+			pdflist.push(fname)																	; Add to pdflist, no need to scan
+			Continue
+		}
+		
+		RegExMatch(fname,"O)_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)									; get filename WQID if PDF has already been renamed
+		
+		if (readWQ(fnID[1]).node = "done") {
+			eventlog("Leftover PDF: " fnam ", moved to archive.")
+			FileMove(fileIn, path.holterPDF "archive\" fname, 1)
+			continue
+		}
+		
+		if (fnID.0 = "") {				
+			eventlog("Unmatched PDF: " fileIn)													; unmatched PDF
+			continue
+		
+			; ; Unmatched full disclosure PDF
+			; RunWait, .\files\pdftotext.exe -l %pdfScanPages% "%fileIn%" "%fnam%.txt",,min		; convert PDF pages with no tabular structure
+			; FileRead, newtxt, %fnam%.txt												; load into newtxt
+			; FileDelete, %fnam%.txt
+			; StringReplace, newtxt, newtxt, `r`n`r`n, `r`n, All							; remove double CRLF
+			
+			; flds := getPdfID(newtxt)
+			
+			; if (AllowSavedPDF="true") && InStr(flds.wqid,"00000") {
+			; 	eventlog("Unmatched PDF: " fileIn)
+			; 	continue
+			; }
+			
+			; newFnam := strQ(flds.nameL,"###_" flds.mrn,fnam) strQ(flds.wqid,"_WQ###")
+			; if InStr(newtxt, "Full Disclosure Report") {								; likely Full Disclosure Report
+			; 	dt := ParseDate(flds.date)
+			; 	newFnam := strQ(flds.mrn,"### " flds.nameL " " dt.MM "-" dt.DD "-" dt.YYYY "_WQ" flds.wqid,fnam)
+			; 	FileMove, %fileIn%, % path.holterPDF newFnam "-full.pdf", 1
+			; 	pdfList.push(newFnam "-full.pdf")
+			; 	Continue
+			; } else {
+			; 	FileMove, %fileIn%, % path.holterPDF newFnam ".pdf", 1					; Everything else, rename the unprocessed PDF
+			; }
+			; If ErrorLevel
+			; {
+			; 	MsgBox, 262160, File error, % ""										; Failed to move file
+			; 		. "Could not rename PDF file.`n`n"
+			; 		. "Make sure file is not open in Acrobat Reader!"
+			; 	eventlog("Holter PDF: " fname " file open error.")
+			; 	Continue
+			; } else {
+			; 	fName := newFnam ".pdf"													; successful move
+			; 	eventlog("Holter PDF: " fNam " renamed to " fName)
+			; }
+		} 
+		if !objhasvalue(pdfList,fName) {
+			pdfList.push(fName)
+		}
+		
+		if (wqid = "") {																; this is just a refresh loop
+			continue																	; just build the list
+		}
+		
+		if (fnID[1] == wqid) {															; filename WQID matches wqid arg
+			FileMove(path.PrevHL7in fldval.Filename, path.PrevHL7in fldval.Filename "-sh.pdf")		; rename the pdf in hl7dir to -short.pdf
+			FileMove(path.holterPDF fName , path.PrevHL7in fldval.filename)		 		; move this full disclosure PDF into hl7dir
+			pb.hide()
+			eventlog(fName " moved to " path.PrevHL7in)
+			return true																	; stop search and return
+		} else {
+			continue
+		}
+	}
+	pb.hide()
+	return false																		; fell through without a match
 }
 
 findWQid(DT:="",MRN:="",ser:="") {
