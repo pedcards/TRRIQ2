@@ -257,6 +257,7 @@ PhaseGUI() {
 	/*	BUILD LISTVIEWS
 	 */
 	lvDim := "w" wqW-25 " h" wqH-35
+	phase.LV := Map()
 
 	if (gl.isMain) {
 		btnPrevGrab.Enabled := true
@@ -265,7 +266,7 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
-		dims.hwnd["HLV_in"] := HLV_in.Hwnd
+		phase.LV["HLV_in"] := HLV_in
 		; HLV_in.OnEvent("DoubleClick",readWQlv())
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -284,7 +285,7 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
-	dims.hwnd["HLV_orders"] := HLV_orders.Hwnd
+	phase.LV["HLV_orders"] := HLV_orders
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
@@ -310,6 +311,7 @@ PhaseGUI() {
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
 	; HLV_all.OnEvent("DoubleClick",WQtask())
+	phase.LV["HLV_all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
 	HLV_all.ModifyCol(3,"40 Center")													; FedEx
@@ -333,6 +335,7 @@ PhaseGUI() {
 		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
+		phase.LV["HLV" i] := HLV%i%
 		; HLV%i%.OnEvent("DoubleClick",WQtask())
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
@@ -496,7 +499,7 @@ WQlist() {
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
 	*/
-	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_orders"])
+	lv := phase.LV["HLV_orders"]
 	lv.Delete()
 	
 	pb.title("Scanning Epic orders")
@@ -511,12 +514,12 @@ WQlist() {
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	*/
 	if (gl.isMain) {
-		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+		lv := phase.LV["HLV_in"]
 		lv.Delete()
 		
-		WQpreventiceResults(&wqfiles)													; Process incoming Preventice results
-		WQscanHolterPDFs(&wqfiles)														; Scan Holter PDFs folder for additional files
-		WQfindMissingWebgrab()															; find <pending> missing <webgrab>
+		WQpreventiceResults(&wqfiles,&lv)												; Process incoming Preventice results
+		WQscanHolterPDFs(&wqfiles,&lv)													; Scan Holter PDFs folder for additional files
+		WQfindMissingWebgrab(&lv)														; find <pending> missing <webgrab>
 	}
 	
 	/*	Generate lv for ALL, site tabs, and pending reads
@@ -1309,7 +1312,7 @@ getMonType(val) {
 	try return monTypes[res]
 }
 
-WQpreventiceResults(&wqfiles) {
+WQpreventiceResults(&wqfiles,&lv) {
 /*	Process each incoming .hl7 RESULT from PREVENTICE
 	Parse OBR line for existing wqid, provider, site
 	Parse PV1 line for study date
@@ -1381,7 +1384,6 @@ WQpreventiceResults(&wqfiles) {
 			dev := "HL7" 
 		}
 	
-		lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
 		lv.Add(""
 			, path.PrevHL7in fileIn														; path and filename
 			, strQ(res.Name,"###", x.1 ", " x.2)										; last, first
@@ -1396,11 +1398,10 @@ WQpreventiceResults(&wqfiles) {
 	}
 	Return
 }
-WQscanHolterPDFs(&wqfiles) {
+WQscanHolterPDFs(&wqfiles,&lv) {
 /*	Scan Holter PDFs folder for additional files
 */
-	global path, pdfList, monStrings, dims
-	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+	global path, pdfList, monStrings, phase, dims
 
 	findfullPDF()																		; read Holter PDF dir into pdfList
 	for key,val in pdfList
@@ -1573,12 +1574,11 @@ findWQid(DT:="",MRN:="",ser:="") {
 	return {id:x.getAttribute("id"),node:x.parentNode.nodeName}								; returns {id,node}; or null (error) if no match
 }
 		
-WQfindMissingWebgrab() {
+WQfindMissingWebgrab(&lv) {
 /*	Scan <pending> for missing webgrab
 	no webgrab means no registration received at Preventice for some reason
 */
-	global wq, path, monStrings
-	lv := GuiCtrlFromHwnd(dims.hwnd["HLV_in"])
+	global wq, path, monStrings, phase
 
 	loop (ens:=wq.selectNodes("/root/pending/enroll")).Length
 	{
@@ -1608,7 +1608,7 @@ WQfindMissingWebgrab() {
 	Return
 }
 
-
+	
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
