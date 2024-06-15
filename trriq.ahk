@@ -1871,4 +1871,5 @@ cleanBakFiles() {
 #Include updateData.ahk
 #Include hl7.ahk
 #Include sift3.ahk
+#Include CMsgBox_v2.ahk
 #Include Peep.v2.ahk																	; This is only for debugging
