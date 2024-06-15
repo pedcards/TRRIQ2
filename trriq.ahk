@@ -1608,6 +1608,76 @@ WQfindMissingWebgrab(&lv) {
 	Return
 }
 
+WQpendingTabs() {
+/*	Now scan <pending/enroll> nodes
+	Generate ALL tab
+	Add each <enroll> to corresponding site
+*/
+	global wq, sites, ;CLV_all
+
+	
+	Gui, ListView, WQlv_all
+	LV_Delete()
+	
+	Loop, parse, sites, |
+	{
+		i := A_Index
+		site := A_LoopField
+		Gui, ListView, WQlv%i%
+		LV_Delete()																		; refresh each respective LV
+		Loop, % (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
+		{
+			k := ens.item(A_Index-1)
+			id	:= k.getAttribute("id")
+			e0 := readWQ(id)
+			dt := dateDiff(e0.date)
+			e0.dev := RegExReplace(e0.dev,"BodyGuardian","BG")
+			;~ if (InStr(e0.dev,"BG") && (dt < 30)) {									; skip BGH less than 30 days
+				;~ continue
+			;~ }
+			CLV_col := (dt-e0.duration > 10) ? "red" : ""
+			
+			Gui, ListView, WQlv%i%														; add to clinic loc listview
+			LV_Add(""
+				,id
+				,e0.date
+				,strQ(e0.fedex,"X")
+				,e0.sent
+				,strQ(e0.notes,"X")
+				,e0.mrn
+				,e0.name
+				,e0.dev
+				,e0.prov
+				,e0.site)
+			if (CLV_col) {
+				CLV_%i%.Row(LV_GetCount(),,CLV_col)
+			}
+			Gui, ListView, WQlv_all														; add to ALL listview
+			LV_Add(""
+				,id
+				,e0.date
+				,strQ(e0.fedex,"X")
+				,e0.sent
+				,strQ(e0.notes,"X")
+				,e0.mrn
+				,e0.name
+				,e0.dev
+				,e0.prov
+				,e0.site)
+			if (CLV_col) {
+				CLV_all.Row(LV_GetCount(),,CLV_col)
+			}
+		}
+		Gui, ListView, WQlv%i%
+		LV_ModifyCol(2,"Sort")
+	}
+	Gui, ListView, WQlv_all														
+	LV_ModifyCol(2,"Sort")
+
+	Return
+*/
+}
+
 	
 ;#endregion
 
