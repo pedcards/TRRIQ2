@@ -1390,7 +1390,26 @@ WQpreventiceResults(&wqfiles) {
 	Return
 }
 
+findWQid(DT:="",MRN:="",ser:="") {
+/*	DT = 20170803
+	MRN = 123456789
+	ser = BodyGuardian Heart - BG12345, or Mortara H3+ - 12345
+*/
+	global wq
 	
+	if IsObject(x := wq.selectSingleNode("//enroll"
+		. "[date='" DT "'][mrn='" MRN "']")) {												; Perfect match DT and MRN
+	} else if IsObject(x := wq.selectSingleNode("//enroll"
+		. "[dev='" ser "'][mrn='" MRN "']")) {												; or matches S/N and MRN
+	} else if IsObject(x := wq.selectSingleNode("//enroll"
+		. "[date='" DT "'][dev='" ser "']")) {												; or matches DT and S/N
+	} else {
+		x := ""																				; anything else is null
+	}
+
+	return {id:x.getAttribute("id"),node:x.parentNode.nodeName}								; returns {id,node}; or null (error) if no match
+}
+		
 
 ;#endregion
 
