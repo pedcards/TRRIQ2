@@ -214,7 +214,7 @@ PhaseGUI() {
 	 */
 	phase.SetFont("Bold","Verdana")
 	btnRefresh := phase.AddButton("Y+10 wp h40","Refresh lists") ; gPhaseRefresh
-		; btnRefresh.OnEvent("Click",PhaseRefresh())
+		btnRefresh.OnEvent("Click",PhaseRefresh)
 	btnPrevGrab := phase.AddButton("Y+10 wp h40 Disabled","Check Preventice inventory") ; gPrevGrab
 		btnPrevGrab.OnEvent("Click",prevgrab)
 	phase.AddText("wp h50")
@@ -405,8 +405,14 @@ PhaseGUI() {
 			eventlog("<<<<< Session end.")
 			ExitApp
 		}
-	}	
+	}
 
+	PhaseRefresh(*) {
+		btnOrders.Text := "No active orders"
+		btnOrders.Enabled := false
+		WQlist()
+	}
+	
 	makeSiteTab() {
 		alltabs := 
 			["ORDERS"
