@@ -204,15 +204,14 @@ PhaseGUI() {
 	global gl, dims, sites, wksLoc
 		, phase, WQtab
 	
-	dims.hwnd := Map()
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
-	phase.hand := Map()
+	phase.hnd := Map()
 
 	/*	Phase info box
 	 */
 	phaseNumbers := phase.AddText("x" dims.phase.lvW+40 " y15 w200 vPhaseNumbers", "`n`n")
-	phase.hand["numbers"] := phaseNumbers
+	phase.hnd["numbers"] := phaseNumbers
 	phase.AddGroupBox("x" dims.phase.lvW+20 " y0 w220 h65")
 
 	/*	Action buttons
@@ -226,7 +225,7 @@ PhaseGUI() {
 	phase.AddText("y+10 wp h24 Center","Register/Prepare a `nHOLTER or EVENT MONITOR")
 	btnOrders := phase.AddButton("y+10 wp h40 vRegister DISABLED","No active orders") ; gPhaseOrder
 		btnOrders.OnEvent("Click",phaseOrder)
-		dims.hwnd["btnOrders"] := btnOrders.Hwnd
+		phase.hnd["btnOrders"] := btnOrders
 	phase.AddText("wp h30")
 	phase.AddText("y+10 wp Center","Transmit")
 	btnBGM := phase.AddText("y+1 wp Center h100","BG MINI")
@@ -254,7 +253,7 @@ PhaseGUI() {
 		dims.wqTab.Y := wqY
 		dims.wqTab.W := wqW
 		dims.wqTab.H := wqH
-		dims.hwnd["WQtab"] := WQtab.Hwnd
+		phase.hnd["WQtab"] := WQtab
 	
 	/*	BUILD LISTVIEWS
 	 */
@@ -267,7 +266,7 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
-		phase.hand["in"] := HLV_in
+		phase.hnd["in"] := HLV_in
 		; HLV_in.OnEvent("DoubleClick",readWQlv())
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -278,7 +277,8 @@ PhaseGUI() {
 		HLV_in.ModifyCol(7,"2")															; wqid
 		HLV_in.ModifyCol(8,"40 Center")													; ftype
 		HLV_in.ModifyCol(9,"70 Center")													; ftp
-		; CLV_in := new LV_Colors(HLV_in,true,false)
+		CLV_in := LV_Colors(HLV_in,true,false)
+		phase.hnd["CLV_in"] := CLV_in
 		; CLV_in.Critical := 100
 	}
 
@@ -286,7 +286,7 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
-	phase.hand["orders"] := HLV_orders
+	phase.hnd["orders"] := HLV_orders
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
@@ -299,7 +299,7 @@ PhaseGUI() {
 	HLV_unread := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["Name","MRN","Study Date","Processed","Monitor","Ordering","Assigned EP"]
 	)
-	phase.hand["unread"] := HLV_unread
+	phase.hnd["unread"] := HLV_unread
 	HLV_unread.ModifyCol(1,"140")														; Name
 	HLV_unread.ModifyCol(2,"60")														; MRN
 	HLV_unread.ModifyCol(3,"80")														; Date
@@ -313,7 +313,7 @@ PhaseGUI() {
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
 	; HLV_all.OnEvent("DoubleClick",WQtask())
-	phase.hand["all"] := HLV_all
+	phase.hnd["all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
 	HLV_all.ModifyCol(3,"40 Center")													; FedEx
@@ -324,11 +324,13 @@ PhaseGUI() {
 	HLV_all.ModifyCol(8,"130")															; Ser Num
 	HLV_all.ModifyCol(9,"100")															; Prov
 	HLV_all.ModifyCol(10,"80")															; Site
-	; CLV_all := new LV_Colors(HLV_all,true,false)
+	CLV_all := LV_Colors(HLV_all,true,false)
+	phase.hnd["CLV_all"] := CLV_all
 	; CLV_all.Critical := 100
 
 	; ================================================================================== LV for each Site
 	HLV1 := HLV2 := HLV3 := HLV4 := HLV5 := HLV6 := HLV7 := HLV8 := HLV9 := ""			; Must declare first, V2 cannot create dynamic variable names
+	CLV1 := CLV2 := CLV3 := CLV4 := CLV5 := CLV6 := CLV7 := CLV8 := CLV9 := ""
 	loop parse sites.tracked, "|"
 	{
 		i := A_Index
@@ -337,7 +339,7 @@ PhaseGUI() {
 		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.hand[i] := HLV%i%
+		phase.hnd[i] := HLV%i%
 		; HLV%i%.OnEvent("DoubleClick",WQtask())
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
@@ -348,7 +350,8 @@ PhaseGUI() {
 		HLV%i%.ModifyCol(7,"140")														; Name
 		HLV%i%.ModifyCol(8,"130")														; Ser Num
 		HLV%i%.ModifyCol(9,"100")														; Prov
-		; CLV_%i% := new LV_Colors(HLV%i%,true,false)
+		CLV%i% := LV_Colors(HLV%i%,true,false)
+		phase.hnd["CLV" i] := CLV%i%
 		; CLV_%i%.Critical := 100
 	}
 
@@ -501,7 +504,7 @@ WQlist() {
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
 	*/
-	lv := phase.hand["orders"]
+	lv := phase.hnd["orders"]
 	lv.Delete()
 	
 	pb.title("Scanning Epic orders")
@@ -516,7 +519,7 @@ WQlist() {
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	*/
 	if (gl.isMain) {
-		lv := phase.hand["in"]
+		lv := phase.hnd["in"]
 		lv.Delete()
 		
 		WQpreventiceResults(&wqfiles,&lv)												; Process incoming Preventice results
@@ -532,7 +535,7 @@ WQlist() {
 
 	tmp1 := parsedate(wq.selectSingleNode("/root/pending").getAttribute("update"))
 	tmp2 := parsedate(wq.selectSingleNode("/root/inventory").getAttribute("update"))
-	phase.hand["numbers"].Text := ""
+	phase.hnd["numbers"].Text := ""
 		.	"Patients registered in Preventice (" wq.selectNodes("/root/pending/enroll").length ")`n"
 		.	"Preventice update: " tmp1.MMDD " @ " tmp1.hrmin "`n"
 		.	"Inventory update: " tmp2.MMDD " @ " tmp2.hrmin
@@ -1275,7 +1278,7 @@ WQepicOrdersPrevious(lv) {
 			, e0.provname																; prov
 			, monType["abbrev"] " " monType["duration"] 								; monitor type
 			, "")																		; fulldisc present, make blank
-		btn := GuiCtrlFromHwnd(dims.hwnd["btnOrders"])
+		btn := phase.hnd["btnOrders"]
 			btn.Enabled := true
 			btn.Text := "Go to ORDERS tab"
 	}
@@ -1610,7 +1613,7 @@ WQfindMissingWebgrab(&lv) {
 				, getMonType(res.dev)["abbrev"]											; study type
 				, "No Reg"																; fulldisc present, make blank
 				, "X")
-			; CLV_in.Row(LV_GetCount(),,"red")
+			phase.hnd["CLV_in"].Row(lv.GetCount(),,"red")
 		}
 	}
 	Return
@@ -1623,7 +1626,7 @@ WQpendingTabs() {
 */
 	global wq, sites, phase ;CLV_all
 
-	lv_all := phase.hand["all"]
+	lv_all := phase.hnd["all"]
 	lv_all.Delete()
 	lv := Map()
 	
@@ -1631,7 +1634,7 @@ WQpendingTabs() {
 	{
 		i := A_Index
 		site := A_LoopField
-		lv[i] := phase.hand[i]
+		lv[i] := phase.hnd[i]
 		lv[i].Delete()
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
@@ -1656,7 +1659,7 @@ WQpendingTabs() {
 			;~ if (InStr(e0.dev,"BG") && (dt < 30)) {									; skip BGH less than 30 days
 				;~ continue
 			;~ }
-			; CLV_col := (dt-e0.duration > 10) ? "red" : ""
+			CLV_col := (dt-e0.duration > 10) ? "red" : ""
 			
 			lv[i].Add(""																; add to clinic loc listview
 				,id
@@ -1669,9 +1672,9 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			; if (CLV_col) {
-			; 	CLV_%i%.Row(LV_GetCount(),,CLV_col)
-			; }
+			if (CLV_col) {
+				phase.hnd["CLV" i].Row(lv[i].GetCount(),,CLV_col)
+			}
 			lv_all.Add(""																; add to ALL listview
 				,id
 				,e0.date
@@ -1683,9 +1686,9 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			; if (CLV_col) {
-			; 	CLV_all.Row(LV_GetCount(),,CLV_col)
-			; }
+			if (CLV_col) {
+				phase.hnd["CLV_all"].Row(lv_all.GetCount(),,CLV_col)
+			}
 		}
 		lv[i].ModifyCol(2,"Sort")
 	}
@@ -1699,7 +1702,7 @@ WQpendingReads() {
 */
 	global wq, path, phase
 
-	lv := phase.hand["unread"]
+	lv := phase.hnd["unread"]
 	lv.Delete()
 	
 	loop Files path.EpicHL7out "*"
