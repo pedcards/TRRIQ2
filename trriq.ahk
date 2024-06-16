@@ -1389,17 +1389,17 @@ WQpreventiceResults(&wqfiles,&lv) {
 			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			continue
 		}
-		if !(dev := ObjHasValue(monStrings,res.dev,1)) {								; dev type returns "HL7" if no device in wqid
+		if !(dev := getMonType(res.dev)["abbrev"]) {									; dev type returns "HL7" if no device in wqid
 			dev := "HL7" 
 		}
 	
 		lv.Add(""
 			, path.PrevHL7in fileIn														; path and filename
-			, strQ(res.Name,"###", x.1 ", " x.2)										; last, first
-			, strQ(res.mrn,"###",x.3)													; mrn
-			, strQ(niceDate(res.dob),"###",niceDate(x.4))								; dob
+			, strQ(res.Name,"###", x[1] ", " x[2])										; last, first
+			, strQ(res.mrn,"###",x[3])													; mrn
+			, strQ(niceDate(res.dob),"###",niceDate(x[4]))								; dob
 			, strQ(res.site,"###",obr_site)												; site
-			, strQ(niceDate(res.date),"###",niceDate(SubStr(x.5,1,8)))					; study date
+			, strQ(niceDate(res.date),"###",niceDate(SubStr(x[5],1,8)))					; study date
 			, id																		; wqid
 			, dev																		; device type
 			, (res.duration<3) ? "X":"")												; flag FTP if 1-2 day Holter
