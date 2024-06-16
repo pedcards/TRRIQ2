@@ -193,6 +193,7 @@ PhaseGUI() {
 	
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
+	phase.BackColor := "C2BDBE"
 	phase.hnd := Map()
 
 	/*	Phase info box
@@ -232,7 +233,7 @@ PhaseGUI() {
 	phase.SetFont(,"Calibri")
 	siteTabs := makeSiteTab()
 	WQtab := phase.AddTab3("x10 y10 w" dims.phase.lvW " h" dims.phase.lvH 
-		; . " +HwndWQtab -Wrap"
+		. " + -Wrap"
 		, siteTabs)
 	WQtab.GetPos(&wqX,&wqY,&wqW,&wqH)
 		dims.wqTab := Map()
