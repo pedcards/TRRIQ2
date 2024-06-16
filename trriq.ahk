@@ -114,10 +114,6 @@ SetTitleMatchMode("2")
 
 	pb.sub("Monitor strings")
 	monStrings := readIni("Monitors")																	; Monitor key strings
-	; monOrderType := {}
-	; monSerialStrings := {}
-	; monPdfStrings := {}
-	; monEpicEAP := {}
 
 	monTypes := Map()
 	for key,val in monStrings
@@ -130,11 +126,6 @@ SetTitleMatchMode("2")
 		monTypes[key]["regex"] := el[4]																	; Mon type regex "Pr|Hol"
 		monTypes[key]["serial"] := el[5]																; S/n regex "Mortara|Mini SL"
 		monTypes[key]["EAP"] := el[6]																	; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
-
-		; monOrderType[el.2]:=el.3																		; String matches for order <mon>
-		; monSerialStrings[el.2]:=el.5																	; Regex matches for S/N strings
-		; monPdfStrings[el.1]:=el.2																		; Abbrev based on PDF fname
-		; monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
 	}
 
 	pb.sub("Reading EP list")
