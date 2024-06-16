@@ -204,9 +204,9 @@ PhaseGUI() {
 	/*	Action buttons
 	 */
 	phase.SetFont("Bold","Verdana")
-	btnRefresh := phase.AddButton("Y+10 wp h40","Refresh lists") ; gPhaseRefresh
+	btnRefresh := phase.AddButton("Y+10 wp h40","Refresh lists")
 		btnRefresh.OnEvent("Click",PhaseRefresh)
-	btnPrevGrab := phase.AddButton("Y+10 wp h40 Disabled","Check Preventice inventory") ; gPrevGrab
+	btnPrevGrab := phase.AddButton("Y+10 wp h40 Disabled","Check Preventice inventory")
 		btnPrevGrab.OnEvent("Click",prevgrab)
 	phase.AddText("wp h50")
 	phase.AddText("y+10 wp h24 Center","Register/Prepare a `nHOLTER or EVENT MONITOR")
@@ -267,6 +267,7 @@ PhaseGUI() {
 		; CLV_in := LV_Colors(HLV_in,true,false)
 		; phase.hnd["CLV_in"] := CLV_in
 		; CLV_in.Critical := 100
+		WQtab.Choose(2)
 	}
 
 	WQtab.UseTab("ORDERS") ; =========================================================== ORDERS
