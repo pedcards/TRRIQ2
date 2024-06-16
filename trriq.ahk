@@ -324,9 +324,6 @@ PhaseGUI() {
 	HLV_all.ModifyCol(8,"130")															; Ser Num
 	HLV_all.ModifyCol(9,"100")															; Prov
 	HLV_all.ModifyCol(10,"80")															; Site
-	CLV_all := LV_Colors(HLV_all,true,false)
-	phase.hnd["CLV_all"] := CLV_all
-	; CLV_all.Critical := 100
 
 	; ================================================================================== LV for each Site
 	HLV1 := HLV2 := HLV3 := HLV4 := HLV5 := HLV6 := HLV7 := HLV8 := HLV9 := ""			; Must declare first, V2 cannot create dynamic variable names
@@ -350,9 +347,6 @@ PhaseGUI() {
 		HLV%i%.ModifyCol(7,"140")														; Name
 		HLV%i%.ModifyCol(8,"130")														; Ser Num
 		HLV%i%.ModifyCol(9,"100")														; Prov
-		CLV%i% := LV_Colors(HLV%i%,true,false)
-		phase.hnd["CLV" i] := CLV%i%
-		; CLV_%i%.Critical := 100
 	}
 
 	/*	POPULATE LISTVIEWS
@@ -1629,6 +1623,9 @@ WQpendingTabs() {
 	lv_all := phase.hnd["all"]
 	lv_all.Delete()
 	lv := Map()
+	clv := Map()
+	CLVi := Map()
+	clv_all := []
 	
 	Loop parse sites.tracked, "|"
 	{
@@ -1636,6 +1633,7 @@ WQpendingTabs() {
 		site := A_LoopField
 		lv[i] := phase.hnd[i]
 		lv[i].Delete()
+		clv[i] := []
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
 			k := ens.item(A_Index-1)
@@ -1672,9 +1670,6 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			if (CLV_col) {
-				phase.hnd["CLV" i].Row(lv[i].GetCount(),,CLV_col)
-			}
 			lv_all.Add(""																; add to ALL listview
 				,id
 				,e0.date
@@ -1686,12 +1681,27 @@ WQpendingTabs() {
 				,e0.dev
 				,e0.prov
 				,e0.site)
-			if (CLV_col) {
-				phase.hnd["CLV_all"].Row(lv_all.GetCount(),,CLV_col)
+			if (dt-e0.duration > 10) {
+				clv[i].Push(lv[i].GetCount())
+				clv_all.Push(lv_all.GetCount())
 			}
 		}
+		CLVi[i] := LV_Colors(lv[i],true)
+		for key,val in clv[i]
+		{
+			CLVi[i].Row(val,"red")
+		}
+		lv[i].Opt("+Redraw")
+		lv[i].Focus()
 		lv[i].ModifyCol(2,"Sort")
 	}
+	CLVa := LV_Colors(lv_all,true)
+	for key,val in clv_all
+	{
+		CLVa.Row(val,"red")
+	}
+	lv_all.Opt("+Redraw")
+	lv_all.Focus()
 	lv_all.ModifyCol(2,"Sort")
 
 	Return
