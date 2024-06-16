@@ -1313,7 +1313,7 @@ getMonType(val) {
 	res := 0
 	for key,arr in monTypes
 	{
-		if ObjHasValue(arr,val) {
+		if ObjHasValue(arr,val,"RX") {
 			res := A_Index
 			break
 		}
