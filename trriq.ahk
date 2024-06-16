@@ -324,7 +324,7 @@ PhaseGUI() {
 		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.hnd[i] := HLV%i%
+		phase.hnd["LV" i] := HLV%i%
 		; HLV%i%.OnEvent("DoubleClick",WQtask())
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
@@ -1614,16 +1614,15 @@ WQpendingTabs() {
 	lv_all.Delete()
 	lv := Map()
 	clv := Map()
-	CLVi := Map()
-	clv_all := []
-	
+	CLVa := LV_Colors(lv_all,true)
+
 	Loop parse sites.tracked, "|"
 	{
 		i := A_Index
 		site := A_LoopField
-		lv[i] := phase.hnd[i]
+		lv[i] := phase.hnd["LV" i]
 		lv[i].Delete()
-		clv[i] := []
+		clv[i] := LV_Colors(lv[i],true)
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
 			k := ens.item(A_Index-1)
@@ -1667,26 +1666,14 @@ WQpendingTabs() {
 				,e0.prov
 				,e0.site)
 			if (dt-e0.duration > 10) {
-				clv[i].Push(lv[i].GetCount())
-				clv_all.Push(lv_all.GetCount())
+				clv[i].UpdateProps()
+				clv[i].Row(lv[i].GetCount(),"red")
+				CLVa.UpdateProps()
+				CLVa.Row(lv_all.GetCount(),"red")
 			}
 		}
-		CLVi[i] := LV_Colors(lv[i],true)
-		for key,val in clv[i]
-		{
-			CLVi[i].Row(val,"red")
-		}
-		lv[i].Opt("+Redraw")
-		lv[i].Focus()
 		lv[i].ModifyCol(2,"Sort")
 	}
-	CLVa := LV_Colors(lv_all,true)
-	for key,val in clv_all
-	{
-		CLVa.Row(val,"red")
-	}
-	lv_all.Opt("+Redraw")
-	lv_all.Focus()
 	lv_all.ModifyCol(2,"Sort")
 
 	Return
