@@ -2178,4 +2178,5 @@ cleanBakFiles() {
 #Include hl7.ahk
 #Include sift3.ahk
 #Include CMsgBox_v2.ahk
+#Include Class_LV_Colors2.ahk
 #Include Peep.v2.ahk																	; This is only for debugging
