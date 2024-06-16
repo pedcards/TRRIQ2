@@ -137,10 +137,6 @@ SetTitleMatchMode("2")
 		; monEpicEAP[el.2]:=el.6																			; Epic EAP codes for monitors
 	}
 
-	; pb.sub("HL7 map")
-	; hl7 := getHL7()																						; HL7 definitions
-	hl7DirMap := Map()
-
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
 	; for key in epList																					; option string epStr
@@ -1320,8 +1316,9 @@ WQpreventiceResults(&wqfiles,&lv) {
 	Add line to WQlv_in
 	Add line to wqfiles
 */
-	global wq, path, sites, monTypes, hl7DirMap		;, monSerialStrings, fldval
-	
+	global wq, path, sites, monTypes
+
+	hl7dirMap := Map()
 	tmpHolters := ""
 	loop Files path.PrevHL7in "*.hl7"
 	{
