@@ -127,7 +127,7 @@ SetTitleMatchMode("2")
 		monTypes[key]["type"] := el[1]																	; Monitor letter code "H"
 		monTypes[key]["abbrev"] := el[2]																; Abbrev for PDF fname "HOL"
 		monTypes[key]["duration"] := el[3]																; Order list dur "24-hr"
-		monTypes[key]["modelRegex"] := el[4]															; Mon type regex "Pr|Hol"
+		monTypes[key]["regex"] := el[4]																	; Mon type regex "Pr|Hol"
 		monTypes[key]["serial"] := el[5]																; S/n regex "Mortara|Mini SL"
 		monTypes[key]["EAP"] := el[6]																	; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
 
