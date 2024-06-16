@@ -64,7 +64,7 @@ SetTitleMatchMode("2")
 		MsgBox("No clinic location specified!`n`nExiting","Location error",262160)
 		ExitApp
 	}
-	gl.isMain := (wksLoc~="Main Campus") ? true : false
+	gl.isMain := (wksLoc~="Main|Bellevue|Everett") ? true : false
 
 	sites := wks.getSites(wksLoc)
 	; sites.tracked	(aka sites)						= sites we are tracking
