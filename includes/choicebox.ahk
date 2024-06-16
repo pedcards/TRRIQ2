@@ -1,6 +1,15 @@
 #Requires AutoHotkey v2
 
-cMsgBox(title:="",text:="",buttons:=[],icon:="",vert:="v",img:="") {
+/*	choiceBox - MsgBox-like dialog with multiple choice buttons
+	Returns button text, or "xClose" if [x] button
+	icon "I" = Info
+	icon "Q" = Question
+	icon "E" = Error
+	icon "!" = Exclamation
+	vert = completely vertical alignment
+	img = filename of image to place below textbox
+ */
+choiceBox(title:="",text:="",buttons:=[],icon:="",vert:="v",img:="") {
 	cMsg := Gui()
 	hwnd := cMsg.Hwnd
 	cMsg.Opt("+ToolWindow +AlwaysOnTop")
