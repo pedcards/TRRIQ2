@@ -301,7 +301,7 @@ PhaseGUI() {
 	HLV_all := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
-	; HLV_all.OnEvent("DoubleClick",WQtask())
+	HLV_all.OnEvent("DoubleClick",WQtask)
 	phase.hnd["all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
@@ -1708,6 +1708,137 @@ WQpendingReads() {
 	}
 	
 	Return
+}
+
+WQtask(lv,row,*) {
+/*	Double click from clinic location (or ALL) 
+	For studies in-flight, registered but not resulted
+	Tech tasks: 
+		Add note
+		Mark as uploaded to Preventice
+		Mark as completed
+	Admin tasks:
+		?
+*/
+	agc := A_GuiControl
+	if !InStr(agc,"WQlv") {
+		return
+	}
+	if !(A_GuiEvent="DoubleClick") {
+		return
+	}
+	Gui, ListView, %agc%
+	LV_GetText(idx, A_EventInfo,1)
+	if (idx="ID") {
+		return
+	}
+	
+	global wq, user, adminMode
+	if (adminMode) {
+		adminWQtask(idx)
+		Return
+	}
+	
+	;~ Gui, phase:Hide
+	pt := readWQ(idx)
+
+	idstr := "/root/pending/enroll[@id='" idx "']"
+	
+	list :=
+	Loop, % (notes:=wq.selectNodes(idstr "/notes/note")).length 
+	{
+		k := notes.item(A_Index-1)
+		dt := parsedate(k.getAttribute("date"))
+		list .= dt.mm "/" dt.dd ":" k.getAttribute("user") ": " k.text "`n"
+	}
+
+	choice := cmsgbox(pt.Name " " pt.MRN
+			,	"Date: " niceDate(pt.date) "`n"
+			.	"Provider: " pt.prov "`n"
+			.	strQ(pt.FedEx,"  FedEx: ###`n")
+			.   strQ(list,"Notes: ========================`n###`n")
+			, "View/Add NOTE|"
+			. "Log UPLOAD to Preventice|"
+			. "Move to DONE list"
+			, "Q")
+	if (choice="xClose") {
+		return
+	}
+	if InStr(choice,"upload") {
+		inputbox(inDT,"Upload log","`n`nEnter date uploaded to Preventice`n",niceDate(A_Now))
+		if (ErrorLevel) {
+			return
+		}
+		wq := new XML("worklist.xml")
+		if !IsObject(wq.selectSingleNode(idstr "/sent")) {
+			wq.addElement("sent",idstr)
+		}
+		wq.setText(idstr "/sent",parseDate(inDT).YMD)
+		wq.setAtt(idstr "/sent",{user:user})
+		writeout(idstr,"sent")
+		eventlog(pt.MRN " " pt.Name " study " pt.Date " uploaded to Preventice.")
+		MsgBox, 4160, Logged, % pt.Name "`nUpload date logged!"
+		setwqupdate()
+		WQlist()
+		return
+	}
+	if InStr(choice,"note") {
+		inputbox(note,"Communication note"
+			, strQ(list,"###====================================`n") "`nEnter a brief communication note:`n","")
+		if (note="") {
+			return
+		}
+		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
+			wq.addElement("notes",idstr)
+		}
+		if (RegExMatch(note,"((\d\s*){12})",fedex)) {
+			MsgBox,4132,, % "FedEx tracking number?`n" fedex1
+			IfMsgBox, Yes
+			{
+				fedex := RegExReplace(fedex1," ")
+				if !IsObject(wq.selectSingleNode(idstr "/fedex")) {
+					wq.addElement("fedex",idstr)
+				}
+				wq.setText(idstr "/fedex",fedex)
+				wq.setAtt(idstr "/fedex", {user:user, date:substr(A_Now,1,8)})
+				eventlog(pt.MRN "[" pt.Date "] FedEx tracking #" fedex)
+			}
+		}
+		wq.addElement("note",idstr "/notes",{user:user, date:substr(A_Now,1,8)},note)
+		WriteOut("/root/pending","enroll[@id='" idx "']")
+		eventlog(pt.MRN "[" pt.Date "] Note from " user ": " note)
+		setwqupdate()
+		WQlist()
+		return
+	}
+	if InStr(choice,"done") {
+		reason := cmsgbox("Reason"
+				, "What is the reason to remove this record from the active worklist?"
+				, "Report in Epic|"
+				. "Device missing|"
+				. "Other (explain)"
+				, "E")
+		if (reason="xClose") {
+			return
+		}
+		if InStr(reason,"Other") {
+			reason:=""
+			inputbox(reason,"Clear record from worklist","Enter the reason for moving this record","")
+			if (reason="") {
+				return
+			}
+		}
+		wq := new XML("worklist.xml")
+		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
+			wq.addElement("notes",idstr)
+		}
+		wq.addElement("note",idstr "/notes",{user:user, date:substr(A_Now,1,8)},"MOVED: " reason)
+		moveWQ(idx)
+		eventlog(idx " Move from WQ: " reason)
+		setwqupdate()
+		WQlist()
+	}
+return	
 }
 	
 ;#endregion
