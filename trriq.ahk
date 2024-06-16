@@ -1587,7 +1587,7 @@ WQfindMissingWebgrab(&lv) {
 		try wb := en.selectSingleNode("webgrab").Text
 		if !(wb) {
 			res := readwq(id)
-			dt := dateDiff(res.date,A_Now,"Days")
+			dt := dateDiff(A_Now,res.date,"Days")
 			if (dt < 5) {																; ignore for 5 days to allow reg/sendout to process
 				Continue
 			}
@@ -1634,7 +1634,7 @@ WQpendingTabs() {
 			k := ens.item(A_Index-1)
 			id	:= k.getAttribute("id")
 			e0 := readWQ(id)
-			dt := dateDiff(e0.date,A_Now,"Days")
+			dt := dateDiff(A_Now,e0.date,"Days")
 			e0.dev := RegExReplace(e0.dev,"BodyGuardian","BG")
 			try (e0.fedex)
 			catch {
