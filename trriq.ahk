@@ -207,10 +207,12 @@ PhaseGUI() {
 	dims.hwnd := Map()
 	phase := Gui()
 	phase.Opt("+AlwaysOnTop")
+	phase.hand := Map()
 
 	/*	Phase info box
 	 */
 	phaseNumbers := phase.AddText("x" dims.phase.lvW+40 " y15 w200 vPhaseNumbers", "`n`n")
+	phase.hand["numbers"] := phaseNumbers
 	phase.AddGroupBox("x" dims.phase.lvW+20 " y0 w220 h65")
 
 	/*	Action buttons
@@ -257,7 +259,6 @@ PhaseGUI() {
 	/*	BUILD LISTVIEWS
 	 */
 	lvDim := "w" wqW-25 " h" wqH-35
-	phase.LV := Map()
 
 	if (gl.isMain) {
 		btnPrevGrab.Enabled := true
@@ -266,7 +267,7 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
-		phase.LV["in"] := HLV_in
+		phase.hand["in"] := HLV_in
 		; HLV_in.OnEvent("DoubleClick",readWQlv())
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -285,7 +286,7 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
-	phase.LV["orders"] := HLV_orders
+	phase.hand["orders"] := HLV_orders
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
@@ -298,7 +299,7 @@ PhaseGUI() {
 	HLV_unread := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["Name","MRN","Study Date","Processed","Monitor","Ordering","Assigned EP"]
 	)
-	phase.LV["unread"] := HLV_unread
+	phase.hand["unread"] := HLV_unread
 	HLV_unread.ModifyCol(1,"140")														; Name
 	HLV_unread.ModifyCol(2,"60")														; MRN
 	HLV_unread.ModifyCol(3,"80")														; Date
@@ -312,7 +313,7 @@ PhaseGUI() {
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
 	; HLV_all.OnEvent("DoubleClick",WQtask())
-	phase.LV["all"] := HLV_all
+	phase.hand["all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
 	HLV_all.ModifyCol(3,"40 Center")													; FedEx
@@ -336,7 +337,7 @@ PhaseGUI() {
 		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.LV[i] := HLV%i%
+		phase.hand[i] := HLV%i%
 		; HLV%i%.OnEvent("DoubleClick",WQtask())
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
@@ -500,7 +501,7 @@ WQlist() {
 	
 	/*	Add all incoming Epic ORDERS to WQlv_orders
 	*/
-	lv := phase.LV["orders"]
+	lv := phase.hand["orders"]
 	lv.Delete()
 	
 	pb.title("Scanning Epic orders")
@@ -515,7 +516,7 @@ WQlist() {
 	/*	Generate Inbox WQlv_in tab for Main Campus user 
 	*/
 	if (gl.isMain) {
-		lv := phase.LV["in"]
+		lv := phase.hand["in"]
 		lv.Delete()
 		
 		WQpreventiceResults(&wqfiles,&lv)												; Process incoming Preventice results
