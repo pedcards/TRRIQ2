@@ -527,19 +527,18 @@ WQlist() {
 	/*	Generate lv for ALL, site tabs, and pending reads
 	*/
 	WQpendingTabs()
-/*
+
 	WQpendingReads()
 
-	GuiControl, Text, PhaseNumbers
-		,	% "Patients registered in Preventice (" wq.selectNodes("/root/pending/enroll").length ")`n"
-		.	(tmp := parsedate(wq.selectSingleNode("/root/pending").getAttribute("update")))
-		.	"Preventice update: " tmp.MMDD " @ " tmp.hrmin "`n"
-		.	(tmp := parsedate(wq.selectSingleNode("/root/inventory").getAttribute("update")))
-		.	"Inventory update: " tmp.MMDD " @ " tmp.hrmin
+	tmp1 := parsedate(wq.selectSingleNode("/root/pending").getAttribute("update"))
+	tmp2 := parsedate(wq.selectSingleNode("/root/inventory").getAttribute("update"))
+	phase.hand["numbers"].Text := ""
+		.	"Patients registered in Preventice (" wq.selectNodes("/root/pending/enroll").length ")`n"
+		.	"Preventice update: " tmp1.MMDD " @ " tmp1.hrmin "`n"
+		.	"Inventory update: " tmp2.MMDD " @ " tmp2.hrmin
 	
-	progress, off
+	pb.hide()
 	return
-*/
 }
 
 
@@ -1608,7 +1607,7 @@ WQfindMissingWebgrab(&lv) {
 				, strQ(res.site,"###","???")											; site
 				, strQ(nicedate(res.date),"###")										; study date
 				, id																	; wqid
-				, ObjHasValue(monStrings,res.dev,1)										; study type
+				, getMonType(res.dev)["abbrev"]											; study type
 				, "No Reg"																; fulldisc present, make blank
 				, "X")
 			; CLV_in.Row(LV_GetCount(),,"red")
@@ -1624,7 +1623,7 @@ WQpendingTabs() {
 */
 	global wq, sites, phase ;CLV_all
 
-	lv_all := phase.LV["all"]
+	lv_all := phase.hand["all"]
 	lv_all.Delete()
 	lv := Map()
 	
@@ -1632,7 +1631,7 @@ WQpendingTabs() {
 	{
 		i := A_Index
 		site := A_LoopField
-		lv[i] := phase.LV[i]
+		lv[i] := phase.hand[i]
 		lv[i].Delete()
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site='" site "']")).length
 		{
@@ -1695,6 +1694,35 @@ WQpendingTabs() {
 	Return
 }
 
+WQpendingReads() {
+/*	Scan outbound RawHL7 for studies pending read
+*/
+	global wq, path, phase
+
+	lv := phase.hand["unread"]
+	lv.Delete()
+	
+	loop Files path.EpicHL7out "*"
+	{
+		fileIn := A_LoopFileName
+		wqid := strX(StrSplit(fileIn, "_")[5],"@",1,1,".",1,1)
+		e0 := readWQ(wqid)
+		if (e0="") {
+			continue
+		}
+		e0.reading := wq.selectSingleNode("//enroll[@id='" wqid "']/done").getAttribute("read")
+		lv.Add(""
+			, e0.Name
+			, e0.MRN
+			, parseDate(e0.Date).mdy
+			, parseDate(e0.Done).mdy
+			, e0.dev
+			, e0.prov
+			, e0.reading )
+	}
+	
+	Return
+}
 	
 ;#endregion
 
