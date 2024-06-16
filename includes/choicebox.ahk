@@ -22,7 +22,7 @@ choiceBox(title:="",text:="",buttons:=[],icon:="",vert:="v",img:="") {
 				? "icon4" 	
 				: (icon = "!")															; EXCLAMATION 
 					? "icon2"
-					: ""
+					: "icon5"
 	cMsg.AddPicture(MyIcon,A_WinDir "\system32\user32.dll")
 	cMsg.AddText("x+12 yp w180 r8 section",text)
 	cMsg.Title := title
