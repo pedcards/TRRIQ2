@@ -2104,7 +2104,7 @@ checkPreventiceOrdersOut() {
 ;#region == OTHER FUNCTIONS ============================================================
 ObjHasValue(aObj, aValue, rx:="") {
 	for key, val in aObj
-		if (rx="RX") {																	; argument 3 is "RX" 
+		if (rx) {																		; argument 3 is any value 
 			if (aValue="") {															; null aValue in "RX" is error
 				return false
 			}
