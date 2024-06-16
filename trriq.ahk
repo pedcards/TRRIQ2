@@ -468,8 +468,6 @@ PhaseGUI() {
 		PhaseGUI()
 		return
 	}
-
-
 }
 
 WQlist() {
@@ -752,9 +750,6 @@ readIni(section) {
 			key := strX(i,"",1,0,"=",1,1)
 			val := trim(strX(i,"=",1,1,"",1,0),'`"')
 			gl.%key% := val
-			; k := &key
-			; v := &val
-			; %k% := %v%
 		}
 		if (i_type.obj) {
 			key := trim(strX(i,"",1,0,":",1,1),'`"')
@@ -1654,11 +1649,6 @@ WQpendingTabs() {
 				e0.notes := ""
 			}
 
-			;~ if (InStr(e0.dev,"BG") && (dt < 30)) {									; skip BGH less than 30 days
-				;~ continue
-			;~ }
-			CLV_col := (dt-e0.duration > 10) ? "red" : ""
-			
 			lv[i].Add(""																; add to clinic loc listview
 				,id
 				,e0.date
