@@ -1,51 +1,73 @@
 #Requires AutoHotkey v2
 
 /*	choiceBox - MsgBox-like dialog with multiple choice buttons
-	Returns button text, or "xClose" if [x] button
-	icon "I" = Info
-	icon "Q" = Question
-	icon "E" = Error
-	icon "!" = Exclamation
-	vert = completely vertical alignment
-	img = filename of image to place below textbox
+		"*Button" will be default button
+		Returns button text, or "xClose" if [x] button
+
+	Options:
+		+iconI = Info ('Q'=Question, 'E','X'=Error, '!'=Exclamation)
+		+v(ert) = completely vertical alignment
+		+tw___ = textbox width (default 240)
+		+bw___ = button width (default 150)
+		+slim = button height to fit
+		+fat = button height extra padding
+		
+		img = filename of image to replace icon, separated by comma
  */
-choiceBox(title:="",text:="",buttons:=[],icon:="",vert:="v",img:="") {
+choiceBox(title:="",text:="",buttons:=[],opts*) {
+
+	textW := 240 , btnW := 150
+	vert := img := res := ""
+	thisIcon := "icon5"
+	rows := "r2 "
+
+	for val in opts
+	{
+		if RegExMatch(val " ","i)\+icon(.)\W",&i) {
+			thisIcon := (i[1] = "I" ) ? "icon5" 										; INFO
+					: (i[1] = "Q") ? "icon3"											; QUESTION
+					: (i[1] ~= "E|X") ? "icon4"											; ERROR
+					: (i[1] = "!") ? "icon2"											; EXCLAMATION 
+					: "icon5"
+		}
+		if (val~="i)\+v(ert)?") {
+			vert := true
+		}
+		if RegExMatch(val " ","i)\+tw(\d{3,})",&w) {
+			textW := w[1]
+		}
+		if RegExMatch(val " ","i)\+bw(\d{3,})",&w) {
+			btnW := w[1]
+		}
+		if (val="+slim") {
+			rows := ""
+		}
+		if (val="+fat") {
+			rows := "r3 "
+		}
+		if FileExist(val) {
+			img := val
+		}
+	}
+
 	cMsg := Gui()
 	hwnd := cMsg.Hwnd
 	cMsg.Opt("+ToolWindow +AlwaysOnTop")
 
-	MyIcon := ( icon = "I" ) 															; INFO
-		? "icon5" 	
-		: (icon = "Q") 																	; QUESTION
-			? "icon3" 	
-			: (icon = "E") 																; ERROR
-				? "icon4" 	
-				: (icon = "!")															; EXCLAMATION 
-					? "icon2"
-					: "icon5"
-	cMsg.AddPicture(MyIcon,A_WinDir "\system32\user32.dll")
-	cMsg.AddText("x+12 yp w180 r8 section",text)
 	cMsg.Title := title
-
 	if (img) {
-		; Cmsg.AddPicture(
-		; 	(A_Index=1)
-		; 		? "x+12 ys Section "
-		; 		: "xs y+3 Section ", 
-		; 	(IsObject(img[A_Index]) ? img[A_Index] : "")
-		; )
+		cMsg.AddPicture( , img)
+	} else {
+		cMsg.AddPicture(thisIcon,A_WinDir "\system32\user32.dll")
 	}
+	tbox := cMsg.AddText("x+12 yp w" textW " Section",text "`n")
 
+	cMsg.AddText((vert) ? "" : "ys-16")													; Set position for buttons
 	for lbl in buttons
 	{
-		cMsg.AddButton(
-			((vert="v")
-				? ""
-				: "xs+90 ys " )
-			. ((lbl~="^\*")
-				? "Default "
-				: " " )
-			. "w150 "  
+		cMsg.AddButton(rows
+			. (lbl~="^\*") ? "Default " : " "
+			. "w" btnW
 			, RegExReplace(lbl,"^\*")
 		)
 		.OnEvent("Click",cMsgButton)
@@ -53,10 +75,8 @@ choiceBox(title:="",text:="",buttons:=[],icon:="",vert:="v",img:="") {
 
 	cMsg.Show("AutoSize")
 	cMsg.OnEvent("Close",cMsgClose)
-	res := ""
 
 	WinWaitClose("ahk_id " hwnd)
-
 	return res
 
 	cMsgButton(var,*) {
