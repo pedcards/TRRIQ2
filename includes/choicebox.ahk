@@ -16,7 +16,7 @@
  */
 choiceBox(title:="",text:="",buttons:=[],opts*) {
 
-	textW := 240 , btnW := 150
+	textW := 240 , btnW := "w150 "
 	vert := img := res := ""
 	thisIcon := "icon5"
 	rows := "r2 "
@@ -37,12 +37,12 @@ choiceBox(title:="",text:="",buttons:=[],opts*) {
 			textW := w[1]
 		}
 		if RegExMatch(val " ","i)\+bw(\d{3,})",&w) {
-			btnW := w[1]
+			btnW := "w" w[1] " "
 		}
-		if (val="+slim") {
+		if (val~="i)\+slim") {
 			rows := ""
 		}
-		if (val="+fat") {
+		if (val~="i)\+fat") {
 			rows := "r3 "
 		}
 		if FileExist(val) {
@@ -66,8 +66,8 @@ choiceBox(title:="",text:="",buttons:=[],opts*) {
 	for lbl in buttons
 	{
 		cMsg.AddButton(rows
-			. (lbl~="^\*") ? "Default " : " "
-			. "w" btnW
+			. ((lbl~="^\*") ? "Default " : " ")
+			. btnW
 			, RegExReplace(lbl,"^\*")
 		)
 		.OnEvent("Click",cMsgButton)
