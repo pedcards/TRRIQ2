@@ -14,7 +14,7 @@
 		
 		img = filename of image to replace icon, separated by comma
  */
-choiceBox(title:="",text:="",buttons:=[],opts*) {
+choiceBox(title:="",text:="",buttons:=["*OK"],opts*) {
 
 	textW := 240 , btnW := "w150 "
 	vert := img := res := ""
