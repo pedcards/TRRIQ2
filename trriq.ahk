@@ -1710,7 +1710,7 @@ WQpendingReads() {
 	Return
 }
 
-WQtask(lv,row,*) {
+WQtask(agc,row,*) {
 /*	Double click from clinic location (or ALL) 
 	For studies in-flight, registered but not resulted
 	Tech tasks: 
@@ -1720,27 +1720,23 @@ WQtask(lv,row,*) {
 	Admin tasks:
 		?
 */
-	agc := A_GuiControl
-	if !InStr(agc,"WQlv") {
-		return
-	}
-	if !(A_GuiEvent="DoubleClick") {
-		return
-	}
-	Gui, ListView, %agc%
-	LV_GetText(idx, A_EventInfo,1)
-	if (idx="ID") {
-		return
-	}
+	global wq, path, gl
 	
-	global wq, user, adminMode
-	if (adminMode) {
+	if !(agc.GetText(0)="ID") {															; not from ALL or SITE tab
+		return
+	}
+	idx := agc.GetText(row)
+	
+	if (gl.adminMode) {
 		adminWQtask(idx)
 		Return
 	}
 	
-	;~ Gui, phase:Hide
 	pt := readWQ(idx)
+	try (pt.fedex)
+	catch {
+		pt.fedex := ""
+	}
 
 	idstr := "/root/pending/enroll[@id='" idx "']"
 	
