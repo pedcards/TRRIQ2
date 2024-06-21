@@ -1740,40 +1740,42 @@ WQtask(agc,row,*) {
 
 	idstr := "/root/pending/enroll[@id='" idx "']"
 	
-	list :=
-	Loop, % (notes:=wq.selectNodes(idstr "/notes/note")).length 
+	list := ""
+	Loop (notes:=wq.selectNodes(idstr "/notes/note")).length 
 	{
 		k := notes.item(A_Index-1)
 		dt := parsedate(k.getAttribute("date"))
-		list .= dt.mm "/" dt.dd ":" k.getAttribute("user") ": " k.text "`n"
+		list .= dt.mm "/" dt.dd ":" k.getAttribute("user") ": " k.text "`n`n"
 	}
 
-	choice := cmsgbox(pt.Name " " pt.MRN
+
+	choice := choiceBox(pt.Name " " pt.MRN
 			,	"Date: " niceDate(pt.date) "`n"
-			.	"Provider: " pt.prov "`n"
+			.	"Provider: " pt.prov "`n`n"
 			.	strQ(pt.FedEx,"  FedEx: ###`n")
 			.   strQ(list,"Notes: ========================`n###`n")
-			, "View/Add NOTE|"
-			. "Log UPLOAD to Preventice|"
-			. "Move to DONE list"
-			, "Q")
+			, ["View/Add NOTE","Log UPLOADED to Preventice","Mark as DONE"]
+			, "-iconQ -tw300 -fat")
 	if (choice="xClose") {
 		return
 	}
 	if InStr(choice,"upload") {
-		inputbox(inDT,"Upload log","`n`nEnter date uploaded to Preventice`n",niceDate(A_Now))
-		if (ErrorLevel) {
+		inDT := inputbox("Enter date uploaded to Preventice`n","Upload log",,niceDate(A_Now))
+		if (inDT.Result="Cancel") {
 			return
 		}
-		wq := new XML("worklist.xml")
+		wq := XML(path.data "worklist.xml")
 		if !IsObject(wq.selectSingleNode(idstr "/sent")) {
-			wq.addElement("sent",idstr)
+			wq.addElement(idstr,"sent")
 		}
-		wq.setText(idstr "/sent",parseDate(inDT).YMD)
-		wq.setAtt(idstr "/sent",{user:user})
+		wq.setText(idstr "/sent",parseDate(inDT.Value).YMD)
+		wq.setAtt(idstr "/sent",{user:gl.user})
 		writeout(idstr,"sent")
 		eventlog(pt.MRN " " pt.Name " study " pt.Date " uploaded to Preventice.")
-		MsgBox, 4160, Logged, % pt.Name "`nUpload date logged!"
+		MsgBox(
+			pt.Name "`nUpload date logged!",
+			"Logged",
+			4160)
 		setwqupdate()
 		WQlist()
 		return
