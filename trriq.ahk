@@ -958,7 +958,7 @@ ParseName(x) {
 			}
 			q.Push(x0)																	; add to button q
 		}
-		last := cmsgbox("Name check",x "`n" RegExReplace(x,".","--") "`nWhat is the patient's`nLAST NAME?",q,"Q")
+		last := choicebox("Name check",x "`n" RegExReplace(x,".","--") "`nWhat is the patient's`nLAST NAME?",q,"-iconQ")
 		if (last~="xClose") {
 			return {first:"",last:x}
 		}
