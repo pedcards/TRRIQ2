@@ -108,25 +108,34 @@ class XML
 		}
 	}
 
+	setText(node,txt) {
+	/*	Set text value for a node
+		Node must exist
+	*/
+		node := this.isNode(node)
+		try {
+			node.text := txt
+		}
+		catch {
+			return
+		}
+	}
+
+	setAtt(nodein,atts) {
+	/*	Set attributes of an existing node
+		atts object can contain multiple attribute pairs
+	*/
+		node := this.isNode(nodein)
+		for att,val in atts.OwnProps()
+		{
+			try node.setAttribute(att,val)
+		}
+	}
+
 	removeNode(nodein) {
 	/*	Removes node
 	*/
-		try if IsObject(nodein) {
-			node := nodein
-		}
-		catch as err {
-			MsgBox("Error: " err.Message)
-			return false
-		} 
-		else {
-			try {
-				node := this.doc.selectSingleNode(nodein)
-			}
-			catch as err {
-				MsgBox("Error: " err.Message)
-				return false
-			}
-		}
+		node := this.isNode(nodein)
 
 		try node.parentNode.removeChild(node)
 	}
@@ -183,9 +192,11 @@ class XML
 */
 	isNode(node) {
 		if (node is String) {
-			node := this.doc.selectSingleNode(node)
+			try node := this.doc.selectSingleNode(node)
 		}
-		return node
+		try {
+			return node
+		}
 	}
 
 	elementIndex(node) {
