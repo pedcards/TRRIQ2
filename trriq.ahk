@@ -1944,21 +1944,21 @@ readWQlv(agc,row,*)
 	Admin task:
 		* "HL7 error"
 */
-	Gui, ListView, %agc%
-	if !(x := LV_GetNext()) {															; Must be on actual row
-		return
-	}
-	LV_GetText(fileIn,x,1)																; selection filename
-	LV_GetText(wqid,x,7)																; WQID
-	LV_GetText(ftype,x,8)																; filetype
-	SplitPath,fileIn,fnam,,fExt,fileNam
-	if (adminMode) {
-		adminWQlv(wqid)																		; Troubleshoot result
-		Gosub PhaseGUI
+	global fldVal, gl
+
+	fileIn := agc.GetText(row,1)													; selection filename
+	wqid := agc.GetText(row,7)														; WQID
+	ftype := agc.GetText(row,8)														; filetype
+	SplitPath(fileIn,&fnam,,&fExt,&fileNam)
+	if (gl.adminMode) {
+		; adminWQlv(wqid)																		; Troubleshoot result
+		PhaseGUI()
 		Return
 	}
 	
-	wq := new XML("worklist.xml")														; refresh WQ
+	wq := XML(path.data "worklist.xml")													; refresh WQ
+	fldval := Map()																		; values initially from worklist pending
+
 	blocks := Object()																	; clear all objects
 	fields := Object()
 	labels := Object()
