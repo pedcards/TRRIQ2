@@ -10,7 +10,7 @@ class progressbar
 		subtitle := ""
 
 		for val in params {
-			if (param="") && (val~="([wW]\d+).*?([hH]\d+)?") {							; matches "w000" or "h000"
+			if (param="") && (val~="([wW]\d+)|([hH]\d+)") {								; matches "w000" or "h000"
 				param := val
 			} 
 			else if (title="") {														; first non-param text
@@ -39,9 +39,9 @@ class progressbar
 		return
 
 		parseParam(param) {
-			width := (RegExMatch(" " param " ","\W[wW](\d+)\W",&par)) ? par[0] : "w200"
-			height := (RegExMatch(" " param " ","\W[hH]\w+\W",&par)) ? par[0] : "h12"
-			color := (RegExMatch(" " param " ","\W[cC]\w+\W",&par)) ? par[0] : "cBlue"
+			width := (RegExMatch(" " param " "," [wW](\d+) ",&par)) ? par[0] : "w200"
+			height := (RegExMatch(" " param " "," [hH](\d+) ",&par)) ? par[0] : "h12"
+			color := (RegExMatch(" " param " "," [cC](\w+) ",&par)) ? par[0] : "cBlue"
 			return {W:width,H:height,C:color}
 		}
 	}
