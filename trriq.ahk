@@ -659,7 +659,7 @@ WriteSave(z) {
 	}
 	
 	if (valid=true) {
-		FileCopy(path.data "worklist.xml", ".\bak\" A_Now ".bak")
+		FileCopy(path.data "worklist.xml", ".\bak\" A_Now ".bak",1)
 		wq := z
 	}
 	
