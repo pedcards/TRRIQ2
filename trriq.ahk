@@ -1839,8 +1839,58 @@ WQtask(agc,row,*) {
 		WQlist()
 	}
 return	
-}
+*/
+
+	adminWQtask(id) {
+	/*	Troubleshoot clinic task problems
 	
+	*/
+		MsgBox("adminWQtask(id) will have an action`n"
+				. "when we figure out what it needs.")
+		Return
+	}
+}
+
+WriteOut(parentpath,node) {
+	global wq, path
+	
+	filecheck()
+	FileOpen(".lock", "W")																; Create lock file.
+	locPath := wq.selectSingleNode(parentpath)
+	locNode := locPath.selectSingleNode(node)
+	clone := locNode.cloneNode(true)													; make copy of wq.node
+	
+	if !IsObject(locNode) {
+		eventlog("No such node <" parentpath "/" node "> for WriteOut.")
+		FileDelete(".lock")																; release lock file.
+		return error
+	}
+	
+	z := XML(path.data "worklist.xml")													; load a copy into z
+	
+	if !IsObject(z.selectSingleNode(parentpath "/" node)) {								; no such node in z
+		z.addElement(parentpath,"newnode")												; create a blank node
+		node := "newnode"
+	}
+	zPath := z.selectSingleNode(parentpath)												; find same "node" in z
+	zNode := zPath.selectSingleNode(node)
+	zPath.replaceChild(clone,zNode)														; replace existing zNode with node clone
+	
+	writeSave(z)
+	
+	FileDelete(".lock")
+	
+	return
+}
+
+setwqupdate() {
+	global gl
+	FileDelete(".\files\wqupdate")
+	FileAppend("",".\files\wqupdate")
+	gl.wqfileDT := A_Now
+	return
+}
+
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
