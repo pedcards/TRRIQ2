@@ -1946,7 +1946,7 @@ readWQlv(agc,row,*)
 	Admin task:
 		* "HL7 error"
 */
-	global fldVal, gl
+	global fldVal, gl, phase, pb
 
 	fileIn := agc.GetText(row,1)													; selection filename
 	wqid := agc.GetText(row,7)														; WQID
@@ -1998,14 +1998,15 @@ readWQlv(agc,row,*)
 		WQlist()
 		return
 	}
-/*	
+	
 	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
 		eventlog("===> " fnam )
-		Gui, phase:Hide
-		
-		progress, 25 , % fnam, Extracting data
-		processHL7(path.PrevHL7in . fnam)												; extract DDE to fldVal, and PDF into hl7Dir
-		moveHL7dem()																	; prepopulate the fldval["dem-"] values
+		phase.hide()
+		pb := progressbar("w450","Extracting data",fnam)
+		pb.set(25)
+	
+		oru_in := HL7(path.PrevHL7in . fnam)											; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+		; moveHL7dem()																	; prepopulate the fldval["dem-"] values
 		
 		checkEpicOrder()																; check for presence of valid Epic order
 		
