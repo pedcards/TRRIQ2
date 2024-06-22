@@ -132,20 +132,25 @@ class hl7
 			}
 		}
 		if (isOBX) {																	; need to special process OBX[], test result strings
-			if (res.ObsType == "ED") {
-				this.binfile := res.Filename											; file follows
-				b64 := res.resValue
+			if (res["OBX_ObsType"] = "ED") {
+				this.binfile := res["OBX_Filename"]											; file follows
+				b64 := res["OBX_resValue"]
 				bin := this.Base64_Dec(&b64)
-				Fx := FileOpen( path.PrevHL7in . res.Filename, "w")
+				Fx := FileOpen( path.PrevHL7in . res["OBX_Filename"], "w")
 				Fx.RawWrite(bin)
 				Fx.Close()
 			} else {
-				label := res.resCode													; result value
-				result := strQ(res.resValue, "###")
-				maplab := strQ(this.DDE[label],"###",label)								; maps label if hl7->lw map exists
-						. strQ(res.Filename,"_###")        								; add suffix if multiple units in OBX_Filename
-				this.fldval[segPre maplab] := result
-				this.obxval[segPre maplab] := result
+				label := res["OBX_ResCode"]													; result value
+				try {
+					resCode := prevDDE[label]
+				}
+				catch {
+					resCode := label
+				}
+				result := strQ(res["OBX_resValue"], "###")
+				maplab := resCode															; maps label if hl7->lw map exists
+						. strQ(res["OBX_Filename"],"_###")     								; add suffix if multiple units in OBX_Filename
+				this.obxval[maplab] := result
 			}
 		}
 		this.fldval["hl7string"] .= seg "`n"
