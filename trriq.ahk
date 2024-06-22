@@ -128,6 +128,8 @@ SetTitleMatchMode("2")
 		monTypes[key]["EAP"] := el[6]																	; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
 	}
 
+	initHL7()
+
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
 	; for key in epList																					; option string epStr
