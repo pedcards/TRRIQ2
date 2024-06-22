@@ -255,7 +255,7 @@ PhaseGUI() {
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
 		phase.hnd["in"] := HLV_in
-		; HLV_in.OnEvent("DoubleClick",readWQlv())
+		HLV_in.OnEvent("DoubleClick",readWQlv)
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
 		HLV_in.ModifyCol(3,"60 Center")													; mrn
@@ -1932,6 +1932,104 @@ moveWQ(id) {
 	
 	FileDelete(".lock")
 	
+	return
+}
+
+readWQlv(agc,row,*)
+{
+/*	Retrieve info from WQlist line
+	Will be for HL7 result, or an additional file in Holter PDFs folder
+	Tech task: 
+		* Process result
+	Admin task:
+		* "HL7 error"
+*/
+	Gui, ListView, %agc%
+	if !(x := LV_GetNext()) {															; Must be on actual row
+		return
+	}
+	LV_GetText(fileIn,x,1)																; selection filename
+	LV_GetText(wqid,x,7)																; WQID
+	LV_GetText(ftype,x,8)																; filetype
+	SplitPath,fileIn,fnam,,fExt,fileNam
+	if (adminMode) {
+		adminWQlv(wqid)																		; Troubleshoot result
+		Gosub PhaseGUI
+		Return
+	}
+	
+	wq := new XML("worklist.xml")														; refresh WQ
+	blocks := Object()																	; clear all objects
+	fields := Object()
+	labels := Object()
+	blk := Object()
+	blk2 := Object()
+	ptDem := Object()
+	pt := Object()
+	chk := Object()
+	matchProv := Object()
+	fileOut := fileOut1 := fileOut2 := ""
+	summBl := summ := ""
+	fullDisc := ""
+	monType := ""
+	obxval := Object()
+	
+	fldVal := readWQ(wqid)																; wqid would have been determined by parsing hl7
+	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
+	
+	if (fldval.node = "done") {															; task has been done already by another user
+		eventlog("WQlv " fldval.Name " clicked, but already DONE.")
+		MsgBox, 262208, Completed, File has already been processed!
+		WQlist()																		; refresh list and return
+		return
+	}
+	if (fldval.webgrab="") {
+		eventlog("WQlv " fldval.Name " not found in webgrab.")
+		MsgBox 0x40030
+			, Registration issue
+			, % "No registration found on Preventice site.`n"
+			. "Contact Preventice to correct.`n`n"
+			. "Name: " fldVal.Name "`n"
+			. "MRN: " fldVal.MRN "`n"
+			. "Device: " fldVal.dev "`n"
+			. "Study date: " niceDate(fldVal.date) "`n"
+		WQlist()
+		return
+	}
+	
+	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
+		eventlog("===> " fnam )
+		Gui, phase:Hide
+		
+		progress, 25 , % fnam, Extracting data
+		processHL7(path.PrevHL7in . fnam)												; extract DDE to fldVal, and PDF into hl7Dir
+		moveHL7dem()																	; prepopulate the fldval["dem-"] values
+		
+		checkEpicOrder()																; check for presence of valid Epic order
+		
+		progress, 50 , % fnam, Processing PDF
+		gosub processHl7PDF																; process resulting PDF file
+	}
+	else if (ftype) {																	; Any other PDF type
+		FileGetSize, fileInSize, %fileIn%
+		Gui, phase:Hide
+		eventlog("===> " fnam " type " ftype " (" thousandsSep(fileInSize) ").")
+		gosub processPDF
+	}
+	else {
+		Gui, phase:Hide
+		eventlog("Filetype cannot be determined from WQlist (somehow).")
+		
+		MsgBox, 16, , Unrecognized filetype (somehow)
+		Return
+	}
+	
+	if (fldval.done) {
+		epRead()																		; find out which EP is reading today
+		makeORU(wqid)
+		gosub outputfiles																; generate and save output CSV, rename and move PDFs
+	}
+*/
 	return
 }
 
