@@ -1,52 +1,45 @@
 #Requires AutoHotkey v2
 
-class hl7
-{
+initHL7() {
+	global hl7ref, prevDDE
+
 	inifile := ".\files\hl7.ini"
 
+	hl7ref := Map()
+	s0 := IniRead(inifile)																; s0 = Section headers
+	loop parse s0, "`n", "`r"															; parse s0
+	{
+		i := A_LoopField
+		hl7ref.%i% := Map()																; create array for each header
+		s1 := IniRead(inifile, i)														; s1 = individual header
+		loop parse s1, "`n", "`r"														; parse s1
+		{
+			j := A_LoopField
+			arr := strSplit(j,"=",,2)													; split into arr.1 and arr.2
+			num := arr[1]+0
+			hl7ref.%i%.%num% := arr[2]													; set hl7.OBX.2 = "Obs Type"
+		}
+	}
+	prevDDE := readIni("preventiceDDE")													; map hl7 fields to lw fields
+}
+
+class hl7
+{
 	__New(fnam:="") {
-	/*	Reads hl7 segments from hl7.ini => this.map
-		Reads prevDDE from => this.prevDDE
-		Uses STATIC so doesn't have to reload INI for subsequent calls
+	/*	Initialize this.map
 	 */
-		static hl7ref, prevDDE
-
-		try if IsObject(hl7ref) {
-		} 
-		catch {
-		/*	hl7map and DDE are not declared, so build them
-		 */
-			hl7ref := Map()
-			s0 := IniRead(this.inifile)													; s0 = Section headers
-			loop parse s0, "`n", "`r"													; parse s0
-			{
-				i := A_LoopField
-				hl7ref.%i% := Map()														; create array for each header
-				s1 := IniRead(this.inifile, i)											; s1 = individual header
-				loop parse s1, "`n", "`r"												; parse s1
-				{
-					j := A_LoopField
-					arr := strSplit(j,"=",,2)											; split into arr.1 and arr.2
-					num := arr[1]+0
-					hl7ref.%i%.%num% := arr[2]											; set hl7.OBX.2 = "Obs Type"
-				}
-			}
-			prevDDE := readIni("preventiceDDE")											; map hl7 fields to lw fields
+		if (fnam="") {
+			return
 		}
-		this.ref := hl7ref
-		this.DDE := prevDDE
+		this.file := FileRead(fnam)														; store the name of this HL7 file	
+		this.fldval := Map()															; values from segment fields
+		this.fldval["hl7string"] := ""													; to store cumulative string (ultimately same as input file)
+		this.obxval := Map()															; result values
+		this.bin := ""																	; extracted binary
+		this.binfile := ""																; binary filename
+		this.hl7out := ""																; generated HL7 segment
 
-		if (fnam) {
-			this.file := FileRead(fnam)													; store the name of this HL7 file	
-			this.fldval := Map()														; values from segment fields
-			this.fldval["hl7string"] := ""												; to store cumulative string (ultimately same as input file)
-			this.obxval := Map()														; result values
-			this.bin := ""																; extracted binary
-			this.binfile := ""															; binary filename
-			this.hl7out := ""															; generated HL7 segment
-
-			this.processHL7(fnam)
-		}
+		this.processHL7(fnam)
 	}
 	
 	processHL7(fnam) {
