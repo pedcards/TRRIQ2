@@ -77,13 +77,9 @@ class hl7
 		}
 
 		isOBX := (segName == "OBX")
-		segMap := hl7ref.%segName%													; get the reference map for this segment name
-		if (isOBX) {
-			segPre := ""
-		} else {
-			segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")				; number PID_1 PID_2 PID_3 if multiple
-			this.fldval[segPre] := Map()												; create value map() for each found segment
-		}
+		segMap := hl7ref.%segName%														; get the reference map for this segment name
+		segPre := segName . (instr(multiSeg,segName) ? "_" segNum : "")					; number PID_1 PID_2 PID_3 if multiple
+		this.fldval[segPre] := Map()													; create value map() for each found segment
 
 		res := Map()																	; values for each field/subfield
 		Loop fld.Length																	; step through each of the fld[] strings
