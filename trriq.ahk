@@ -1760,7 +1760,9 @@ WQtask(agc,row,*) {
 		return
 	}
 	if InStr(choice,"upload") {
+		SetTimer(inputOnTop,50)
 		inDT := inputbox("Enter date uploaded to Preventice`n","Upload log",,niceDate(A_Now))
+		SetTimer(inputOnTop,0)
 		if (inDT.Result="Cancel") {
 			return
 		}
@@ -2281,6 +2283,14 @@ cleanBakFiles() {
 			FileDelete(".\bak\" A_LoopFileName)
 		}
 	}
+}
+
+inputOnTop() {
+/*	Check for ahk_class #32770
+ */
+	ib_ahk := 'ahk_class #32770'  						     ; The class and exe for the inputbox
+	if WinExist(ib_ahk)                                         ; When it exists
+		WinSetAlwaysOnTop(1, ib_ahk)                            ;  Apply always on top attribute
 }
 
 ;#endregion
