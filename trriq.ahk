@@ -326,7 +326,7 @@ PhaseGUI() {
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
 		phase.hnd["LV" i] := HLV%i%
-		; HLV%i%.OnEvent("DoubleClick",WQtask())
+		HLV%i%.OnEvent("DoubleClick",WQtask)
 		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
 		HLV%i%.ModifyCol(2,"60")														; date
 		HLV%i%.ModifyCol(3,"40 Center")													; FedEx
