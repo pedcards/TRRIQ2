@@ -1978,25 +1978,25 @@ readWQlv(agc,row,*)
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
 	
 	if (fldval.node = "done") {															; task has been done already by another user
-		eventlog("WQlv " fldval.Name " clicked, but already DONE.")
-		MsgBox, 262208, Completed, File has already been processed!
+		eventlog("WQlv " fldval.name " clicked, but already DONE.")
+		MsgBox("File has already been processed!","Completed",262208) 
 		WQlist()																		; refresh list and return
 		return
 	}
 	if (fldval.webgrab="") {
-		eventlog("WQlv " fldval.Name " not found in webgrab.")
-		MsgBox 0x40030
-			, Registration issue
-			, % "No registration found on Preventice site.`n"
+		eventlog("WQlv " fldval.name " not found in webgrab.")
+		MsgBox("No registration found on Preventice site.`n"
 			. "Contact Preventice to correct.`n`n"
-			. "Name: " fldVal.Name "`n"
-			. "MRN: " fldVal.MRN "`n"
+			. "Name: " fldVal.name "`n"
+			. "MRN: " fldVal.mrn "`n"
 			. "Device: " fldVal.dev "`n"
 			. "Study date: " niceDate(fldVal.date) "`n"
+			, "Registration issue"
+			, 0x40030)
 		WQlist()
 		return
 	}
-	
+/*	
 	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
 		eventlog("===> " fnam )
 		Gui, phase:Hide
