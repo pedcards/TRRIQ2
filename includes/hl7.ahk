@@ -128,7 +128,6 @@ class hl7
 
 				if !(isOBX)  {															; non-OBX results
 					this.fldval[x] := val[j]											; populate all fldVal.mapped_name
-					this.obxval[x] := val[j]
 				}
 			}
 		}
@@ -140,7 +139,6 @@ class hl7
 				Fx := FileOpen( path.PrevHL7in . res.Filename, "w")
 				Fx.RawWrite(bin)
 				Fx.Close()
-				;~ seg := "OBX|" fld.2 "|ED|PDFReport"
 			} else {
 				label := res.resCode													; result value
 				result := strQ(res.resValue, "###")
