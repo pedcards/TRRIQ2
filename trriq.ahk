@@ -1892,6 +1892,49 @@ setwqupdate() {
 	return
 }
 
+moveWQ(id) {
+	global wq, fldval
+	
+	filecheck()
+	FileOpen(".lock", "W")																; Create lock file.
+	
+	wqStr := "/root/pending/enroll[@id='" id "']"
+	x := wq.selectSingleNode(wqStr)
+	date := x.selectSingleNode("date").text
+	mrn := x.selectSingleNode("mrn").text
+	try {
+		reading := fldval["dem-Reading"]
+	}
+	catch {
+		reading := ""
+	} 
+	
+	if (mrn) {																			; record exists
+		wq.addElement(wqStr,"done",{user:gl.user},A_Now)								; set as done
+		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
+		x := wq.selectSingleNode("/root/pending/enroll[@id='" id "']")					; reload x node
+		clone := x.cloneNode(true)
+		wq.selectSingleNode("/root/done").appendChild(clone)							; copy x.clone to DONE
+		x.parentNode.removeChild(x)														; remove x
+		eventlog("wqid " id " (" mrn " from " date ") moved to DONE list.")
+	} else {																			; no record exists (enrollment never captured, or Zio)
+		id := makeUID()																	; create an id
+		wq.addElement("/root/done","enroll",{id:id})									; in </root/done>
+		newID := "/root/done/enroll[@id='" id "']"
+		wq.addElement(newID,"date",parseDate(fldval["dem-Test_date"]).YMD)				; add these to the new done node
+		wq.addElement(newID,"name",fldval["dem-Name"])
+		wq.addElement(newID,"mrn",fldval["dem-MRN"])
+		wq.addElement(newID,"done",{user:A_UserName},A_Now)
+		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
+		eventlog("No wqid. Saved new DONE record " fldval["dem-MRN"] ".")
+	}
+	writeSave(wq)
+	
+	FileDelete(".lock")
+	
+	return
+}
+
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
