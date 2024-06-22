@@ -1783,30 +1783,36 @@ WQtask(agc,row,*) {
 		return
 	}
 	if InStr(choice,"note") {
-		inputbox(note,"Communication note"
-			, strQ(list,"###====================================`n") "`nEnter a brief communication note:`n","")
-		if (note="") {
+		SetTimer(inputOnTop,50)
+		note := inputbox(
+			strQ(list,"###====================================`n") "`nEnter a brief communication note:`n"
+			, "Communication note"
+		)
+		SetTimer(inputOnTop,0)
+		if (note.Result="Cancel") {
+			return
+		}
+		if (note.Value="") {
 			return
 		}
 		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
-			wq.addElement("notes",idstr)
+			wq.addElement(idstr,"notes")
 		}
-		if (RegExMatch(note,"((\d\s*){12})",fedex)) {
-			MsgBox,4132,, % "FedEx tracking number?`n" fedex1
-			IfMsgBox, Yes
+		if (RegExMatch(note.Value,"((\d\s*){12})",&fedex)) {
+			if (MsgBox("FedEx tracking number?`n" fedex[1],,4132)="Yes")
 			{
-				fedex := RegExReplace(fedex1," ")
+				fedex := RegExReplace(fedex[1]," ")
 				if !IsObject(wq.selectSingleNode(idstr "/fedex")) {
-					wq.addElement("fedex",idstr)
+					wq.addElement(idstr,"fedex")
 				}
-				wq.setText(idstr "/fedex",fedex)
-				wq.setAtt(idstr "/fedex", {user:user, date:substr(A_Now,1,8)})
-				eventlog(pt.MRN "[" pt.Date "] FedEx tracking #" fedex)
+				wq.setText(idstr "/fedex",fedex[1])
+				wq.setAtt(idstr "/fedex", {user:gl.user, date:substr(A_Now,1,8)})
+				eventlog(pt.MRN "[" pt.Date "] FedEx tracking #" fedex[1])
 			}
 		}
-		wq.addElement("note",idstr "/notes",{user:user, date:substr(A_Now,1,8)},note)
+		wq.addElement(idstr "/notes","note",{user:gl.user, date:substr(A_Now,1,8)},note.Value)
 		WriteOut("/root/pending","enroll[@id='" idx "']")
-		eventlog(pt.MRN "[" pt.Date "] Note from " user ": " note)
+		eventlog(pt.MRN "[" pt.Date "] Note from " gl.user ": " note.Value)
 		setwqupdate()
 		WQlist()
 		return
