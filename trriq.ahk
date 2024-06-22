@@ -1789,10 +1789,7 @@ WQtask(agc,row,*) {
 			, "Communication note"
 		)
 		SetTimer(inputOnTop,0)
-		if (note.Result="Cancel") {
-			return
-		}
-		if (note.Value="") {
+		if (note.Result="Cancel")||(note.Value="") {
 			return
 		}
 		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
@@ -1818,34 +1815,32 @@ WQtask(agc,row,*) {
 		return
 	}
 	if InStr(choice,"done") {
-		reason := cmsgbox("Reason"
+		reason := choicebox("Reason"
 				, "What is the reason to remove this record from the active worklist?"
-				, "Report in Epic|"
-				. "Device missing|"
-				. "Other (explain)"
-				, "E")
+				, ["Report in Epic","Device missing","Other (explain)"]
+				, "-icon!")
 		if (reason="xClose") {
 			return
 		}
 		if InStr(reason,"Other") {
-			reason:=""
-			inputbox(reason,"Clear record from worklist","Enter the reason for moving this record","")
-			if (reason="") {
+			SetTimer(inputOnTop,50)
+			reason := inputbox("Enter the reason for moving this record","Clear record from worklist","")
+			SetTimer(inputOnTop,0)
+			if (reason.Result="Cancel")||(reason.Value="") {
 				return
 			}
 		}
-		wq := new XML("worklist.xml")
+		wq := XML(path.data "worklist.xml")
 		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
-			wq.addElement("notes",idstr)
+			wq.addElement(idstr,"notes")
 		}
-		wq.addElement("note",idstr "/notes",{user:user, date:substr(A_Now,1,8)},"MOVED: " reason)
+		wq.addElement(idstr "/notes","note",{user:gl.user, date:substr(A_Now,1,8)},"MOVED: " reason)
 		moveWQ(idx)
 		eventlog(idx " Move from WQ: " reason)
 		setwqupdate()
 		WQlist()
 	}
 return	
-*/
 
 	adminWQtask(id) {
 	/*	Troubleshoot clinic task problems
