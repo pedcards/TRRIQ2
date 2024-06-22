@@ -65,19 +65,19 @@ class hl7
 		field elements stored in res[i] object
 		attempt to map each field to recognized structure for that field element
 	*/
-		global path
+		global path, hl7ref, prevDDE
 		multiSeg := "NK1|DG1|NTE"														; segments that may have multiple lines, e.g. NK1
 		
 		fld := StrSplit(seg,"|")														; split on `|` field separator into fld array
 		segName := fld[1]																; first array element should be NAME
 		segNum := fld[2]
-		if !IsObject(this.ref.%segName%) {												; no matching segment in hl7 reference?
+		if !IsObject(hl7ref.%segName%) {												; no matching segment in hl7 reference?
 			MsgBox(seg "-" segName "`nBAD SEGMENT NAME",A_Index)
 			return error																; fail if segment name not allowed
 		}
 
 		isOBX := (segName == "OBX")
-		segMap := this.ref.%segName%													; get the reference map for this segment name
+		segMap := hl7ref.%segName%													; get the reference map for this segment name
 		if (isOBX) {
 			segPre := ""
 		} else {
