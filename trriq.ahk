@@ -973,7 +973,17 @@ ParseName(x) {
 			, lastfirst:last ", " first 
 			, init:substr(first,1,1) substr(last,1,1) }
 }
-	
+
+tryfldval(x) {
+	global fldval
+
+	try {
+		return fldval.%x%
+	}
+	catch {
+		return ""
+	}
+}
 	
 ;#endregion
 
