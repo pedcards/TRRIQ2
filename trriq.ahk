@@ -2020,9 +2020,11 @@ readWQlv(agc,row,*)
 		
 		checkEpicOrder()																; check for presence of valid Epic order
 		
-		progress, 50 , % fnam, Processing PDF
-		gosub processHl7PDF																; process resulting PDF file
+		pb.set(50)
+		pb.title("Processing PDF")
+		; gosub processHl7PDF																; process resulting PDF file
 	}
+/*
 	else if (ftype) {																	; Any other PDF type
 		FileGetSize, fileInSize, %fileIn%
 		Gui, phase:Hide
@@ -2078,6 +2080,153 @@ moveHL7dem(oru) {
 	return
 
 }
+
+checkEpicOrder() {
+/*	Check for presence of valid <pending> node (has accession number)
+	
+	Check for <orders> node that matches the parsed ORU
+	
+	"In-flight" legacy results will not have existing Epic orders
+	Epic order number necessary to move forward with resulting
+	If needed, MA will place order and check-in study to create ORM
+*/
+	global fldval, wq
+	
+	if (fldval.accession) {																; Accession number exists, return to processing
+		return
+	}
+	
+	/*	Search for <orders/enroll> node that matches name in this result
+		Only occurs if ORM parsed but has no matching registration
+	*/
+	loop (ens := wq.selectNodes("/root/orders/enroll")).Length
+	{
+		en := ens.item(A_Index-1)
+		en_id := en.getAttribute("id")
+		en_name := en.selectSingleNode("name").text
+		en_date := en.selectSingleNode("date").text
+		en_mrn := en.selectSingleNode("mrn").text
+		en_mon := en.selectSingleNode("mon").text										; en_mon=order HOL|BGM|BGH 
+		fld_mon := (en_mon~="HOL|BGM") ? "Holter"										; fld_mon => Holter|CEM
+				:  (en_mon~="BGH") ? "CEM"  											; fldval.OBR_TestCode=Holter|CEM
+				: ""
+		
+		if (en_name = fldval.dem["Name"]) {
+			eventlog("Found order for " en_name " (" en_id "), " en_mon ".")
+			pb.hide()
+			ask := MsgBox("Found this:`n"
+				.   "   " en_name "`n"
+				.   "   " parseDate(en_date).MDY "`n"
+				.   "   " en_mon "`n`n"
+				. "Use this order?"
+				, 262196)
+			if (ask="Yes")
+			{
+				fldval.order := en.selectSingleNode("order").text
+				fldval.accession := en.selectSingleNode("accession").text
+				wqsetval(fldval.wqid,"order",fldval.order)
+				wqsetval(fldval.wqid,"accession",fldval.accession)
+				writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
+				eventlog("Used order.")
+				return
+			} else {
+				eventlog("Cancelled.")
+			}
+			pb.Show()
+		}
+	}
+	
+	/*	Check if valid order already exists
+		Tech must find Order Report that includes "Order #" and "Accession #"
+		Return if found, or Cancel to move on
+	*/
+	Loop
+	{
+		SetTimer(checkEpicClip, 500)
+		pb.hide()
+		ask := MsgBox("Check to see if patient has existing order.`n`n"
+			. "1) Search for `"" fldval.dem["Name"] "`".`n"
+			. "2) Under Encounters, select the correct encounter on " parsedate(fldval.date).mdy ".`n"
+			. "3) Click on the Holter/Event Monitor order in Orders Performed.`n"
+			. "4) Right-click within the order, and select 'Copy all'.`n`n"
+			. "Select [Cancel] if there is no existing order."
+			, "Check for Epic order"
+			, 262193)
+		SetTimer(checkEpicClip, 0)
+		if (ask="Cancel")
+		{
+			break
+		}
+		if (fldval.accession) {
+			eventlog("Selected accession number " fldval.accession)
+			return
+		}
+	}
+	
+	/*	Can't find an order, use Cutover order method
+		This is the last resort, as it creates a lot of confusion with results
+	*/
+	pb.hide()
+	eventlog("No Epic order found.")
+	MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.", 262193)
+	return
+}
+
+checkEpicClip() {
+	global fldval
+	
+	i := substr(A_Clipboard,1,350)
+	if InStr(i,"Order #") {
+		settimer(checkEpicClip, 0)
+		ControlClick("OK", "Check for Epic order")
+		ordernum := trim(stregX(i,"Order #:",1,1,"Accession",1))
+		accession := trim(stregX(i,"Accession #:",1,1,"\R+",1))
+		RegExMatch(i,"im)^(.*)\R+Order #",&dev)
+		date := parsedate(stregX(i,"Ordered On ",1,1,"\s",1)).MDY
+		mrn := trim(stregX(i,"MRN:",1,1,"\R+",1))
+		name := stRegX(i,"^",1,0,"`r`nMRN:",1)
+		name := trim(RegExReplace(name, "^.*?Information might be incomplete."),"`r`n ")
+		clipboard :=
+		
+		ask := MsgBox(""
+			. "Type: " dev[1] "`n"
+			. "Date placed: " date "`n"
+			. "Order #" ordernum "`n"
+			. "Accession #" accession "`n`n"
+			. "Use this order?"
+			, "Order found"
+			, 262180
+		)
+		if (ask="Yes")
+		{
+			fldval.order := ordernum
+			fldval.accession := accession
+			wqsetval(fldval.wqid,"order",fldval.order)
+			wqsetval(fldval.wqid,"accession",fldval.accession)
+			eventlog("Grabbed order #" fldval.order ", accession #" fldval.accession)
+
+			if (name!=fldval.name) {
+				ask := MsgBox("Correct the name`n"
+				. "     '" fldval.dem["Name"] "'`n"
+				. "to this:`n     '" name "'"
+				, "Name Mismatch"
+				, 0x40031
+				)
+				If (ask="OK")
+				{
+					fldval.dem["Name"] := name
+					fldval.dem["NameL"] := ParseName(name).last
+					fldval.dem["NameF"] := ParseName(name).first
+					wqSetVal(fldval.wqid,"name",fldval.dem["Name"])						; make sure name matches Epic result
+					eventlog("dem-Name changed '" fldval.dem["Name"] "' ==> '" name "'")
+				}
+			}
+			writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
+		}
+	}
+	return
+}
+
 	
 ;#endregion
 
