@@ -101,7 +101,7 @@ StrX(H,  BS:="",BO:=0,BT:=1,  ES:="",EO:=0,ET:=1,  &N:="") {
 					? T																	; P2>P1 returns P2
 					: 1																	; P2<=P1, returns 1
 				)
-			: X																			; Z=0, return end
+			: X+1																		; Z=0, return end
 	}
 
 	N := P2+Z-ET
