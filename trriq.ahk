@@ -2006,7 +2006,7 @@ readWQlv(agc,row,*)
 		pb.set(25)
 	
 		oru_in := HL7(path.PrevHL7in . fnam)											; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-		; moveHL7dem()																	; prepopulate the fldval["dem-"] values
+		moveHL7dem(oru_in)																; prepopulate the fldval["dem-"] values
 		
 		checkEpicOrder()																; check for presence of valid Epic order
 		
@@ -2036,6 +2036,39 @@ readWQlv(agc,row,*)
 	return
 }
 
+moveHL7dem(oru) {
+/*	Populate fldVal["dem-"] with data from hl7 first, and wqlist (if missing)
+*/
+	global fldVal
+
+	obxVal := oru.fldval
+
+	fldval.dem := Map()
+	
+	name := parseName(fldval.name)
+	fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
+	fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
+	fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
+	fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
+	fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),fldval.DOB)
+	fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
+						, (obxVal["PID_Sex"]~="F") ? "Female" 
+						: (obxVal["PID_Sex"]~="M") ? "Male"
+						: (obxVal["PID_Sex"]~="U") ? "Unknown"
+						: (obxVal["PID_Sex"]~="X")
+						,fldval.Sex)
+
+	fldVal.dem["Indication"] := tryfldval("ind")
+	fldVal.dem["Site"] := tryfldval("site")
+	fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
+	fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
+	fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
+	fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
+
+	return
+
+}
+	
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
