@@ -2022,7 +2022,7 @@ readWQlv(agc,row,*)
 		
 		pb.set(50)
 		pb.title("Processing PDF")
-		; gosub processHl7PDF																; process resulting PDF file
+		processHl7PDF()																	; process resulting PDF file
 	}
 /*
 	else if (ftype) {																	; Any other PDF type
@@ -2228,6 +2228,52 @@ checkEpicClip() {
 }
 
 	
+;#endregion
+
+;#region == PDF FUNCTIONS ==============================================================
+
+ProcessHl7PDF() {
+/*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
+*/
+	fileNam := RegExReplace(fldVal.Filename,"i)\.pdf")									; fileNam is name only without extension, no path
+	fileIn := path.PrevHL7in fldVal.Filename											; fileIn has complete path \\childrens\files\HCCardiologyFiles\EP\HoltER Database\Holter PDFs\steve.pdf
+	
+	if (fileNam="") {																	; No PDF extracted
+		eventlog("No PDF extracted.")
+		progress, off
+		MsgBox No PDF extracted!
+		return
+	}
+	
+	RunWait, .\files\pdftotext.exe -l 2 "%fileIn%" "%filenam%.txt",,min					; convert PDF pages 1-2 with no tabular structure
+	FileRead, newtxt, %filenam%.txt														; load into newtxt
+	FileDelete, %filenam%.txt
+	StringReplace, newtxt, newtxt, `r`n`r`n, `r`n, All									; remove double CRLF
+	FileAppend % newtxt, %filenam%.txt													; create new tempfile with result, minus PDF
+	FileMove %filenam%.txt, .\tempfiles\*, 1											; move a copy into tempfiles for troubleshooting
+	FileAppend % fldval.hl7string, %filenam%_hl7.txt									; create a copy of hl7 file
+	FileMove %filenam%_hl7.txt, .\tempfiles\*, 1										; move into tempfiles for troubleshooting
+	
+	progress, off
+	type := fldval["OBR_TestCode"]														; study report type in OBR_testcode field
+	if (ftype="BGH") {
+		gosub Event_BGH_Hl7
+	} else if (fldVal.dev~="Mini EL") {
+		gosub Holter_BGM_EL_HL7
+	} else if (fldVal.dev~="Mini(?!\sEL|\sPlus)") {										; May be able to consolidate EL and SL
+		gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
+	} else if (fldVal.dev~="Mortara") {
+		gosub Holter_Pr_Hl7
+	} else {
+		eventlog("No match. OBR_TestCode=" type ", ftype=" ftype ".")
+		MsgBox % "No filetype match!"
+		return
+	}
+	
+	return
+}
+
+
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
