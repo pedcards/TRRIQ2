@@ -1958,9 +1958,9 @@ readWQlv(agc,row,*)
 */
 	global fldVal, gl, phase, pb
 
-	fileIn := agc.GetText(row,1)													; selection filename
-	wqid := agc.GetText(row,7)														; WQID
-	ftype := agc.GetText(row,8)														; filetype
+	fileIn := agc.GetText(row,1)														; selection filename
+	wqid := agc.GetText(row,7)															; WQID
+	ftype := agc.GetText(row,8)															; filetype
 	SplitPath(fileIn,&fnam,,&fExt,&fileNam)
 	if (gl.adminMode) {
 		; adminWQlv(wqid)																		; Troubleshoot result
@@ -1988,6 +1988,8 @@ readWQlv(agc,row,*)
 	
 	fldVal := readWQ(wqid)																; wqid would have been determined by parsing hl7
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
+	fldval.path := {fileIn:fileIn,fnam:fnam,fExt:fExt,fileNam:fileNam}
+	fldval.ftype := ftype
 	
 	if (fldval.node = "done") {															; task has been done already by another user
 		eventlog("WQlv " fldval.name " clicked, but already DONE.")
