@@ -60,7 +60,7 @@ SetTitleMatchMode("2")
 	pb.title("Identifying workstation...")
 	wks := GetLocation()
 	if !(wksLoc := wks.location) {
-		pb.Destroy
+		pb.close()
 		MsgBox("No clinic location specified!`n`nExiting","Location error",262160)
 		ExitApp
 	}
@@ -2014,17 +2014,7 @@ readWQlv(agc,row,*)
 	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
 		eventlog("===> " fnam )
 		phase.hide()
-		pb := progressbar("w450","Extracting data",fnam)
-		pb.set(25)
-	
-		oru_in := HL7(path.PrevHL7in . fnam)											; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-		moveHL7dem(oru_in)																; prepopulate the fldval["dem-"] values
-		
-		checkEpicOrder()																; check for presence of valid Epic order
-		
-		pb.set(50)
-		pb.title("Processing PDF")
-		processHl7PDF()																	; process resulting PDF file
+		processHl7result()																; process ORU and extracted PDF
 	}
 /*
 	else if (ftype) {																	; Any other PDF type
@@ -2109,9 +2099,6 @@ checkEpicOrder() {
 		en_date := en.selectSingleNode("date").text
 		en_mrn := en.selectSingleNode("mrn").text
 		en_mon := en.selectSingleNode("mon").text										; en_mon=order HOL|BGM|BGH 
-		fld_mon := (en_mon~="HOL|BGM") ? "Holter"										; fld_mon => Holter|CEM
-				:  (en_mon~="BGH") ? "CEM"  											; fldval.OBR_TestCode=Holter|CEM
-				: ""
 		
 		if (en_name = fldval.dem["Name"]) {
 			eventlog("Found order for " en_name " (" en_id "), " en_mon ".")
@@ -2234,44 +2221,58 @@ checkEpicClip() {
 
 ;#region == PDF FUNCTIONS ==============================================================
 
-ProcessHl7PDF() {
+ProcessHl7result() {
 /*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
 */
-	fileNam := RegExReplace(fldVal.Filename,"i)\.pdf")									; fileNam is name only without extension, no path
-	fileIn := path.PrevHL7in fldVal.Filename											; fileIn has complete path \\childrens\files\HCCardiologyFiles\EP\HoltER Database\Holter PDFs\steve.pdf
+	global fldval
+
+	pb := progressbar("w450","Extracting data",fldval.path.fnam)
+	pb.set(25)
+
+	oru_in := HL7(path.PrevHL7in . fldval.path.fnam)									; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+	moveHL7dem(oru_in)																	; prepopulate the fldval["dem-"] values
 	
-	if (fileNam="") {																	; No PDF extracted
+	checkEpicOrder()																	; check for presence of valid Epic order
+	
+	pb.set(50)
+	pb.title("Processing PDF")
+	
+	fileIn := RegExReplace(fldval.path.filein,"\.hl7",".pdf")							; fileIn has complete path \\childrens\files\HCCardiologyFiles\EP\HoltER Database\Holter PDFs\steve.pdf
+	fileNam := fldval.path.fileNam														; fileNam is name only without extension, no path
+	fileNamTxt := fileNam ".txt"
+	fileNamHl7 := fileNam "_hl7.txt"
+
+	if (oru_in.binfile="") {															; No PDF extracted
 		eventlog("No PDF extracted.")
-		progress, off
-		MsgBox No PDF extracted!
+		pb.close()
+		MsgBox "No PDF extracted!"
 		return
 	}
 	
-	RunWait, .\files\pdftotext.exe -l 2 "%fileIn%" "%filenam%.txt",,min					; convert PDF pages 1-2 with no tabular structure
-	FileRead, newtxt, %filenam%.txt														; load into newtxt
-	FileDelete, %filenam%.txt
-	StringReplace, newtxt, newtxt, `r`n`r`n, `r`n, All									; remove double CRLF
-	FileAppend % newtxt, %filenam%.txt													; create new tempfile with result, minus PDF
-	FileMove %filenam%.txt, .\tempfiles\*, 1											; move a copy into tempfiles for troubleshooting
-	FileAppend % fldval.hl7string, %filenam%_hl7.txt									; create a copy of hl7 file
-	FileMove %filenam%_hl7.txt, .\tempfiles\*, 1										; move into tempfiles for troubleshooting
-	
-	progress, off
-	type := fldval["OBR_TestCode"]														; study report type in OBR_testcode field
-	if (ftype="BGH") {
-		gosub Event_BGH_Hl7
+	RunWait(".\bin\pdftotext.exe -l 2 `"" fileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+	pb.set(100)
+	newtxt := FileRead(fileNamTxt)														; load into newtxt
+	FileDelete(fileNamTxt)
+	newtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")									; remove double CRLF
+	FileAppend(newtxt, fileNamTxt)														; create new tempfile with result, minus PDF
+	FileMove(fileNamTxt, ".\tempfiles\*", 1)											; move a copy into tempfiles for troubleshooting
+	FileCopy(path.PrevHL7in . fldval.path.fnam, ".\tempfiles\*",1)						; copy hl7 file to tempfiles for troubleshooting
+	pb.close()
+
+	if (fldval.ftype="BGH") {
+		; gosub Event_BGH_Hl7
 	} else if (fldVal.dev~="Mini EL") {
-		gosub Holter_BGM_EL_HL7
+		; gosub Holter_BGM_EL_HL7
 	} else if (fldVal.dev~="Mini(?!\sEL|\sPlus)") {										; May be able to consolidate EL and SL
-		gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
+		; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
 	} else if (fldVal.dev~="Mortara") {
-		gosub Holter_Pr_Hl7
+		; gosub Holter_Pr_Hl7
 	} else {
-		eventlog("No match. OBR_TestCode=" type ", ftype=" ftype ".")
-		MsgBox % "No filetype match!"
+		eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
+		MsgBox "No filetype match!"
 		return
 	}
-	
+
 	return
 }
 
