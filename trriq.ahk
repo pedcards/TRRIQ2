@@ -2281,17 +2281,19 @@ ProcessHl7result() {
 Holter_BGM_EL_HL7(oru_in) {
 	global fldval
 
+	oruval := oru_in.obxVal
+
 	eventlog("Holter_BGMini_EL_HL7")
 	fldval.monType := "BGM"
 
-	if (fldval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+	if (oruval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
 		eventlog("No OBX data.")
 		; gosub processPDF																; need to reprocess from extracted PDF
 		Return
 	}
 	
-	fldval.dem["Test_date"] := parsedate(fldval["Enroll_Start_Dt"]).MDY
-	fldval.dem["Test_end"]	:= parsedate(fldval["Enroll_End_Dt"]).MDY
+	fldval.dem["Test_date"] := parsedate(oruval["Enroll_Start_Dt"]).MDY
+	fldval.dem["Test_end"]	:= parsedate(oruval["Enroll_End_Dt"]).MDY
 	fldval.dem["Recording_time"] := strQ(fldval["Monitoring_Period"], parsedate("###").DHM
 									, calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
 	fldval.dem["Analysis_time"] := strQ(fldval["Analyzed_Data"], parsedate("###").DHM
