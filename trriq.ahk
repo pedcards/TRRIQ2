@@ -2294,10 +2294,10 @@ Holter_BGM_EL_HL7(oru_in) {
 	
 	fldval.dem["Test_date"] := parsedate(oruval["Enroll_Start_Dt"]).MDY
 	fldval.dem["Test_end"]	:= parsedate(oruval["Enroll_End_Dt"]).MDY
-	fldval.dem["Recording_time"] := strQ(fldval["Monitoring_Period"], parsedate("###").DHM
-									, calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
-	fldval.dem["Analysis_time"] := strQ(fldval["Analyzed_Data"], parsedate("###").DHM
-									, calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
+	fldval.dem["Recording_time"] := strQ(oruval["Monitoring_Period"], parsedate("###").DHM)
+									; , calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
+	fldval.dem["Analysis_time"] := strQ(oruval["Analyzed_Data"], parsedate("###").DHM)
+									; , calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
 
 /*	gosub checkProc																		; check validity of PDF, make demographics valid if not
 	if (fetchQuit=true) {
