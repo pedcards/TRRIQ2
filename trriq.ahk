@@ -2219,7 +2219,7 @@ checkEpicClip() {
 	
 ;#endregion
 
-;#region == PDF FUNCTIONS ==============================================================
+;#region == REPORT/PDF FUNCTIONS =======================================================
 
 ProcessHl7result() {
 /*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
@@ -2256,14 +2256,16 @@ ProcessHl7result() {
 	newtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")									; remove double CRLF
 	FileAppend(newtxt, fileNamTxt)														; create new tempfile with result, minus PDF
 	FileMove(fileNamTxt, ".\tempfiles\*", 1)											; move a copy into tempfiles for troubleshooting
-	FileCopy(path.PrevHL7in . fldval.path.fnam, ".\tempfiles\*",1)						; copy hl7 file to tempfiles for troubleshooting
+	FileAppend(oru_in.file, fileNamHl7)													; create a copy of hl7 file
+	FileMove(fileNamHl7, ".\tempfiles\*", 1)											; move into tempfiles for troubleshooting
+
 	pb.close()
 
-	if (fldval.ftype="BGH") {
+	if (fldval.dev~="PLUS") {
 		; gosub Event_BGH_Hl7
 	} else if (fldVal.dev~="Mini EL") {
-		; gosub Holter_BGM_EL_HL7
-	} else if (fldVal.dev~="Mini(?!\sEL|\sPlus)") {										; May be able to consolidate EL and SL
+		Holter_BGM_EL_HL7(oru_in)
+	} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
 		; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
 	} else if (fldVal.dev~="Mortara") {
 		; gosub Holter_Pr_Hl7
@@ -2275,6 +2277,42 @@ ProcessHl7result() {
 
 	return
 }
+
+Holter_BGM_EL_HL7(oru_in) {
+	global fldval
+
+	eventlog("Holter_BGMini_EL_HL7")
+	fldval.monType := "BGM"
+
+	if (fldval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+		eventlog("No OBX data.")
+		; gosub processPDF																; need to reprocess from extracted PDF
+		Return
+	}
+	
+	fldval.dem["Test_date"] := parsedate(fldval["Enroll_Start_Dt"]).MDY
+	fldval.dem["Test_end"]	:= parsedate(fldval["Enroll_End_Dt"]).MDY
+	fldval.dem["Recording_time"] := strQ(fldval["Monitoring_Period"], parsedate("###").DHM
+									, calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
+	fldval.dem["Analysis_time"] := strQ(fldval["Analyzed_Data"], parsedate("###").DHM
+									, calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
+
+/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
+	if (fetchQuit=true) {
+		return																			; fetchGUI was quit, so skip processing
+	}
+	
+	fieldsToCSV()
+	fieldcoladd("","INTERP","")															; fldval["Narrative"]
+	fieldcoladd("","Mon_type","Holter")
+	
+	FileCopy, %fileIn%, %fileIn%-sh.pdf
+	
+	fldval.done := true
+*/
+return
+}
+
 
 
 ;#endregion
@@ -2728,6 +2766,25 @@ inputOnTop() {
 	if WinExist(ib_ahk)                                         ; When it exists
 		WinSetAlwaysOnTop(1, ib_ahk)                            ;  Apply always on top attribute
 }
+
+; Convert duration secs to DDHHMMSS
+calcDuration(sec) {
+	DD := divTime(sec,"D")
+	HH := divTime(DD.rem,"H")
+	MM := divTime(HH.rem,"M")
+	SS := MM.rem
+
+	return { DHM: zDigit(DD.val) ":" zDigit(HH.val) ":" zDigit(MM.val)
+			, DHMS: zDigit(DD.val) ":" zDigit(HH.val) ":" zDigit(MM.val) ":" zDigit(SS.val) }
+}
+
+divTime(sec,div) {
+	static T:={D:86400,H:3600,M:60,S:1}
+	xx := Floor(sec/T[div])
+	rem := sec-xx*T[div]
+	Return {val:xx,rem:rem}
+}
+
 
 ;#endregion
 
