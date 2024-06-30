@@ -2278,6 +2278,146 @@ ProcessHl7result() {
 	return
 }
 
+CheckProc() {
+/*	Check processed file for valid values
+ */
+	global fldval, sites
+	eventlog("CheckProc")
+	fldval.fetchQuit := false
+	
+	if !(fldval.wqid) {
+		id := findWQid(parseDate(fldval.dem["Test_date"]).YMD							; search wqid based on combination of study date, mrn, SN
+				, fldval.dem["MRN"]
+				, fldval.dem["Device_SN"]).id
+		if (id) {																		; pull some vals
+			res := readWQ(id)
+			fldval.dem["Device_SN"] := strX(res.dev," ",0,1,"",0)
+			fldval.name := res.name
+			fldval.node := res.node
+			fldval.wqid := id
+			eventlog("CheckProc: found wqid " id " in " res.node)
+		} else {
+			eventlog("CheckProc: no matching wqid found")
+		}
+	}
+	if (fldval.node = "done") {
+	;~ if (zzzfldval.node = "done") {
+		MsgBox fldval.path.fileIn " has been scanned already.`n`nDeleting file."
+		eventlog(fldval.path.fileIn " already scanned. PDF deleted.")
+		FileDelete(fldval.path.fileIn)
+		fldval.fetchQuit := true
+		return
+	}
+	
+	ptDem := Object()																	; Populate temp object ptDem with parsed data from HL7 or PDF fldVal
+	ptDem["nameL"] := fldval.dem["Name_L"]												; dem-Name contains ['] not [^]
+	ptDem["nameF"] := fldval.dem["Name_F"] 
+	ptDem["Name"] := fldval.dem["Name"]
+	ptDem["mrn"] := fldval.dem["MRN"] 
+	ptDem["DOB"] := fldval.dem["DOB"] 
+	ptDem["Sex"] := fldval.dem["Sex"]
+	ptDem["Loc"] := fldval.dem["Site"]
+	ptDem["Account"] := fldval.dem["Billing"]											; If want to force click, don't include Acct Num
+	ptDem["Provider"] := filterProv(fldval.dem["Ordering"]).name
+	ptDem["EncDate"] := fldval.dem["Test_date"]
+	ptDem["Indication"] := fldval.dem["Indication"]
+	eventlog("PDF demog: " ptDem.nameL ", " ptDem.nameF " " ptDem.mrn " " ptDem.EncDate)
+	
+	if (fldval.accession) {																; <accession> exists, has been registered or uploaded through TRRIQ
+		eventlog("Pulled valid data for " fldval.name " " fldval.mrn " " fldval.date)
+		MsgBox("" 
+		  . fldval.name "`n" 
+		  . "MRN " fldval.mrn "`n" 
+		  . "Accession: " fldval.accession "`n" 
+		  . "Ordering: " fldval.prov "`n" 
+		  . "Study date: " fldval.date "`n`n" 
+		  , "Found valid registration"
+		  , 4160
+		)
+	} 
+	else {
+	;~ else if false {
+		/*	Did not return based on done or valid status, 
+		 *	and has not been validated yet so no prior TRRIQ data
+		 */
+		Clipboard := ptDem.nameL ", " ptDem.nameF										; fill clipboard with name, so can just paste into CIS search bar
+		MsgBox("Extracted data for:`n"
+			. "   " ptDem.nameL ", " ptDem.nameF "`n"
+			. "   " ptDem.mrn "`n"
+			. "   " ptDem.EncDate "`n`n"
+			. "Paste clipboard into Epic search to select patient and encounter"
+			, ""
+			,4096
+		)
+		
+		fetchGUI()
+		WinWaitClose("Patient Demographics")
+		if (fldval.fetchQuit=true) {
+			return
+		}
+		/*	When fetchGUI successfully completes,
+		 *	replace fldVal with newly acquired values
+		 */
+		fldVal.Name := ptDem["nameL"] ", " ptDem["nameF"]
+		fldVal.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
+		fldVal.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+		fldVal.dem["MRN"] := ptDem["mrn"] 
+		fldVal.dem["DOB"] := ptDem["DOB"] 
+		fldVal.dem["Sex"] := ptDem["Sex"]
+		fldVal.dem["Site"] := ptDem["Loc"]
+		fldVal.dem["Billing"] := ptDem["Account"]
+		fldVal.dem["Ordering"] := ptDem["Provider"]
+		fldVal.dem["Test_date"] := ptDem["EncDate"]
+		fldVal.dem["Indication"] := ptDem["Indication"]
+		
+		filecheck()
+		FileOpen(".lock", "W")															; Create lock file.
+			if (fldval.wqid) {
+				id := fldval.wqid
+			} else {
+				id := makeUID() 														; create wqid record if it doesn't exist somehow
+				wq.addElement("enroll","/root/pending",{id:id})
+				fldval.wqid := id
+			}
+			newID := "/root/pending/enroll[@id='" id "']"
+			ptDem.date := parseDate(ptDem["EncDate"]).YMD
+			wqSetVal(id,"date",(ptDem["date"]) ? ptDem["date"] : substr(A_Now,1,8))
+			wqSetVal(id,"name",ptDem["nameL"] ", " ptDem["nameF"])
+			wqSetVal(id,"mrn",ptDem["mrn"])
+			wqSetVal(id,"sex",ptDem["Sex"])
+			wqSetVal(id,"dob",ptDem["dob"])
+			wqSetVal(id,"dev"
+				, (montype="HOL" ? "Mortara H3+ - " 
+				: montype="BGH" ? "BodyGuardian Heart - BG"
+				: montype="ZIO" ? "Zio" 
+				: montype="BGM" ? "BodyGuardian Mini - "
+				: "")
+				. fldVal.dem["Device_SN"])
+			wqSetVal(id,"prov",ptDem["Provider"])
+			wqSetVal(id,"site",sites.long[ptDem["loc"]])								; need to transform site abbrevs
+			wqSetVal(id,"ind",ptDem["Indication"])
+		filedelete(".lock")
+		writeOut("/root/pending","enroll[@id='" id "']")
+		
+		eventlog("Demographics updated for WQID " fldval.wqid ".") 
+	}
+	
+	;---Copy ptDem back to fldVal, whether fetched or not
+	fldVal.Name := ptDem["nameL"] ", " ptDem["nameF"]
+	fldVal.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
+	fldVal.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+	fldVal.dem["MRN"] := fldval["MRN"] := ptDem["mrn"] 
+	fldVal.dem["DOB"] := ptDem["DOB"] 
+	fldVal.dem["Sex"] := ptDem["Sex"]
+	fldVal.dem["Site"] := ptDem["Loc"]
+	fldVal.dem["Billing"] := ptDem["Account"]
+	fldVal.dem["Ordering"] := ptDem["Provider"]
+	fldVal.dem["Test_date"] := ptDem["EncDate"]
+	fldVal.dem["Indication"] := ptDem["Indication"]
+	
+return
+}
+
 Holter_BGM_EL_HL7(oru_in) {
 	global fldval
 
