@@ -478,8 +478,6 @@ WQlist() {
 
 	lvDim := "w" dims.wqTab.W-25 " h" dims.wqTab.H-35
 	
-	checkversion()																		; make sure we are running latest version
-
 	pb.title("Scanning worklist...")
 	
 	fileCheck()
@@ -537,21 +535,6 @@ WQlist() {
 ;#endregion
 
 ;#region == FILE handling elements =====================================================
-checkVersion() {
-/*	Checks running version
-	In event user has not restarted TRRIQ since last update
- */
-	chk := FileGetTime(A_ScriptName)
-	if (chk != gl.runningVer) {
-		ask := MsgBox("There is an updated version of the script. `nRestart to launch new version?"
-			"New version!", 262193)
-		If (ask="OK")
-			run A_ScriptName
-		ExitApp
-	}
-	return
-}
-
 parseORM() {
 /*	parse fldval values to values
 	including aliases for both WQlist and readWQorder
