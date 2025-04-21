@@ -184,7 +184,7 @@ getDims() {
 
 	res.phase := Map()
 	res.phase.lvH := 450
-	res.phase.lvW := 720
+	res.phase.lvW := 760
 
 	return res
 }
