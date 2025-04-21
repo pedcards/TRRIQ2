@@ -46,7 +46,7 @@ SetTitleMatchMode("2")
 			"Obsolete TRRIQ shortcut!`n`n"
 			. "Please notify Igor Gurvits or Jim Gray to update the shortcut on this machine: " A_ComputerName
 			, "Shortcut error"
-			, 0x30
+			, "Icon!"
 		)
 	}
 
