@@ -2462,12 +2462,12 @@ saveCygnusLogs(all:="") {
 	Return
 }
 
+; Read data files from Preventice
 readPrevTxt() {
-/*	Read data files from Preventice:
-		* Patient Status Report_v2.xml sent by email every M-F 6 AM
-		* prev.txt grabbed from prevgrab.exe
-			- Enrollments (inactive, as taken from PSR_v2)
-			- Inventory
+/*	* Patient Status Report_v2.xml sent by email every M-F 6 AM
+	* prev.txt grabbed from prevgrab.exe
+		- Enrollments (inactive, as taken from PSR_v2)
+		- Inventory
 */
 	global wq
 	
