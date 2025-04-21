@@ -1638,6 +1638,10 @@ WQpendingTabs() {
 			catch {
 				e0.notes := ""
 			}
+			try (e0.duration)
+			catch {
+				e0.duration := 0
+			}
 
 			lv[i].Add(""																; add to clinic loc listview
 				,id
