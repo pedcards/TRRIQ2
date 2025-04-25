@@ -267,9 +267,9 @@ PhaseGUI() {
 		HLV_in.ModifyCol(8,"40 Center")													; ftype
 		HLV_in.ModifyCol(9,"70 Center")													; ftp
 		phase.hnd["in"] := HLV_in
-		; CLV_in := LV_Colors(HLV_in,true,false)
-		; phase.hnd["CLV_in"] := CLV_in
-		; CLV_in.Critical := 100
+		CLV_in := LV_Colors(HLV_in,true,false)
+		phase.hnd["CLV_in"] := CLV_in
+		CLV_in.Critical := 100
 		WQtab.Choose(2)
 	}
 
