@@ -1323,29 +1323,31 @@ WQpreventiceResults(&wqfiles,&lv) {
 		}
 		catch {																			; can't match, so derive it
 			tmptxt := fileread(path.PrevHL7in fileIn)
-			obr:= strsplit(stregX(tmptxt,"\R+OBR",1,0,"\R+",0),"|")						; get OBR segment
-			obr_req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
-			obr_prov := strX(obr[17],"^",1,1,"^",1)
-			obr_site := strX(obr_prov,"-",1,1,"",0)
-			pv1 := strsplit(stregX(tmptxt,"\R+PV1",1,0,"\R+",0),"|")					; get PV1 segment
-			pv1_dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
+			obr:= segSplit("OBR")														; get OBR segment
+			obr.req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
+			obr.prov := strX(obr[17],"^",1,1,"^",1)
+			obr.site := strX(obr.prov,"-",1,1,"",0)
+			pv1 := segSplit("PV1")														; get PV1 segment
+			pv1.dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
+			pid := segSplit("PID")
+			pid.dob := niceDate(pid[8])
 			obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
 						
-			if (obr_site="") {															; no "-site" in OBR.17 name
-				obr_site:="MAIN"
-				eventlog(fileIn " - " obr_prov 
+			if (obr.site="") {															; no "-site" in OBR.17 name
+				obr.site:="MAIN"
+				eventlog(fileIn " - " obr.prov 
 					. ". No site associated with provider, substituting MAIN. Check ORM and Preventice users.")
 			}
-			if InStr(sites.ignored,obr_site) {
-				eventlog("Unregistered Sites0 report (" fileIn " - " obr_site ")")
+			if InStr(sites.ignored,obr.site) {
+				eventlog("Unregistered Sites0 report (" fileIn " - " obr.site ")")
 				FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 				continue
 			}
-			if (readWQ(obr_req).mrn) {													; check if obr_req is valid wqid
-				id := obr_req
+			if (readWQ(obr.req).mrn) {													; check if obr_req is valid wqid
+				id := obr.req
 				hl7dirMap[fileIn] := id
 			} 
-			else if (id := findWQid(pv1_dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
+			else if (id := findWQid(pv1.dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
 				hl7dirMap[fileIn] := id
 			}
 			else {																		; can't find wqid, just admit defeat
@@ -1380,7 +1382,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 			, strQ(res.Name,"###", x[1] ", " x[2])										; last, first
 			, strQ(res.mrn,"###",x[3])													; mrn
 			, strQ(niceDate(res.dob),"###",niceDate(x[4]))								; dob
-			, strQ(res.site,"###",obr_site)												; site
+			, strQ(res.site,"###",obr.site)												; site
 			, strQ(niceDate(res.date),"###",niceDate(SubStr(x[5],1,8)))					; study date
 			, id																		; wqid
 			, dev																		; device type
