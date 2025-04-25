@@ -256,7 +256,6 @@ PhaseGUI() {
 		HLV_in := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["filename","Name","MRN","DOB","Location","Study Date","wqid","Type","Need FTP"]
 		)
-		phase.hnd["in"] := HLV_in
 		HLV_in.OnEvent("DoubleClick",readWQlv)
 		HLV_in.ModifyCol(1,"0")															; filename and path, "0" = hidden
 		HLV_in.ModifyCol(2,"160 Center")												; name
@@ -267,6 +266,7 @@ PhaseGUI() {
 		HLV_in.ModifyCol(7,"2")															; wqid
 		HLV_in.ModifyCol(8,"40 Center")													; ftype
 		HLV_in.ModifyCol(9,"70 Center")													; ftp
+		phase.hnd["in"] := HLV_in
 		; CLV_in := LV_Colors(HLV_in,true,false)
 		; phase.hnd["CLV_in"] := CLV_in
 		; CLV_in.Critical := 100
@@ -277,7 +277,6 @@ PhaseGUI() {
 	HLV_orders := phase.AddListView("-Multi Grid BackgroundSilver " lvDim	; option "ColorRed"
 		, ["filename","Order Date","Name","MRN","Ordering Provider","Monitor"]
 	)
-	phase.hnd["orders"] := HLV_orders
 	; HLV_orders.OnEvent("DoubleClick",readWQorder())
 	HLV_orders.ModifyCol(1,"0")															; filename and path (hidden)
 	HLV_orders.ModifyCol(2,"80")														; date
@@ -285,12 +284,12 @@ PhaseGUI() {
 	HLV_orders.ModifyCol(4,"60")														; MRN
 	HLV_orders.ModifyCol(5,"100")														; Prov
 	HLV_orders.ModifyCol(6,"70")														; Type
+	phase.hnd["orders"] := HLV_orders
 	
 	WQtab.UseTab("Unread") ; =========================================================== UNREAD
 	HLV_unread := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["Name","MRN","Study Date","Processed","Monitor","Ordering","Assigned EP"]
 	)
-	phase.hnd["unread"] := HLV_unread
 	HLV_unread.ModifyCol(1,"140")														; Name
 	HLV_unread.ModifyCol(2,"60")														; MRN
 	HLV_unread.ModifyCol(3,"80")														; Date
@@ -298,13 +297,13 @@ PhaseGUI() {
 	HLV_unread.ModifyCol(5,"70")														; Mon Type
 	HLV_unread.ModifyCol(6,"80")														; Ordering
 	HLV_unread.ModifyCol(7,"80")														; Assigned EP
+	phase.hnd["unread"] := HLV_unread
 
 	WQtab.UseTab("ALL") ; ============================================================== ALL
 	HLV_all := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 		, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider","Site"]
 	)
 	HLV_all.OnEvent("DoubleClick",WQtask)
-	phase.hnd["all"] := HLV_all
 	HLV_all.ModifyCol(1,"0")															; wqid (hidden)
 	HLV_all.ModifyCol(2,"60")															; date
 	HLV_all.ModifyCol(3,"40 Center")													; FedEx
@@ -315,6 +314,7 @@ PhaseGUI() {
 	HLV_all.ModifyCol(8,"130")															; Ser Num
 	HLV_all.ModifyCol(9,"100")															; Prov
 	HLV_all.ModifyCol(10,"80")															; Site
+	phase.hnd["all"] := HLV_all
 
 	; ================================================================================== LV for each Site
 	HLV:=Map()
@@ -327,7 +327,6 @@ PhaseGUI() {
 		HLV[i] := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.hnd["LV" i] := HLV[i]
 		HLV[i].OnEvent("DoubleClick",WQtask)
 		HLV[i].ModifyCol(1,"0")															; wqid (hidden)
 		HLV[i].ModifyCol(2,"60")														; date
@@ -338,6 +337,7 @@ PhaseGUI() {
 		HLV[i].ModifyCol(7,"140")														; Name
 		HLV[i].ModifyCol(8,"130")														; Ser Num
 		HLV[i].ModifyCol(9,"100")														; Prov
+		phase.hnd["LV" i] := HLV[i]
 	}
 
 	/*	POPULATE LISTVIEWS
