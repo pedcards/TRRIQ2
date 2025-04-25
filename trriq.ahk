@@ -1376,7 +1376,9 @@ WQpreventiceResults(&wqfiles,&lv) {
 		if !(dev := getMonType(res.dev)["abbrev"]) {									; dev type returns "HL7" if no device in wqid
 			dev := "HL7" 
 		}
-	
+		if !ObjHasOwnProp(res,"dob") {													; if no <enroll/dob>
+			res.dob := pid.dob
+		}
 		lv.Add(""
 			, path.PrevHL7in fileIn														; path and filename
 			, strQ(res.Name,"###", x[1] ", " x[2])										; last, first
