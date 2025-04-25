@@ -317,27 +317,27 @@ PhaseGUI() {
 	HLV_all.ModifyCol(10,"80")															; Site
 
 	; ================================================================================== LV for each Site
-	HLV1 := HLV2 := HLV3 := HLV4 := HLV5 := HLV6 := HLV7 := HLV8 := HLV9 := ""			; Must declare first, V2 cannot create dynamic variable names
-	CLV1 := CLV2 := CLV3 := CLV4 := CLV5 := CLV6 := CLV7 := CLV8 := CLV9 := ""
+	HLV:=Map()
+
 	loop parse sites.tracked, "|"
 	{
 		i := A_Index
 		site := A_LoopField
 		WQtab.UseTab(site)
-		HLV%i% := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
+		HLV[i] := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
-		phase.hnd["LV" i] := HLV%i%
-		HLV%i%.OnEvent("DoubleClick",WQtask)
-		HLV%i%.ModifyCol(1,"0")															; wqid (hidden)
-		HLV%i%.ModifyCol(2,"60")														; date
-		HLV%i%.ModifyCol(3,"40 Center")													; FedEx
-		HLV%i%.ModifyCol(4,"60")														; uploaded
-		HLV%i%.ModifyCol(5,"40 Center")													; Notes
-		HLV%i%.ModifyCol(6,"60")														; MRN
-		HLV%i%.ModifyCol(7,"140")														; Name
-		HLV%i%.ModifyCol(8,"130")														; Ser Num
-		HLV%i%.ModifyCol(9,"100")														; Prov
+		phase.hnd["LV" i] := HLV[i]
+		HLV[i].OnEvent("DoubleClick",WQtask)
+		HLV[i].ModifyCol(1,"0")															; wqid (hidden)
+		HLV[i].ModifyCol(2,"60")														; date
+		HLV[i].ModifyCol(3,"40 Center")													; FedEx
+		HLV[i].ModifyCol(4,"60")														; uploaded
+		HLV[i].ModifyCol(5,"40 Center")													; Notes
+		HLV[i].ModifyCol(6,"60")														; MRN
+		HLV[i].ModifyCol(7,"140")														; Name
+		HLV[i].ModifyCol(8,"130")														; Ser Num
+		HLV[i].ModifyCol(9,"100")														; Prov
 	}
 
 	/*	POPULATE LISTVIEWS
