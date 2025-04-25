@@ -1392,6 +1392,10 @@ WQpreventiceResults(&wqfiles,&lv) {
 		wqfiles.push(id)
 	}
 	Return
+
+	segSplit(seg) {
+		return strsplit(stregX(tmptxt,"\R+" seg,1,0,"\R+",0),"|")
+	}
 }
 WQscanHolterPDFs(&wqfiles,&lv) {
 /*	Scan Holter PDFs folder for additional files
