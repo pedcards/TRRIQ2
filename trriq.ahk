@@ -1291,15 +1291,14 @@ WQepicOrdersCleanup() {
 }
 
 getMonType(val) {
-	res := 0
+	global monTypes
+
 	for key,arr in monTypes
 	{
 		if ObjHasValue(arr,val,"RX") {
-			res := A_Index
-			break
+			return monTypes[A_Index]
 		}
 	}
-	try return monTypes[res]
 }
 
 WQpreventiceResults(&wqfiles,&lv) {
