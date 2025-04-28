@@ -1206,8 +1206,8 @@ WQepicOrdersNew() {
 			wq.addElement(newID,"ind",e0.ind)
 		eventlog("Added order ID " e0.UID ". " e0.name)
 		
-		fileOut := (e0.mon="CUTOVER" ? "done\" : "")
-			. e0.MRN "_" 
+		fileOut := 
+			  e0.MRN "_" 
 			. fldval["PID_NameL"] "^" fldval["PID_NameF"] "_"
 			. e0.date "_@"
 			. e0.uid 																	; new ORM filename ends with _[UID]Z.hl7
