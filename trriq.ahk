@@ -1153,7 +1153,7 @@ WQepicOrdersNew() {
 			eventlog("enroll id " id " changed to " e0.UID)
 			break
 		}
-		try if (e0.match_UID) {
+		if ObjHasOwnProp(e0,"match_UID") {
 			FileMove(A_LoopFileFullPath, ".\tempfiles\*", 1)
 			eventlog("Moved: " A_LoopFileFullPath)
 			continue
