@@ -92,7 +92,7 @@ SetTitleMatchMode("2")
 	/*	Read call schedule (Electronic Forecast and Qgenda)
 	*/
 	fcVals := readIni("Forecast")
-	updateCall()
+	; updateCall()
 
 	/*	Initialize rest of vars and strings
 	*/
@@ -2344,7 +2344,7 @@ CheckProc() {
 			,4096
 		)
 		
-		fetchGUI()
+		; fetchGUI()
 		WinWaitClose("Patient Demographics")
 		if (fldval.fetchQuit=true) {
 			return
@@ -2380,13 +2380,13 @@ CheckProc() {
 			wqSetVal(id,"mrn",ptDem["mrn"])
 			wqSetVal(id,"sex",ptDem["Sex"])
 			wqSetVal(id,"dob",ptDem["dob"])
-			wqSetVal(id,"dev"
-				, (montype="HOL" ? "Mortara H3+ - " 
-				: montype="BGH" ? "BodyGuardian Heart - BG"
-				: montype="ZIO" ? "Zio" 
-				: montype="BGM" ? "BodyGuardian Mini - "
-				: "")
-				. fldVal.dem["Device_SN"])
+			; wqSetVal(id,"dev"
+			; 	, (montype="HOL" ? "Mortara H3+ - " 
+			; 	: montype="BGH" ? "BodyGuardian Heart - BG"
+			; 	: montype="ZIO" ? "Zio" 
+			; 	: montype="BGM" ? "BodyGuardian Mini - "
+			; 	: "")
+			; 	. fldVal.dem["Device_SN"])
 			wqSetVal(id,"prov",ptDem["Provider"])
 			wqSetVal(id,"site",sites.long[ptDem["loc"]])								; need to transform site abbrevs
 			wqSetVal(id,"ind",ptDem["Indication"])
