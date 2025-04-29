@@ -673,4 +673,4 @@ ObjHasValue(aObj, aValue, rx:="") {
 
 #Include xml2.ahk
 #Include strx2.ahk
-#Include %A_ScriptDir%\Rufaydium.ahk
+#Include Rufaydium.ahk
