@@ -517,6 +517,8 @@ WQlist() {
 
 ;#region == Admin support functions ====================================================
 changeLoc(*) {
+/*	Restart TRRIQ to change WKSLOC
+ */
 	ask := MsgBox("Current location: " wksLoc "`n`nReally change the clinic location for this PC?`n`nWill restart TRRIQ"
 		, "Change clinic", 262193)
 	If (ask="OK")
@@ -528,13 +530,16 @@ changeLoc(*) {
 }
 
 toggleAdmin(*) {
+/*	Toggle the pink adminMode status
+ */
 	gl.adminMode := !(gl.adminMode)
 	PhaseGUI()
 	return
 }
 
-lateReport(*)
-{
+lateReport(*) {
+/*	Generate report of delinquent devices
+ */
 	global wq, path, pb
 	
 	str := ""
@@ -565,8 +570,9 @@ lateReport(*)
 	return
 }
 
-regReport(*)
-{
+regReport(*) {
+/*	Generate report of all registrations
+ */
 	global wq, path, pb
 
 	str := ""
