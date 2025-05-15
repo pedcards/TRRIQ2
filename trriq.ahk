@@ -348,7 +348,7 @@ PhaseGUI() {
 	 */
 	menuSys := Menu()
 		menuSys.Add("Change clinic location", changeLoc)
-		menuSys.Add("Generate late returns report", menuAbout) ;,lateReport())
+		menuSys.Add("Generate late returns report", lateReport)
 		menuSys.Add("Generate registration locations report", menuAbout) ;,regReport())
 		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
 	menuHelp := Menu()
@@ -533,6 +533,38 @@ toggleAdmin(*) {
 	return
 }
 
+lateReport(*)
+{
+	global wq, path, pb
+	
+	str := ""
+	ens:=wq.selectNodes("/root/pending/enroll")
+	num := ens.length
+	Loop num
+	{
+		pb.sub(A_Index "/" num)
+		pb.title("Generating LATE report")
+		pb.set(100*A_Index/num)
+		; pb.Show
+
+		k := ens.item(A_Index-1)
+		id	:= k.getAttribute("id")
+		e := readWQ(id)
+		dt := dateDiff(e.date,A_Now,"D")
+		if (InStr(e.dev,"PLUS lite") && (dt > 45)
+			||	InStr(e.dev,"Mini -") && (dt > 14)
+			||	InStr(e.dev,"MINI EL" && (dt > 30)))
+		{
+			str .= e.site ",`"" e.prov "`"," e.date ",`"" e.name "`"," e.mrn "," e.dev "`n"
+		}
+	}
+	pb.Hide
+	tmp := path.holterPDF "late-" A_Now ".csv"
+	FileAppend(str,tmp)
+	eventlog("Generated missing devices report.")
+	MsgBox("Report saved to:`n" tmp,"Missing devices report",262208)
+	return
+}
 
 
 ;#endregion
