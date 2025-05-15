@@ -1768,7 +1768,10 @@ WQpendingReads() {
 		fileIn := A_LoopFileName
 		wqid := strX(StrSplit(fileIn, "_")[5],"@",1,1,".",1,1)
 		e0 := readWQ(wqid)
-		if (e0="") {
+		if !IsObject(e0) {
+			continue
+		}
+		if !(e0.node="pending") {
 			continue
 		}
 		e0.reading := wq.selectSingleNode("//enroll[@id='" wqid "']/done").getAttribute("read")
