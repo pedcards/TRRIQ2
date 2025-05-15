@@ -716,7 +716,12 @@ WriteSave(z) {
 	return
 }
 	
-
+fileCount(folder) {
+/*	Get number of files in folder path
+ */
+	fcount := ComObject("Scripting.FileSystemObject").GetFolder(folder).Files.Count
+	return fcount
+}
 ;#endregion
 
 ;#region == TEXT functions =============================================================
@@ -1510,8 +1515,7 @@ findFullPdf(wqid:="") {
 	
 	pdfList := []																		; clear list to add to WQlist
 	pdfScanPages := 3
-	
-	fileCount := ComObject("Scripting.FileSystemObject").GetFolder(path.holterPDF).Files.Count
+	fcount := fileCount(path.holterPDF)
 	
 	pb.title("Scanning PDFs folder")
 	Loop files path.holterPDF "*.pdf"
@@ -1520,7 +1524,7 @@ findFullPdf(wqid:="") {
 		fname := A_LoopFileName															; full filename
 		fnam := RegExReplace(fname,"i)\.pdf")											; filename without ext
 		pb.sub(fname)
-		pb.set(100*A_Index/fileCount)
+		pb.set(100*A_Index/fcount)
 		
 		;---Skip any PDFs that have already been processed or are in the middle of being processed
 		if (fname~="i)-short\.pdf") {
