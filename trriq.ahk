@@ -92,7 +92,7 @@ SetTitleMatchMode("2")
 	/*	Read call schedule (Electronic Forecast and Qgenda)
 	*/
 	fcVals := readIni("Forecast")
-	; updateCall()
+	updateCall()
 
 	/*	Initialize rest of vars and strings
 	*/
@@ -350,7 +350,7 @@ PhaseGUI() {
 		menuSys.Add("Change clinic location", changeLoc)
 		menuSys.Add("Generate late returns report", lateReport)
 		menuSys.Add("Generate registration locations report", regReport)
-		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
+		menuSys.Add("Update call schedules", updateCall)
 	menuHelp := Menu()
 		menuHelp.Add("About TRRIQ", menuAbout)
 		menuHelp.Add("Instructions...", menuInstructions)

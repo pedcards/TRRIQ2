@@ -67,7 +67,7 @@ readDocs() {
 	return Docs
 }
 
-updateCall() {
+updateCall(*) {
 /*	Update call.xml 
 	- Read Qgenda schedule for base Call, Ward, ICU, EP, TXP schedule
 	- Read electronic forecast XLS
