@@ -448,23 +448,6 @@ PhaseGUI() {
 		phase.Show
 		return
 	}
-
-	changeLoc(*) {
-		ask := MsgBox("Current location: " wksLoc "`n`nReally change the clinic location for this PC?`n`nWill restart TRRIQ"
-			, "Change clinic", 262193)
-		If (ask="OK")
-		{
-			wks.clearWorkstation()
-			Reload
-		}
-		return
-	}
-
-	toggleAdmin(*) {
-		gl.adminMode := !(gl.adminMode)
-		PhaseGUI()
-		return
-	}
 }
 
 WQlist() {
@@ -530,6 +513,26 @@ WQlist() {
 	pb.hide()
 	return
 }
+;#endregion
+
+;#region == Admin support functions ====================================================
+changeLoc(*) {
+	ask := MsgBox("Current location: " wksLoc "`n`nReally change the clinic location for this PC?`n`nWill restart TRRIQ"
+		, "Change clinic", 262193)
+	If (ask="OK")
+	{
+		wks.clearWorkstation()
+		Reload
+	}
+	return
+}
+
+toggleAdmin(*) {
+	gl.adminMode := !(gl.adminMode)
+	PhaseGUI()
+	return
+}
+
 
 
 ;#endregion
