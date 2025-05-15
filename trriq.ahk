@@ -349,7 +349,7 @@ PhaseGUI() {
 	menuSys := Menu()
 		menuSys.Add("Change clinic location", changeLoc)
 		menuSys.Add("Generate late returns report", lateReport)
-		menuSys.Add("Generate registration locations report", menuAbout) ;,regReport())
+		menuSys.Add("Generate registration locations report", regReport)
 		menuSys.Add("Update call schedules", menuAbout) ;, updateCall())
 	menuHelp := Menu()
 		menuHelp.Add("About TRRIQ", menuAbout)
@@ -545,7 +545,6 @@ lateReport(*)
 		pb.sub(A_Index "/" num)
 		pb.title("Generating LATE report")
 		pb.set(100*A_Index/num)
-		; pb.Show
 
 		k := ens.item(A_Index-1)
 		id	:= k.getAttribute("id")
@@ -566,6 +565,31 @@ lateReport(*)
 	return
 }
 
+regReport(*)
+{
+	global wq, path, pb
+
+	str := ""
+	ens:=wq.selectNodes("/root/pending/enroll")
+	num := ens.length
+	loop num
+	{
+		pb.sub(A_Index "/" num)
+		pb.title("Generating ALL REGISTRATIONS report")
+		pb.set(100*A_Index/num)
+
+		k := ens.item(A_Index-1)
+		id	:= k.getAttribute("id")
+		e := readWQ(id)
+		str .= e.site "," e.date ",`"" e.prov "`"," e.dev "`n"
+	}
+	pb.Hide
+	tmp := path.holterPDF "reg-" A_Now ".csv"
+	FileAppend(str,tmp)
+	eventlog("Generated registrations report.")
+	MsgBox("Report saved to:`n" tmp,"Site Registrations report",262208)
+	return
+}
 
 ;#endregion
 
