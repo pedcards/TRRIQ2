@@ -358,7 +358,7 @@ PhaseGUI() {
 		menuAdmin.Add("Toggle admin mode", toggleAdmin)
 		menuAdmin.Add("Clean tempfiles", menuAbout) ;, CleanTempFiles())
 		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
-		menuAdmin.Add("Find pending leftovers", menuAbout) ;, cleanPending())
+		menuAdmin.Add("Find pending leftovers", cleanPending)
 		menuAdmin.Add("Fix WQ device durations", menuAbout) ;, fixDuration())							; position for test menu
 		menuAdmin.Add("Recover DONE record", menuAbout) ;, recoverDone())
 		menuAdmin.Add("Check running users/versions", menuAbout) ;, runningUsers())
@@ -595,6 +595,33 @@ regReport(*) {
 	eventlog("Generated registrations report.")
 	MsgBox("Report saved to:`n" tmp,"Site Registrations report",262208)
 	return
+}
+
+cleanPending(*)
+{
+	global wq, path, pb
+
+	eventlog("Menu cleanPending")
+	archiveHL7 := path.EpicHL7out "..\ArchiveHL7\"
+	num := fileCount(archiveHL7)
+	Loop files archiveHL7 "*@*.hl7"
+	{
+		pb.sub(A_Index "/" num)
+		pb.title("Cleaning PENDING records")
+		pb.set(100*A_Index/num)
+
+		regexmatch(A_LoopFileName,"@(.*)\.hl7",&id)
+		if !(id.1) {
+			Continue
+		}
+		if IsObject(wq.selectSingleNode("/root/pending/enroll[@id='" id.1 "']")) {
+			eventlog("Found leftover id " id.1)
+			moveWQ(id.1)
+		}
+	}
+	pb.Hide
+
+	Return
 }
 
 ;#endregion
