@@ -106,6 +106,7 @@ updateCall(*) {
 		}
 		eventlog("Uploaded call list.")
 	}
+	pb.Hide
 	FileDelete(".lock")
 	FileCopy(path.data "call.xml", path.chip "call.xml" , 1)
 	
@@ -113,7 +114,7 @@ updateCall(*) {
 }
 
 readForecast() {
-	global y, path
+	global y, path, pb
 	
 	; Find the most recently modified "*Electronic Forecast.xls" file
 	eventlog("Check electronic forecast.")
@@ -330,7 +331,7 @@ readQgenda() {
 	Parse JSON into call elements
 	Move into /lists/forecast/call {date=20150301}/<PM_We_F>Del Toro</PM_We_F>
 */
-	global y, path, callChg
+	global y, path, callChg, pb
 	
 	fcMod := substr(y.selectSingleNode("/root/forecast").getAttribute("mod"),1,8) 
 	if (fcMod = substr(A_now,1,8)) {													; Return if already scanned today
