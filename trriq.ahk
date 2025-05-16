@@ -359,7 +359,7 @@ PhaseGUI() {
 		menuAdmin.Add("Clean tempfiles", cleanTempFiles)
 		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
 		menuAdmin.Add("Find pending leftovers", cleanPending)
-		menuAdmin.Add("Fix WQ device durations", menuAbout) ;, fixDuration())							; position for test menu
+		menuAdmin.Add("Fix WQ device durations", fixDuration)
 		menuAdmin.Add("Recover DONE record", menuAbout) ;, recoverDone())
 		menuAdmin.Add("Check running users/versions", menuAbout) ;, runningUsers())
 		menuAdmin.Add("Create test order", menuAbout) ;, makeEpicORM())
@@ -674,6 +674,41 @@ cleanTempFiles(*) {
 		, "", 262208)
 	return
 }
+
+fixDuration(*) {
+	global wq, pb
+
+	kDur := ""
+	ens:=wq.selectNodes("/root/pending/enroll")
+	num := ens.length
+	Loop num
+	{
+		pb.title("Fix PENDING durations")
+		pb.sub(A_Index "/" num)
+		pb.set(100*A_Index/num)
+		k := ens.item(A_Index-1)
+		try kDur := k.selectSingleNode("duration").Text
+		if (kDur) {																		; skip if has value
+			Continue
+		}
+		id	:= k.getAttribute("id")
+		kDevNode := k.selectSingleNode("dev")
+		kDev := kDevNode.Text
+		switch {
+			case (kDev~="Mortara|Mini -"): kDur := "1"
+			case (kDev~="Mini EL"): kDur := "14"
+			case (kDev~="Heart|PLUS Lite"): kDur := "30"
+		}
+		wq.InsertElement(kDevNode.NextSibling,"duration",kDur)
+		eventlog(id " Inserted duration '" kDur "'")
+	}
+	pb.hide
+
+	WriteSave(wq)
+
+	Return
+}
+
 
 ;#endregion
 
