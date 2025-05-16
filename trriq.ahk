@@ -361,7 +361,7 @@ PhaseGUI() {
 		menuAdmin.Add("Find pending leftovers", cleanPending)
 		menuAdmin.Add("Fix WQ device durations", fixDuration)
 		menuAdmin.Add("Recover DONE record", recoverDone)
-		menuAdmin.Add("Check running users/versions", menuAbout) ;, runningUsers())
+		menuAdmin.Add("Check running users/versions", runningUsers)
 		menuAdmin.Add("Create test order", menuAbout) ;, makeEpicORM())
 		
 	phaseMenu := MenuBar()
@@ -829,6 +829,64 @@ sendEmail(*)
 	Return
 }
 
+runningUsers(*) {
+/*	Scan log for running user versions
+*/
+	global phase
+
+	phase.Hide
+	Loop Files ".\logs\*.log" 
+	{
+		k := A_LoopFileName
+		flist .= k "`n"
+	}
+	Sort(flist, "R")
+
+	Loop parse flist, "`r`n"
+	{
+		fnam := A_LoopField
+		if (fnam="") {
+			break
+		}
+		log := FileRead(".\logs\" fnam)
+		sess := []
+		ignored := ""
+
+		Loop parse log, "`n`r"
+		{
+			k := A_LoopField
+			if (k="") {
+				break
+			}
+			RegExMatch(k,"^(.*?) \[(.*?)/(.*?)(/(.*?))?\] (.*?)$",&fld)
+			kDate := fld.1
+			kUser := fld.2
+			kWKS := fld.3
+			kSess := fld.5
+			kTxt := fld.6
+			if InStr(ignored, kSess) {
+				Continue
+			}
+			if InStr(kTxt, "<<<<< Session end") {
+				ignored .= kSess "|"
+				sess.Push(RegExReplace(kDate,"\|\|","-") " [" kUser "] " kSess " <<< CLOSE")
+			}
+			if InStr(kTxt, ">>>>> Started") {
+				RegExMatch(kTxt,"(DEVT|PROD)",&kMode)
+				sess.Push(RegExReplace(kDate,"\|\|","-") " [" kUser "] " kSess " >>> OPEN")
+			}
+		}
+
+		running := Gui()
+		running.Title := "Open users - " fnam
+		running.AddListBox("w400 r20",sess)
+		running.Show
+		
+		WinWaitClose("Open users")
+	}
+	running := ""
+	Return
+}
 
 ;#endregion
 
