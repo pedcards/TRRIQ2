@@ -357,7 +357,7 @@ PhaseGUI() {
 	menuAdmin := Menu()
 		menuAdmin.Add("Toggle admin mode", toggleAdmin)
 		menuAdmin.Add("Clean tempfiles", cleanTempFiles)
-		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
+		menuAdmin.Add("Send notification email", sendEmail)
 		menuAdmin.Add("Find pending leftovers", cleanPending)
 		menuAdmin.Add("Fix WQ device durations", fixDuration)
 		menuAdmin.Add("Recover DONE record", recoverDone)
@@ -807,6 +807,25 @@ recoverDone(uid:="",*)
 	MsgBox("wqid " uid " (" en.mrn " from " en.date ") moved back to PENDING list.")
 
 	phase.Show
+	Return
+}
+
+sendEmail(*)
+{
+	tmp := choiceBox("Notification","Send email"
+			, [	"Terry Chun"
+				, "Roby Gallotti"
+				, "Jack Salerno"
+				, "Roshan D'Souza"
+				, "Steve Seslar" ]
+			, "E")
+	if (tmp="xClose") {
+		eventlog("Quit sendEmail.")
+		Return
+	}
+	enc_MD := parseName(tmp).init
+	tmp := httpComm("read&to=" enc_MD)
+	eventlog("Notification email " tmp " to " enc_MD)
 	Return
 }
 
