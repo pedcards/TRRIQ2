@@ -360,7 +360,7 @@ PhaseGUI() {
 		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
 		menuAdmin.Add("Find pending leftovers", cleanPending)
 		menuAdmin.Add("Fix WQ device durations", fixDuration)
-		menuAdmin.Add("Recover DONE record", menuAbout) ;, recoverDone())
+		menuAdmin.Add("Recover DONE record", recoverDone)
 		menuAdmin.Add("Check running users/versions", menuAbout) ;, runningUsers())
 		menuAdmin.Add("Create test order", menuAbout) ;, makeEpicORM())
 		
@@ -706,6 +706,107 @@ fixDuration(*) {
 
 	WriteSave(wq)
 
+	Return
+}
+
+recoverDone(uid:="",*)
+{
+/*	Move record from DONE back to PENDING
+	ONLY do this if there is a good reason!
+	e.g. if the MA inadvertently marked record as DONE, new Preventice result
+	to supercede a prior prelim result (not if already signed in Epic). 
+*/
+	global wq, phase, pb
+	phase.Hide
+	
+	uid:=RegExReplace(uid,"Recover DONE record")										; ignore menu name passed from GUI
+	if (uid) {
+		find.value:=uid
+		letters:=True
+		numbers:=True
+	} else {
+		find := InputBox("Enter name, MRN, or wqid to search","Search for...")
+		letters := RegExMatch(find.value,"[a-zA-Z\-\s]+")
+		numbers := RegExMatch(find.value,"[0-9]+")
+	}
+
+	if ((letters)&&(numbers)) {															; contains letters AND numbers, is UID 2DMKLDFMN329
+		en := readWQ(find.value)
+		if (en.node != "done") {
+			MsgBox("No matching UID")
+			phase.Show
+			Return
+		}
+		uid := find.value
+	}
+	else if (numbers) {																	; contains numbers only, is MRN 1249045
+		nodes := wq.selectNodes("/root/done/enroll[mrn='" find.value "']")
+		if !(nodes.length()) {
+			MsgBox("No matching MRN")
+			phase.Show
+			Return
+		}
+		loop nodes.Length()
+		{
+			k := nodes.item(A_Index-1)
+			kuid := k.getAttribute("id")
+			en := readWQ(kuid)
+			klist .= en.date "  " en.name "  " en.mrn "  " kuid "`n"
+		}
+		Sort(klist, "R")
+		klist := StrSplit(Trim(klist,"`n"), "`n")
+		knum := choiceBox("Select record","Select the correct record",klist,"Q")
+		if (knum="xClose") {
+			Return
+		}
+		uid := strX(knum,"  ",0,2,"",0,0)
+	}
+	else if (letters) {																	; contains letters only, is Name
+		nodes:=wq.selectNodes("/root/done/enroll")
+		loop nodes.Length()
+		{
+			k := nodes.item(A_Index-1)
+			kname := k.selectSingleNode("name").text
+			if InStr(kname, find.value) {
+				kuid := k.getAttribute("id")
+				en := readWQ(kuid)
+				klist .= en.date "  " en.name "  " en.mrn "  " kuid "`n"
+			}
+		}
+		if (klist="") {
+			MsgBox("No matching name")
+			phase.Show
+			Return
+		}
+		Sort(klist, "R")
+		klist := StrSplit(Trim(klist,"`n"), "`n")
+		knum := choiceBox("Select record","Select the correct record",klist,"Q")
+		if (knum="xClose") {
+			Return
+		}
+		uid := strX(knum,"  ",0,2,"",0,0)
+	}
+	else {
+		MsgBox("*** unknown ***")
+	}
+
+	wq := XML(path.data "worklist.xml")												; refresh WQ
+	en := readWQ(uid)
+	filecheck()
+	FileOpen(".lock", "W")
+
+	x := wq.selectSingleNode("/root/done/enroll[@id='" uid "']")					; reload x node
+	clone := x.cloneNode(true)
+	wq.selectSingleNode("/root/pending").appendChild(clone)							; copy x.clone to PENDING
+	x.parentNode.removeChild(x)														; remove x
+	eventlog("***** wqid " uid " (" en.mrn " from " en.date ") moved back to PENDING list.")
+
+	writeSave(wq)
+	FileDelete(".lock")
+
+	MsgBox("wqid " uid " (" en.mrn " from " en.date ") moved back to PENDING list.")
+
+	phase.Show
 	Return
 }
 
