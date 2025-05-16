@@ -1219,11 +1219,11 @@ ParseName(x) {
 		last := trim(strX(x,"",1,0,",",1,1))
 		first := trim(strX(x,",",1,1,"",0))
 	}
-	else if RegExMatch(x "<","O)^\d{8,}\^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {	; 12345678^Chun^Terrence
+	else if RegExMatch(x "<","^\d{8,}\^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {	; 12345678^Chun^Terrence
 		last := q[1]
 		first := q[2]
 	}
-	else if RegExMatch(x "<","O)^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {			; Jingleheimer Schmidt^John Jacob
+	else if RegExMatch(x "<","^([a-zA-Z\-\s\']+)\^([a-zA-Z\-\s\']+)\W",&q) {			; Jingleheimer Schmidt^John Jacob
 		last := q[1]
 		first := q[2]
 	}
@@ -1707,7 +1707,7 @@ WQscanHolterPDFs(&wqfiles,&lv) {
 	findfullPDF()																		; read Holter PDF dir into pdfList
 	for key,val in pdfList
 	{
-		RegExMatch(val,"O)_WQ([A-Z0-9]+)_([A-Z])(-full)?\.pdf",&fnID)					; get filename WQID if PDF has been renamed (fnid.1 = wqid, fnid.2 = type, fnid.3=full)
+		RegExMatch(val,"_WQ([A-Z0-9]+)_([A-Z])(-full)?\.pdf",&fnID)						; get filename WQID if PDF has been renamed (fnid.1 = wqid, fnid.2 = type, fnid.3=full)
 		id := fnID[1]
 		ftype := strQ(monStrings[fnID[2]],"###","???")
 		if (k:=ObjHasValue(wqfiles,id)) {												; found a PDF file whose wqid matches an hl7 in wqfiles
@@ -1785,7 +1785,7 @@ findFullPdf(wqid:="") {
 			Continue
 		}
 		
-		RegExMatch(fname,"O)_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)									; get filename WQID if PDF has already been renamed
+		RegExMatch(fname,"_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)										; get filename WQID if PDF has already been renamed
 		
 		if (readWQ(fnID[1]).node = "done") {
 			eventlog("Leftover PDF: " fnam ", moved to archive.")
