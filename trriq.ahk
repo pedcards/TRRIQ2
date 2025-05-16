@@ -356,7 +356,7 @@ PhaseGUI() {
 		menuHelp.Add("Instructions...", menuInstructions)
 	menuAdmin := Menu()
 		menuAdmin.Add("Toggle admin mode", toggleAdmin)
-		menuAdmin.Add("Clean tempfiles", menuAbout) ;, CleanTempFiles())
+		menuAdmin.Add("Clean tempfiles", cleanTempFiles)
 		menuAdmin.Add("Send notification email", menuAbout) ;, sendEmail())
 		menuAdmin.Add("Find pending leftovers", cleanPending)
 		menuAdmin.Add("Fix WQ device durations", menuAbout) ;, fixDuration())							; position for test menu
@@ -624,6 +624,55 @@ cleanPending(*) {
 	pb.Hide
 
 	Return
+}
+
+cleanTempFiles(*) {
+/*	Clear tempfiles, archive CSVs
+ */
+	global pb
+	thresh:=180
+	ct_skip:=0
+	ct_csv:=0
+	ct_other:=0
+	
+	fCount := fileCount(".\tempfiles")
+	Loop files ".\tempfiles\*", "F"
+	{
+		pb.title("Cleaning tempfiles > " thresh " days")
+		pb.sub(A_Index "/" fCount)
+		pb.set(100*A_Index/fCount)
+		filenm := A_LoopFileName
+		fileCDT := FileGetTime(".\tempfiles\" filenm, "C")
+		dtDiff := dateDiff(A_Now,fileCDT,"Days")
+		if (dtDiff<thresh) {															; skip younger files, default 180 days
+			ct_skip++
+			continue
+		}
+		
+		if RegExMatch(filenm,"\.csv$") {												; handle CSV files
+			RegExMatch(filenm,"(\d{2}-\d{2}-\d{4})\.csv",&v)
+			dt := parseDate(v.1)
+			if (dt.date) {																; move if has a valid date
+				dtStr := dt.yyyy dt.mm dt.dd
+				DestDir := ".\tempfiles\archived\" dt.yyyy "\" dt.mm
+				if !InStr(FileExist(DestDir),"D") {						; 
+					DirCreate(DestDir)
+				}
+				FileMove(".\tempfiles\" filenm, DestDir "\" filenm)
+				ct_csv++
+				continue
+			}
+		} else {
+			FileDelete(".\tempfiles\" filenm)
+			ct_other++
+		}
+	}
+	pb.hide
+	MsgBox("CSV files moved: " ct_csv "`n"
+		. "Files deleted: " ct_other "`n"
+		. "FIles skipped: " ct_skip
+		, "", 262208)
+	return
 }
 
 ;#endregion
