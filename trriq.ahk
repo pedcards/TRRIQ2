@@ -597,8 +597,10 @@ regReport(*) {
 	return
 }
 
-cleanPending(*)
-{
+cleanPending(*) {
+/*	Search PENDING records for completed files in ArchiveHL7
+ *	Remove these leftover IDs
+ */
 	global wq, path, pb
 
 	eventlog("Menu cleanPending")
