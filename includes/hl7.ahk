@@ -204,31 +204,35 @@ class hl7
 		}
 		return res
 	}
+}
 
-	buildHL7(seg,params) {
-	/*	creates hl7out.msg = "seg|idx|param1|param2|param3|param4|..."
-		keeps seg counts in hl7out[seg] = idx
-		params is a sparse object with {2:"TX", 3:str1, 5:value, 11:"F", 14:A_now}
-	*/
-		txt := seg
-	
-		Loop params.MaxIndex()
-		{
-			param := params[A_index]
-	
-			if (seg!="MSH")&&(A_index=1) {
-				seqnum := this.hl7out[seg]														; get last sequence number for this segment
-				++ seqnum
-				this.hl7out[seg] := seqnum
-				param := seqnum
-			}
-	
-			txt .= "|" param
-	
+buildHL7(seg,params) {
+/*	creates hl7out.msg = "seg|idx|param1|param2|param3|param4|..."
+	keeps seg counts in hl7out[seg] = idx
+	params is a sparse object with {2:"TX", 3:str1, 5:value, 11:"F", 14:A_now}
+*/
+	global hl7out
+
+	txt := seg
+	seqnum := 0
+
+	; x := ObjOwnPropCount(params)
+	for key,param in params.OwnProps()
+	{
+		param := params[A_Index]
+		
+		if (seg!="MSH")&&(key=1) {
+			try seqnum := hl7out[seg]														; get last sequence number for this segment
+			++ seqnum
+			hl7out[seg] := seqnum
+			param := seqnum
 		}
-	
-		this.hl7out.msg .= txt "`n"																; append result to hl7out.msg
-	
-		return
+
+		txt .= "|" param
+
 	}
+
+	hl7out.msg .= txt "`n"																; append result to hl7out.msg
+
+	return
 }
