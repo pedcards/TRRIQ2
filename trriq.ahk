@@ -2996,6 +2996,10 @@ readPrevTxt() {
 		pb.set(100*A_Index/n)
 		
 		k := A_LoopField
+		if (k~="^enroll\|") {
+			parsePrevEnroll(k)
+			enrollct := true
+		}
 		if (k~="^dev\|") {
 			if !(devct) {
 				inv := wq.selectSingleNode("/root/inventory")							; create fresh inventory node
@@ -3017,7 +3021,12 @@ readPrevTxt() {
 			eventlog("Removed inventory ser " ser)
 		}
 	}
-	wq.selectSingleNode("/root/inventory").setAttribute("update",filedt)				; set pending[@update] attr
+	
+	if (enrollct) {
+		wq.selectSingleNode("/root/pending").setAttribute("update",filedt)				; set pending[@update] attr
+		eventlog("Preventice enrollemnts updated from prev.txt " fileDT)
+	}
+	wq.selectSingleNode("/root/inventory").setAttribute("update",filedt)				; set inventory[@update] attr
 	eventlog("Preventice Inventory " fileDT " updated.")
 	
 return	
