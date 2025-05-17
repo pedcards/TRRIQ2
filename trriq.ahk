@@ -3024,23 +3024,39 @@ return
 }
 
 parsePrevEnroll(det) {
-/*	Parse line from Patient Status Report_v2
+/*	Parse line from Patient Status Report_v2 or from prev.txt
 	"enroll"|date|name|mrn|dev - s/n|prov|site
 	Match to existing/likely enroll nodes
 	Update enroll node with new info if missing
 */
 	global wq, sites
 
-	res := {  date:parseDate(det.getAttribute("Date_Enrolled")).YMD
-			, name:RegExReplace(format("{:U}"
-					,det.getAttribute("PatientLastName") ", " det.getAttribute("PatientFirstName"))
-					,"\'","^")
-			, mrn:det.getAttribute("MRN1")
-			, dev:det.getAttribute("Device_Type") " - " det.getAttribute("Device_Serial")
-			, prov:filterProv(det.getAttribute("Ordering_Physician")).name
-			, site:filterProv(det.getAttribute("Ordering_Physician")).site
-			, id:det.getAttribute("CSN_SecondaryID1") 
-			, duration:det.getAttribute("Study_Duration") }
+	if IsObject(det) {																	; object comes from PSR
+		detprov := filterProv(det.getAttribute("Ordering_Physician"))
+		psrsite := RegExReplace(det.getAttribute("Practice_Name"),"GB-SCH-") 
+		res := {  date:parseDate(det.getAttribute("Date_Enrolled")).YMD
+				, name:RegExReplace(format("{:U}"
+						,det.getAttribute("PatientLastName") ", " det.getAttribute("PatientFirstName"))
+						,"\'","^")
+				, mrn:det.getAttribute("MRN1")
+				, dev:det.getAttribute("Device_Type") " - " det.getAttribute("Device_Serial")
+				, prov:detprov.name
+				, site:(detprov.site ? detprov.site : psrsite)
+				, id:det.getAttribute("CSN_SecondaryID1") 
+				, duration:det.getAttribute("Study_Duration") }
+	}
+	if (det~="^enroll\|") {																; string comes from prev.txt
+		tmp := StrSplit(det, "|")
+		res := {  date:tmp.2
+				, name:tmp.3
+				, mrn:tmp.4
+				, dev:tmp.5
+				, prov:filterProv(tmp.6).name
+				, site:filterProv(tmp.6).site }
+	}
+	if (res.site="SEATTLE") {
+		res.site := "MAIN"
+	}
 
 	if InStr(res.name,"`"") {
 		res.name := trim(RegExReplace(res.name,"\`".*?\`""))							; delete "quoted" nicknames
@@ -3156,7 +3172,7 @@ parsePrevEnroll(det) {
 				return
 			}
 			dt0:= dateDiff(en.date,res.date,"Days")
-			if abs(dt0) < 7 {															; res.date less than 5d from en.date
+			if abs(dt0) < 7 {															; res.date less than 7d from en.date
 				parsePrevElement(id,en,res,"date")										; prob just needs a date adjustment
 				parsePrevElement(id,en,res,"duration")
 				eventlog("parsePrevEnroll " id "." en.node " adjusted date - only matched MRN+DEV.")
