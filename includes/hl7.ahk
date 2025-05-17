@@ -215,21 +215,31 @@ buildHL7(seg,params) {
 
 	txt := seg
 	seqnum := 0
+	maxkey := 1
 
-	; x := ObjOwnPropCount(params)
-	for key,param in params.OwnProps()
+	for key in params.OwnProps()														; No MaxIndex() in v2
+	{																					; must count our own
+		if (key>maxkey) {
+			maxkey := key
+		}
+	}
+
+	loop maxkey
 	{
-		param := params[A_Index]
+		try 
+			param := params.%A_index%
+		catch 
+			param := ""
 		
-		if (seg!="MSH")&&(key=1) {
-			try seqnum := hl7out[seg]														; get last sequence number for this segment
-			++ seqnum
+		
+		if (seg!="MSH")&&(A_index=1) {
+			try seqnum := hl7out[seg]													; get last sequence number for this segment
+			seqnum++
 			hl7out[seg] := seqnum
 			param := seqnum
 		}
-
+		
 		txt .= "|" param
-
 	}
 
 	hl7out.msg .= txt "`n"																; append result to hl7out.msg
