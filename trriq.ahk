@@ -381,11 +381,8 @@ PhaseGUI() {
 	}
 	phase.Show()
 	phase.OnEvent("Close",phaseClose)
-	/*
-		
-		SetTimer, idleTimer, 500
-		return
-	*/
+
+	SetTimer(idleTimer, 500)
 
 	RETURN
 
@@ -886,6 +883,17 @@ runningUsers(*) {
 	}
 	running := ""
 	Return
+}
+
+idleTimer() {
+/*	Perform automatic tasks on timer
+	1. checkWQfile - checks if wqfile has been been updated, reload WQlist()
+	2. checkMUwin - if MUwin tab text changes, reload MortaraUpload with that function
+	3. checkHCwin - if Cygnus log updated, 
+*/
+	checkWQfile()
+
+	return
 }
 
 ;#endregion
@@ -2350,14 +2358,6 @@ WriteOut(parentpath,node) {
 	return
 }
 
-setwqupdate() {
-	global gl
-	FileDelete(".\files\wqupdate")
-	FileAppend("",".\files\wqupdate")
-	gl.wqfileDT := A_Now
-	return
-}
-
 moveWQ(id) {
 	global wq, fldval
 	
@@ -2670,6 +2670,22 @@ checkEpicClip() {
 	return
 }
 
+checkWQfile() {
+	tmpdt := FileGetTime(".\files\wqupdate")											; get mod dt for "wqupdate"
+	if (tmpdt > gl.wqfileDT) {															; file is more recent than internal var
+		gl.wqfileDT := tmpdt															; set var to this date
+		WQlist()																		; refresh list
+	}
+	return
+}
+
+setwqupdate() {
+	global gl
+	FileDelete(".\files\wqupdate")
+	FileAppend("",".\files\wqupdate")
+	gl.wqfileDT := A_Now
+	return
+}
 	
 ;#endregion
 
