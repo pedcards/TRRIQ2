@@ -171,6 +171,7 @@ wbOpen() {
 /*	Use Rufaydium class https://github.com/Xeo786/Rufaydium-Webdriver
 	to use Google Chrome or Microsoft Edge webdriver to retrieve webpage
 */
+	cr32Ver := cr64Ver := mseVer := ""
 	try cr32Ver := FileGetVersion("C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
 	try cr64Ver := FileGetVersion("C:\Program Files\Google\Chrome\Application\chrome.exe")
 	try mseVer := FileGetVersion("C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
