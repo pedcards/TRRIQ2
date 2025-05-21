@@ -149,6 +149,9 @@ Class Notify
 			this.Callback    := input.HasOwnProp("GenCallback") ? input.GenCallback : 0
 			this.Text        := input.HasOwnProp("BDText")      ? input.BDText      : ""
 		}
+		if !(Notify.enabled) {
+			return this
+		}
 		Notify.Play(this.Sound)
 		this.Notice := MultiGui(this)
 		if this.Duration != 0
