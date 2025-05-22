@@ -2503,18 +2503,18 @@ moveHL7dem(oru) {
 
 	fldval.dem := Map()
 	
-	name := parseName(fldval.name)
+	name := parseName(tryfldval("name"))
 	fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
 	fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
 	fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
 	fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
-	fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),fldval.DOB)
+	fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
 	fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
 						, (obxVal["PID_Sex"]~="F") ? "Female" 
 						: (obxVal["PID_Sex"]~="M") ? "Male"
 						: (obxVal["PID_Sex"]~="U") ? "Unknown"
 						: (obxVal["PID_Sex"]~="X")
-						,fldval.Sex)
+						,tryfldval("sex"))
 
 	fldVal.dem["Indication"] := tryfldval("ind")
 	fldVal.dem["Site"] := tryfldval("site")
