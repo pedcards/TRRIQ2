@@ -2481,21 +2481,19 @@ readWQlv(agc,row,*)
 		eventlog("===> " fnam " type " ftype " (" thousandsSep(fileInSize) ").")
 		processPDF(fileIn,fileNam)
 	}
-/*
 	else {
-		Gui, phase:Hide
+		phase.hide()
 		eventlog("Filetype cannot be determined from WQlist (somehow).")
 		
-		MsgBox, 16, , Unrecognized filetype (somehow)
+		MsgBox("Unrecognized filetype (somehow)",, 16) 
 		Return
 	}
 	
-	if (fldval.done) {
-		epRead()																		; find out which EP is reading today
-		makeORU(wqid)
-		gosub outputfiles																; generate and save output CSV, rename and move PDFs
+	if (tryfldval("done")) {
+		; epRead()																		; find out which EP is reading today
+		; makeORU(wqid)
+		; gosub outputfiles																; generate and save output CSV, rename and move PDFs
 	}
-*/
 	return
 }
 
