@@ -1320,6 +1320,11 @@ zDigit(x) {
 	return SubStr("00" x, -2)
 }
 
+ThousandsSep(x, s:=",") {
+; from https://autohotkey.com/board/topic/50019-add-thousands-separator/
+	return RegExReplace(x, "\G\d+?(?=(\d{3})+(?:\D|$))", "$0" s)
+}
+
 strQ(var1,txt,null:="") {
 /*	Print Query - Returns text based on presence of var
 	var1	= var to query
@@ -2470,13 +2475,13 @@ readWQlv(agc,row,*)
 		phase.hide()
 		processHl7result()																; process ORU and extracted PDF
 	}
-/*
 	else if (ftype) {																	; Any other PDF type
-		FileGetSize, fileInSize, %fileIn%
-		Gui, phase:Hide
+		fileInSize := FileGetSize(fileIn)
+		phase.hide()
 		eventlog("===> " fnam " type " ftype " (" thousandsSep(fileInSize) ").")
-		gosub processPDF
+		; gosub processPDF
 	}
+/*
 	else {
 		Gui, phase:Hide
 		eventlog("Filetype cannot be determined from WQlist (somehow).")
