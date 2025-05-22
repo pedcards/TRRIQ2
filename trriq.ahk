@@ -2479,7 +2479,7 @@ readWQlv(agc,row,*)
 		fileInSize := FileGetSize(fileIn)
 		phase.hide()
 		eventlog("===> " fnam " type " ftype " (" thousandsSep(fileInSize) ").")
-		; gosub processPDF
+		processPDF(fileIn,fileNam)
 	}
 /*
 	else {
@@ -2751,6 +2751,43 @@ ProcessHl7result() {
 	}
 
 	return
+}
+
+ProcessPDF(fileIn,fileNam) {
+/*	This main loop accepts a %fileIn% filename,
+ *	determines the filetype based on header contents,
+ *	concatenates the CSV strings of header (fileOut1) and values (fileOut2)
+ *	into a single file (fileOut),
+ *	move around the temp, CSV, and PDF files.
+ */
+	RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
+	fileNamTxt := fileNam ".txt"
+	newTxt:=""																			; clear the full txt variable
+	maintxt := FileRead(fileNamTxt)														; load into maintxt
+	FileDelete(fileNamTxt)
+	newtxt := StrReplace(maintxt, "`r`n`r`n", "`r`n")
+	FileAppend(newtxt, fileNamTxt)														; create new tempfile with newtxt result
+	FileMove(fileNamTxt, ".\tempfiles\" fileNamTxt, 1)									; move a copy into tempfiles for troubleshooting
+
+	if (InStr(newtxt,"zio xt")) {														; Processing loop based on identifying string in newtxt
+		; gosub Zio
+	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"HScribe")) 	{				; New Preventice Holter 2017
+		; gosub Holter_Pr2
+	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"End of Service Report")) {	; Body Guardian Heart CEM
+		; gosub Event_BGH
+	} else if (InStr(newtxt,"Global Instrumentation LLC")) {							; BG Mini extended Holter
+		; gosub Holter_BGM
+	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"Long-Term Holter Report")) {		; New BG Mini EL Holter 2023
+		; Holter_BGM2(newtxt)
+	} else {
+		eventlog(fileNam " bad file.")
+		MsgBox("No match!","ProcessPDF error","IconX")
+		return
+	}
+	if (fldval.fetchQuit=true) {																; exited demographics fetchGUI
+		return																			; so skip processing this file
+	}
+return
 }
 
 CheckProc() {
