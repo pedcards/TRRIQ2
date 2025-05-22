@@ -2543,7 +2543,7 @@ checkEpicOrder() {
 */
 	global fldval, wq
 	
-	if (fldval.accession) {																; Accession number exists, return to processing
+	if (tryfldval("accession")) {														; Accession number exists, return to processing
 		return
 	}
 	
@@ -2605,7 +2605,7 @@ checkEpicOrder() {
 		{
 			break
 		}
-		if (fldval.accession) {
+		if (tryfldval("accession")) {
 			eventlog("Selected accession number " fldval.accession)
 			return
 		}
@@ -2653,7 +2653,7 @@ checkEpicClip() {
 			wqsetval(fldval.wqid,"accession",fldval.accession)
 			eventlog("Grabbed order #" fldval.order ", accession #" fldval.accession)
 
-			if (name!=fldval.name) {
+			if (name!=tryfldval("name")) {
 				ask := MsgBox("Correct the name`n"
 				. "     '" fldval.dem["Name"] "'`n"
 				. "to this:`n     '" name "'"
