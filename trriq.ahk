@@ -2724,7 +2724,7 @@ ProcessHl7result() {
 		return
 	}
 	
-	RunWait(".\bin\pdftotext.exe -l 2 `"" fileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+	RunWait(".\files\pdftotext.exe -l 2 `"" fileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
 	pb.set(100)
 	newtxt := FileRead(fileNamTxt)														; load into newtxt
 	FileDelete(fileNamTxt)
