@@ -1118,6 +1118,54 @@ fileCount(folder) {
 	fcount := ComObject("Scripting.FileSystemObject").GetFolder(folder).Files.Count
 	return fcount
 }
+
+epRead() {
+	global y, path, ma_date, fldval, epStr
+	
+	y := XML(".\files\call.xml")
+	dlDate := A_Now
+	dlAdd := 0
+	dlHour := SubStr(dlDate, 9, 2)
+	dlDay := FormatTime(dlDate, "dddd")
+	if (dlDay="Friday") {
+		dlAdd := 3
+	}
+	if (dlDay="Wednesday") {
+		dlAdd := 1
+	}
+	if (dlHour > 12) {
+		dlDate := DateAdd(dlDate,dlAdd,"D")
+	}
+
+	dlDate := FormatTime(dlDate, "yyyyMMdd")
+
+	RegExMatch(y.selectSingleNode("//call[@date='" dlDate "']/EP").text, "Oi)" epStr, &ymatch)
+	if !(ep := ymatch.value()) {
+		ep := choiceBox(epStr,"Electronic Forecast not complete","Which EP on Monday?","Q")
+		if (ep="xClose") {
+			eventlog("Elec Forecast not complete. Quit EP selection.")
+			ep:=""
+		}
+		eventlog("Reading EP assigned to " ep ".")
+	}
+	
+	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, &epOrder))  {
+		ep := epOrder.value()
+		fldval.MyPatient := ep
+	}
+	fldval["dem-Reading"] := ep
+	
+	ma_date := FormatTime(A_Now, "MM/dd/yyyy")
+	fieldcoladd("","EP_read",ep)
+	fieldcoladd("","EP_date",niceDate(dlDate))
+	fieldcoladd("","MA",gl.user)
+	fieldcoladd("","MA_date",ma_date)
+	fieldcoladd("TRRIQ","UID",fldval.wqid)
+	fieldcoladd("TRRIQ","order",fldval.order)
+	fieldcoladd("TRRIQ","accession",fldval.accession)
+return
+}
+
 ;#endregion
 
 ;#region == TEXT functions =============================================================
