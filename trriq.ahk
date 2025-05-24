@@ -1486,7 +1486,19 @@ tryfldval(x) {
 		return ""
 	}
 }
-	
+
+fieldColAdd(pre,lab,txt) {
+	global fileOut1, fileOut2, fldVal
+	pre := (pre="") ? "" : pre "-"
+	if InStr(fileOut1,"`"" pre lab "`"") {
+		return
+	}
+	fileOut1 .= "`"" pre lab "`","
+	fileOut2 .= "`"" txt "`","
+	fldVal[pre lab] := txt
+	return
+}
+
 ;#endregion
 
 ;#region == WQ/Worklist FUNCTIONS ======================================================
@@ -2532,7 +2544,6 @@ readWQlv(agc,row,*)
 	else {
 		phase.hide()
 		eventlog("Filetype cannot be determined from WQlist (somehow).")
-		
 		MsgBox("Unrecognized filetype (somehow)",, 16) 
 		Return
 	}
