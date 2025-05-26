@@ -2564,7 +2564,7 @@ readWQlv(agc,row,*)
 }
 
 moveHL7dem(oru) {
-/*	Populate fldVal["dem-"] with data from hl7 first, and wqlist (if missing)
+/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
 */
 	global fldVal
 
@@ -2770,7 +2770,7 @@ class monresult
 		case "HL7":
 			this.ext := "HL7"
 			oru_in := HL7(path.PrevHL7in . fldval.path.fnam)							; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-			moveHL7dem(oru_in)															; prepopulate the fldval["dem-"] values
+			moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
 			checkEpicOrder()															; check for presence of valid Epic order
 	
 
