@@ -1121,6 +1121,12 @@ fileCount(folder) {
 
 epRead() {
 	global y, path, ma_date, fldval, epStr
+
+/*	This is just for debugging purposes
+ */
+	epStr := ""
+/*
+ */
 	
 	y := XML(".\files\call.xml")
 	dlDate := A_Now
