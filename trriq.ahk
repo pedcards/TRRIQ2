@@ -2769,7 +2769,7 @@ class monresult
 		{
 		case "HL7":
 			this.ext := "HL7"
-			oru_in := HL7(path.PrevHL7in . fldval.path.fnam)							; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+			oru_in := HL7(fileIn)														; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
 			moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
 			checkEpicOrder()															; check for presence of valid Epic order
 	
@@ -2796,10 +2796,10 @@ ProcessHl7result() {
 */
 	global fldval
 
-	pb := progressbar("w450","Extracting data",fldval.path.fnam)
+	pb := progressbar("w450","Extracting data",fldval.path.fname)
 	pb.set(25)
 
-	oru_in := HL7(path.PrevHL7in . fldval.path.fnam)									; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+	oru_in := HL7(path.PrevHL7in . fldval.path.fname)									; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
 	moveHL7dem(oru_in)																	; prepopulate the fldval["dem-"] values
 	
 	checkEpicOrder()																	; check for presence of valid Epic order
