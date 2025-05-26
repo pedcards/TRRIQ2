@@ -2675,12 +2675,13 @@ checkEpicOrder() {
 		}
 	}
 	
-	/*	Can't find an order, use Cutover order method
-		This is the last resort, as it creates a lot of confusion with results
+	/*	Fail. Can't find an order
 	*/
 	pb.hide()
 	eventlog("No Epic order found.")
-	MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.", 262193)
+	phase.hide()
+	MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
+	phase.show()
 	return
 }
 
