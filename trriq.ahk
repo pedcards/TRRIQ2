@@ -2798,11 +2798,38 @@ class monresult
 
 		moveHL7dem(oru_in)																; prepopulate the fldval["dem"] values
 		; checkEpicOrder()																; check for presence of valid Epic order
-		
+
 		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
 		fileNamTxt := fileNam ".txt"
 		fileNamHl7txt := fileNam "_hl7.txt"
 		
+	RunWait(".\files\pdftotext.exe -l 2 `"" PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+	pb.set(100)
+	newtxt := FileRead(fileNamTxt)														; load into newtxt
+	FileDelete(fileNamTxt)
+	newtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")									; remove double CRLF
+	FileAppend(newtxt, fileNamTxt)														; create new tempfile with result, minus PDF
+	FileMove(fileNamTxt, ".\tempfiles\*", 1)											; move a copy into tempfiles for troubleshooting
+	FileAppend(oru_in.file, fileNamHl7txt)												; create a copy of hl7 file
+	FileMove(fileNamHl7txt, ".\tempfiles\*", 1)											; move into tempfiles for troubleshooting
+
+	pb.close()
+
+	if (fldval.dev~="PLUS") {
+		; gosub Event_BGH_Hl7
+	} else if (fldVal.dev~="Mini EL") {
+		Holter_BGM_EL_HL7(oru_in)
+	} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
+		; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
+	} else if (fldVal.dev~="Mortara") {
+		; gosub Holter_Pr_Hl7
+	} else {
+		eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
+		MsgBox "No filetype match!"
+		return
+	}
+
+	return
 	}
 }
 ProcessHl7result() {
