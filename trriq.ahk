@@ -2486,7 +2486,7 @@ readWQlv(agc,row,*)
 	fileIn := agc.GetText(row,1)														; selection filename
 	wqid := agc.GetText(row,7)															; WQID
 	ftype := agc.GetText(row,8)															; filetype
-	SplitPath(fileIn,&fnam,,&fExt,&fileNam)
+	SplitPath(fileIn,&fname,,&fExt,&fileNam)
 	if (gl.adminMode) {
 		; adminWQlv(wqid)																		; Troubleshoot result
 		PhaseGUI()
@@ -2513,7 +2513,7 @@ readWQlv(agc,row,*)
 	
 	fldVal := readWQ(wqid)																; wqid would have been determined by parsing hl7
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
-	fldval.path := {fileIn:fileIn,fnam:fnam,fExt:fExt,fileNam:fileNam}
+	fldval.path := {fileIn:fileIn,fname:fname,fExt:fExt,fileNam:fileNam}
 	fldval.ftype := ftype
 	
 	if (fldval.node = "done") {															; task has been done already by another user
@@ -2536,15 +2536,16 @@ readWQlv(agc,row,*)
 		return
 	}
 	
+	monRes := monresult(fileIn)
 	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
-		eventlog("===> " fnam )
+		eventlog("===> " fname )
 		phase.hide()
 		processHl7result()																; process ORU and extracted PDF
 	}
 	else if (ftype) {																	; Any other PDF type
 		fileInSize := FileGetSize(fileIn)
 		phase.hide()
-		eventlog("===> " fnam " type " ftype " (" thousandsSep(fileInSize) ").")
+		eventlog("===> " fname " type " ftype " (" thousandsSep(fileInSize) ").")
 		processPDF(fileIn,fileNam)
 	}
 	else {
