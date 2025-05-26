@@ -2770,10 +2770,7 @@ class monresult
 		{
 		case "HL7":
 			this.ext := "HL7"
-			oru_in := HL7(fileIn)														; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-			moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
-			checkEpicOrder()															; check for presence of valid Epic order
-	
+			this.processHL7(fileIn)
 
 		case "PDF":
 			this.ext := "PDF"
@@ -2788,7 +2785,10 @@ class monresult
 		
 	}
 
-	processHL7() {
+	processHL7(fileIn) {
+		oru_in := HL7(fileIn)														; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+		moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
+		checkEpicOrder()															; check for presence of valid Epic order
 		
 	}
 }
