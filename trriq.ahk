@@ -2786,9 +2786,22 @@ class monresult
 	}
 
 	processHL7(fileIn) {
-		oru_in := HL7(fileIn)														; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-		moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
-		checkEpicOrder()															; check for presence of valid Epic order
+		oru_in := HL7(fileIn)															; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+		try PDFfileIn := path.PrevHL7in . oru_in.binfile								; fileIn has path .\Preventice\Results\*.pdf
+		catch
+		{
+			eventlog("No PDF extracted.")
+			pb.close()
+			MsgBox "No PDF extracted!"
+			return																		; fail early if no PDF extracted from oru_in
+		}
+
+		moveHL7dem(oru_in)																; prepopulate the fldval["dem"] values
+		; checkEpicOrder()																; check for presence of valid Epic order
+		
+		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
+		fileNamTxt := fileNam ".txt"
+		fileNamHl7txt := fileNam "_hl7.txt"
 		
 	}
 }
