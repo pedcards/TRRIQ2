@@ -2752,7 +2752,38 @@ setwqupdate() {
 ;#endregion
 
 ;#region == REPORT/PDF FUNCTIONS =======================================================
+class monresult 
+{
+/*	Input a file, process either HL7 ORU or PDF 
+ */
+	__New(fileIn) {
+		SplitPath(fileIn,,,&fileExt)
+		switch fileExt, false
+		{
+		case "HL7":
+			this.ext := "HL7"
+			oru_in := HL7(path.PrevHL7in . fldval.path.fnam)							; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+			moveHL7dem(oru_in)															; prepopulate the fldval["dem-"] values
+			checkEpicOrder()															; check for presence of valid Epic order
+	
 
+		case "PDF":
+			this.ext := "PDF"
+		default:
+			phase.hide()
+			eventlog("Filetype cannot be determined from WQlist (somehow).")
+			MsgBox("Unrecognized filetype (somehow)",, 16) 
+			return Error
+		}
+	}
+	__Call(Name, Params) {
+		
+	}
+
+	processHL7() {
+		
+	}
+}
 ProcessHl7result() {
 /*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
 */
