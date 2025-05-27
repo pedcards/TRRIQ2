@@ -1896,9 +1896,9 @@ WQpreventiceResults(&wqfiles,&lv) {
 			dt := ParseDate(res.date)
 			newFnam := strQ(res.mrn
 				, "### " ParseName(res.name).last " " dt.MM "-" dt.DD "-" dt.YYYY "_WQ" id "_H-full.pdf"
-				, fldval.filename)
+				, res_in.binfile)
 			eventlog("Extracted full disclosure PDF from " fileIn " to " newFnam)
-			FileMove(path.PrevHL7in fldval.filename, path.holterPDF newFnam , 1)
+			FileMove(path.PrevHL7in res_in.binfile, path.holterPDF newFnam , 1)
 			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			Continue
 		}
