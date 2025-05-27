@@ -3152,26 +3152,22 @@ readPrevTxt() {
 		- Enrollments (inactive, as taken from PSR_v2)
 		- Inventory
 */
-	global wq
+	global wq, psr
 	
 	pb.title("Updating Patient Status Report data")
 
-	psr := XML(path.data "Patient Status Report_v2.xml")
-		psrdate := parseDate(psr.selectSingleNode("Report").getAttribute("ReportTitle"))	; report date is in Central Time
-		psrDT := psrdate.YMDHMS
 	psrlastDT := wq.selectSingleNode("/root/pending").getAttribute("update")
-	if (psrDT>psrlastDT) {																; check if psrDT more recent
-		pb.sub("Reading registration updates...")
-		dets := psr.selectNodes("//Details_Collection/Details")
-		numdets := dets.length()
-		loop numdets
+	if (psr.DT>psrlastDT) {																; check if psrDT more recent
+		pb.sub("Reading registration updates...")										; note: PSR  date is in Central Time
+
+		loop psr.numdetails
 		{
 			pb.set(A_Index)
-			k := dets.item(numdets-A_Index)												; read nodes from oldest to newest
+			k := psr.details.item(psr.numdetails-A_Index)								; read nodes from oldest to newest
 			parsePrevEnroll(k)
 		}
-		wq.selectSingleNode("/root/pending").setAttribute("update",psrDT)				; set pending[@update] attr
-		eventlog("Patient Status Report " psrDT " updated.")
+		wq.selectSingleNode("/root/pending").setAttribute("update",psr.DT)				; set pending[@update] attr
+		eventlog("Patient Status Report " psr.DT " updated.")
 
 		lateReportNotify()
 	}
