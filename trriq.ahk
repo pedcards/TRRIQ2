@@ -3230,8 +3230,8 @@ parsePrevEnroll(det) {
 				, site:(detprov.site ? detprov.site : psrsite)
 				, id:det.getAttribute("CSN_SecondaryID1") 
 				, duration:det.getAttribute("Study_Duration") }
-	}
-	if (det~="^enroll\|") {																; string comes from prev.txt
+	} 
+	else if (det~="^enroll\|") {														; string comes from prev.txt
 		tmp := StrSplit(det, "|")
 		res := {  date:tmp.2
 				, name:tmp.3
