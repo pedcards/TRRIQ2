@@ -3366,7 +3366,8 @@ parsePrevEnroll(det) {
 			checkweb(id)
 			return
 		}
-		if (id:=wq.selectSingleNode("/root/orders/enroll[mrn='" res.mrn "']").getAttribute("id")) {
+		if (k:=wq.selectSingleNode("/root/orders/enroll[mrn='" res.mrn "']")) {
+			id := k.getAttribute("id")
 			en:=readWQ(id)																; MRN found in Orders
 			dt0:=dateDiff(en.date,res.date,"Days")
 			
