@@ -1846,7 +1846,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 	Add line to WQlv_in
 	Add line to wqfiles
 */
-	global wq, path, sites, monTypes
+	global wq, path, sites, monTypes, psr
 
 	hl7dirMap := Map()
 	tmpHolters := ""
@@ -1854,41 +1854,70 @@ WQpreventiceResults(&wqfiles,&lv) {
 	{
 		fileIn := A_LoopFileName
 		x := StrSplit(fileIn,"_")
-		try  {
-			id := hl7dirMap[fileIn]														; will be true if have found this wqid in this instance, else null
-		}
-		catch {																			; can't match, so derive it
-			tmptxt := fileread(path.PrevHL7in fileIn)
-			obr:= segSplit("OBR")														; get OBR segment
-			obr.req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
-			obr.prov := strX(obr[17],"^",1,1,"^",1)
-			obr.site := strX(obr.prov,"-",1,1,"",0)
-			pv1 := segSplit("PV1")														; get PV1 segment
-			pv1.dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
-			pid := segSplit("PID")
-			pid.dob := niceDate(pid[8])
-			obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
-						
-			if (obr.site="") {															; no "-site" in OBR.17 name
+		changed := false
+		obr := ""
+		pv1 := ""
+		pid := ""
+		obx1 := ""
+		match := ""
+		m1 := ""
+
+		tmptxt := fileread(path.PrevHL7in fileIn)
+		obr:= segSplit("OBR")														; get OBR segment
+		obr.req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
+		obr.prov := strX(obr[17],"^",1,1,"^",1)
+		obr.site := strX(obr.prov,"-",1,1,"",0)
+		obr.date := obr[8]
+		pv1 := segSplit("PV1")														; get PV1 segment
+		pv1.dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
+		pid := segSplit("PID")
+		pid.mrn := pid[4]
+		pid.name := ParseName(pid[6])
+		pid.nameL := pid.name.last
+		pid.dob := niceDate(pid[8])
+		obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
+					
+		if (obr.site="") {															; no "-site" in OBR.17 name
+			match := psr.match("[@PatientLastName=`"" pid.nameL "`"][@MRN1=`"" pid.mrn "`"]")
+			m1 := RegExReplace(match.getAttribute("Practice_Name"),"GB-SCH-")
+			if (sites.tracked ~= m1) {
+				changed := true
+				obr.site := m1
+				eventlog(fileIn " - " obr.prov ". Found valid site " m1 " in PSR.")
+			} 
+			else if (sites.ignored ~= m1) {
+				eventlog("Unregistered Sites0 report (" fileIn " - " m1 ")")
+				FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
+				continue
+			}
+			else {
+				changed := true
 				obr.site:="MAIN"
 				eventlog(fileIn " - " obr.prov 
 					. ". No site associated with provider, substituting MAIN. Check ORM and Preventice users.")
 			}
-			if InStr(sites.ignored,obr.site) {
-				eventlog("Unregistered Sites0 report (" fileIn " - " obr.site ")")
-				FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
-				continue
-			}
-			if (readWQ(obr.req).mrn) {													; check if obr_req is valid wqid
-				id := obr.req
-				hl7dirMap[fileIn] := id
-			} 
-			else if (id := findWQid(pv1.dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
-				hl7dirMap[fileIn] := id
-			}
-			else {																		; can't find wqid, just admit defeat
-				id := ""
-			}
+		}
+		if InStr(sites.ignored,obr.site) {
+			eventlog("Unregistered Sites0 report (" fileIn " - " obr.site ")")
+			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
+			continue
+		}
+		if (readWQ(obr.req).mrn) {													; check if obr_req is valid wqid
+			id := obr.req
+			hl7dirMap[fileIn] := id
+		} 
+		else if (id := findWQid(pv1.dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
+			hl7dirMap[fileIn] := id
+		}
+		else {																		; can't find wqid, just admit defeat
+			id := ""
+		}
+		
+		if (changed) {
+			n1 := "/root/pending/enroll[@id='" id "']"
+			wq.addElement(n1,"site",obr.site)
+			WriteOut("/root/pending/enroll[@id='" id "']","site")
+			eventlog(fileIn " - " obr.prov ". Changed site to " m1 ".")
 		}
 		res := readWQ(id)																; wqid should always be present in hl7 downloads
 		if (obx1) {
