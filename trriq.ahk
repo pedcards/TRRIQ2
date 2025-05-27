@@ -3482,14 +3482,14 @@ addPrevEnroll(id,res) {
 	global wq
 	
 	newID := "/root/pending/enroll[@id='" id "']"
-	wq.addElement("enroll","/root/pending",{id:id})
-	wq.addElement("date",newID,res.date)
-	wq.addElement("name",newID,res.name)
-	wq.addElement("mrn",newID,res.mrn)
-	wq.addElement("dev",newID,res.dev)
-	wq.addElement("prov",newID,res.prov)
-	wq.addElement("site",newID,res.site)
-	wq.addElement("webgrab",newID,A_Now)
+	wq.addElement("/root/pending","enroll",{id:id})
+	wq.addElement(newID,"date",res.date)
+	wq.addElement(newID,"name",res.name)
+	wq.addElement(newID,"mrn",res.mrn)
+	wq.addElement(newID,"dev",res.dev)
+	wq.addElement(newID,"prov",res.prov)
+	wq.addElement(newID,"site",res.site)
+	wq.addElement(newID,"webgrab",A_Now)
 	
 	return
 }
