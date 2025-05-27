@@ -3259,7 +3259,7 @@ parsePrevEnroll(det) {
 
 	/*	Check whether any params match this device
 	*/
-		if (id:=enrollcheck("[@id='" res.id "']")) {									; id returned in Preventice ORU
+		try if (id:=enrollcheck("[@id='" res.id "']")) {									; id returned in Preventice ORU
 			en := readWQ(id)
 			if (en.node="done") {
 				return
