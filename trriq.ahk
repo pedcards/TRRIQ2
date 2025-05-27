@@ -1536,18 +1536,17 @@ wqSetVal(id,node,val) {
 	global wq
 	
 	newID := "/root/pending/enroll[@id='" id "']"
-	k := wq.selectSingleNode(newID "/" node)
-	if (k.text) and (val="") {															; don't overwrite an existing value with null
-		return
-	}
 	val := RegExReplace(val,"\'","^")													; make sure no val ever contains [']
 	
-	if IsObject(k) {
+	if IsObject(k := wq.selectSingleNode(newID "/" node)) {
+		if (k.text) and (val="") {														; don't overwrite an existing value with null
+			return
+		}
 		k.text := val
 	} else {
-		wq.addElement(newID,node,val)
+		wq.addElement(newID,node,val)													; create new node with val
 	}
-	
+
 	return
 }
 
