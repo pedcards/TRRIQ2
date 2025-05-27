@@ -1554,7 +1554,7 @@ checkweb(id) {
 	global wq
 
 	en := "//enroll[@id='" id "']"
-	if (wq.selectSingleNode(en "/webgrab").text) {											; webgrab already exists
+	if (wq.getText(en "/webgrab")) {													; webgrab already exists
 		Return
 	} else {
 		wq.addElement(en,"webgrab",A_Now)
