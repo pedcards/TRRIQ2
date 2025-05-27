@@ -2776,6 +2776,10 @@ class psrV2
 
 	}
 
+	match(params) {
+		return this.xml.selectSingleNode("//Details_Collection/Details" params)
+	}
+
 }
 
 class monresult 
