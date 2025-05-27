@@ -3459,6 +3459,10 @@ parsePrevElement(id,en,res,el) {
 	*/
 		global wq
 		
+		try en.%el%
+		catch {
+			en.%el% := ""
+		}
 		if (res.%el% == en.%el%) {														; Attr[el] is same in EN (wq) as RES (txt)
 			return																		; don't do anything
 		}
