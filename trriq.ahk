@@ -88,6 +88,7 @@ SetTitleMatchMode("2")
 		wq.addElement("/root","done")
 		wq.save(gl.wq_filename)
 	}
+	psr := psrV2(path.data "Patient Status Report_v2.xml")
 
 	/*	Read call schedule (Electronic Forecast and Qgenda)
 	*/
@@ -2759,6 +2760,24 @@ setwqupdate() {
 ;#endregion
 
 ;#region == REPORT/PDF FUNCTIONS =======================================================
+class psrV2
+{
+/*	Handle Patient Status Report v2
+ */
+	__New(fileIn) {
+		this.xml := XML(fileIn)
+		
+		this.title := this.xml.selectSingleNode("Report").getAttribute("ReportTitle")
+		this.status := StrX(this.title,"Status Reported: ",1,17," - ",1,3)
+		this.DT := ParseDate(this.title).YMDHMS
+
+		this.details := this.xml.selectNodes("//Details_Collection/Details")
+		this.numdetails := this.details.length()
+
+	}
+
+}
+
 class monresult 
 {
 /*	Input a file, process either HL7 ORU or PDF 
