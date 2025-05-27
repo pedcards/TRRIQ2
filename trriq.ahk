@@ -1942,7 +1942,7 @@ WQscanHolterPDFs(&wqfiles,&lv) {
 	{
 		RegExMatch(val,"_WQ([A-Z0-9]+)_([A-Z])(-full)?\.pdf",&fnID)						; get filename WQID if PDF has been renamed (fnid.1 = wqid, fnid.2 = type, fnid.3=full)
 		id := fnID[1]
-		ftype := strQ(monStrings[fnID[2]],"###","???")
+		ftype := strQ(getMonType(fnID[2])["abbrev"],"###","???")
 		if (k:=ObjHasValue(wqfiles,id)) {												; found a PDF file whose wqid matches an hl7 in wqfiles
 			lv.Modify(k,"Col9","")														; clear the "X" in the FullDisc column
 			continue																	; skip rest of processing
