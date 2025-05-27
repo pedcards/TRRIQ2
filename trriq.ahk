@@ -3233,12 +3233,12 @@ parsePrevEnroll(det) {
 	} 
 	else if (det~="^enroll\|") {														; string comes from prev.txt
 		tmp := StrSplit(det, "|")
-		res := {  date:tmp.2
-				, name:tmp.3
-				, mrn:tmp.4
-				, dev:tmp.5
-				, prov:filterProv(tmp.6).name
-				, site:filterProv(tmp.6).site }
+		res := {  date:tmp[2]
+				, name:tmp[3]
+				, mrn:tmp[4]
+				, dev:tmp[5]
+				, prov:filterProv(tmp[6]).name
+				, site:filterProv(tmp[6]).site }
 	}
 	if (res.site="SEATTLE") {
 		res.site := "MAIN"
