@@ -1900,13 +1900,13 @@ WQpreventiceResults(&wqfiles,&lv) {
 		res := readWQ(id)															; wqid should always be present in hl7 downloads
 
 		if (obr.site="") {															; no "-site" in OBR.17 name, incorrectly registered
-			obr.site := match.clinic
-			eventlog(fileIn " - " obr.prov ". Found valid site " obr.site " in PSR.")
-
-			if InStr(sites.tracked,obr.site) {
+			if (res.site=match.clinic) {
+				changed := false
+			}
+			if InStr(sites.tracked,match.clinic) {
 				changed := true
-				obr.site := m1
-				eventlog(fileIn " - " obr.prov ". Found valid site " m1 " in PSR.")
+				obr.site := match.clinic
+				eventlog(fileIn " - " obr.prov ". Found valid site " match.clinic " in PSR.")
 			} 
 			else {
 				changed := true
@@ -1914,15 +1914,12 @@ WQpreventiceResults(&wqfiles,&lv) {
 				eventlog(fileIn " - " obr.prov 
 					. ". No site associated with provider, substituting MAIN. Check ORM and Preventice users.")
 			}
-		}
-			try if (res.site = m1) {												; wq has already been updated
-				continue
+			if (changed) {
+				n1 := "/root/pending/enroll[@id='" id "']"
+				wq.addElement(n1,"site",obr.site)
+				WriteOut("/root/pending/enroll[@id='" id "']","site")
+				eventlog(fileIn " - " obr.prov ". Changed site to " obr.site ".")
 			}
-		if (changed) {
-			n1 := "/root/pending/enroll[@id='" id "']"
-			wq.addElement(n1,"site",obr.site)
-			WriteOut("/root/pending/enroll[@id='" id "']","site")
-			eventlog(fileIn " - " obr.prov ". Changed site to " m1 ".")
 		}
 		if (obx1) {
 			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldVal, and PDF into hl7Dir
