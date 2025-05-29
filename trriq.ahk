@@ -1916,8 +1916,8 @@ WQpreventiceResults(&wqfiles,&lv) {
 			}
 			if (changed) {
 				n1 := "/root/pending/enroll[@id='" id "']"
-				wq.addElement(n1,"site",obr.site)
-				WriteOut("/root/pending/enroll[@id='" id "']","site")
+				wq.setText(n1 "/site",obr.site)
+				WriteOut(n1,"site")
 				eventlog(fileIn " - " obr.prov ". Changed site to " obr.site ".")
 			}
 		}
