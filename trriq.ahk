@@ -1878,7 +1878,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 		obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
 		match := psr.match("[@PatientLastName=`"" pid.nameL "`"][@MRN1=`"" pid.mrn "`"]")
 
-		if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.clinic) {		; remove all sites0 results
+		try if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.clinic) {		; remove all sites0 results
 			eventlog("Unregistered Sites0 report " fileIn " - " obr.site "|" match.clinic ".")
 			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			continue
