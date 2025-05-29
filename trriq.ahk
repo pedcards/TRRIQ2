@@ -1903,7 +1903,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 			if (res.site=match.clinic) {
 				changed := false
 			}
-			if InStr(sites.tracked,match.clinic) {
+			else if InStr(sites.tracked,match.clinic) {
 				changed := true
 				obr.site := match.clinic
 				eventlog(fileIn " - " obr.prov ". Found valid site " match.clinic " in PSR.")
