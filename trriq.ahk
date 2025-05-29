@@ -1854,13 +1854,6 @@ WQpreventiceResults(&wqfiles,&lv) {
 	{
 		fileIn := A_LoopFileName
 		x := StrSplit(fileIn,"_")
-		changed := false
-		obr := ""
-		pv1 := ""
-		pid := ""
-		obx1 := ""
-		match := ""
-		id := ""
 
 		tmptxt := fileread(path.PrevHL7in fileIn)
 		obr:= segSplit("OBR")														; get OBR segment
@@ -1892,6 +1885,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 		else if (id := match.wqid) {												; try to find wqid within PSR
 		}
 		else {																		; can't find wqid, just admit defeat
+			id := ""
 			eventlog(fileIn " - Cannot identify WQID from HL7 or PSR.")
 		}
 		if (id) {
