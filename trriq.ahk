@@ -2809,17 +2809,19 @@ class psrV2
 			node := this.xml.selectSingleNode("//Details_Collection/Details" params)
 		}
 		return {node:node,
-			clinic:RegExReplace(this.getval(node,"Practice_Name"),"GB-SCH-"),
+			site:RegExReplace(this.getval(node,"Practice_Name"),"GB-SCH-"),
+			name:RegExReplace(format("{:U}"
+						,this.getval(node,"PatientLastName") ", " this.getval(node,"PatientFirstName"))
+						,"\'","^"),
 			nameL:this.getval(node,"PatientLastName"),
 			nameF:this.getval(node,"PatientFirstName"),
 			mrn:this.getval(node,"MRN1"),
 			dob:this.getval(node,"Patient_DOB"),
-			dev:this.getval(node,"Device_Type"),
-			ser:this.getval(node,'Device_Serial'),
-			wqid:this.getval(node,"CSN_SecondaryID1"),
-			date:this.getval(node,"Date_Enrolled"),
-			dur:this.getval(node,"Study_Duration"),
-			prov:this.getval(node,"Ordering_Physician"),
+			dev:this.getval(node,"Device_Type") " - " this.getval(node,'Device_Serial'),
+			id:this.getval(node,"CSN_SecondaryID1"),
+			date:ParseDate(this.getval(node,"Date_Enrolled")).YMD,
+			duration:this.getval(node,"Study_Duration"),
+			prov:filterProv(this.getval(node,"Ordering_Physician")).name,
 			ind:this.getval(node,"ICD_10_Codes_WITH_Description")
 		}
 	}
