@@ -3290,21 +3290,10 @@ parsePrevEnroll(det) {
 	Match to existing/likely enroll nodes
 	Update enroll node with new info if missing
 */
-	global wq, sites
+	global wq, psr, sites
 
 	if IsObject(det) {																	; object comes from PSR
-		detprov := filterProv(det.getAttribute("Ordering_Physician"))
-		psrsite := RegExReplace(det.getAttribute("Practice_Name"),"GB-SCH-") 
-		res := {  date:parseDate(det.getAttribute("Date_Enrolled")).YMD
-				, name:RegExReplace(format("{:U}"
-						,det.getAttribute("PatientLastName") ", " det.getAttribute("PatientFirstName"))
-						,"\'","^")
-				, mrn:det.getAttribute("MRN1")
-				, dev:det.getAttribute("Device_Type") " - " det.getAttribute("Device_Serial")
-				, prov:detprov.name
-				, site:(detprov.site ? detprov.site : psrsite)
-				, id:det.getAttribute("CSN_SecondaryID1") 
-				, duration:det.getAttribute("Study_Duration") }
+		res := psr.match(det)
 	} 
 	else if (det~="^enroll\|") {														; string comes from prev.txt
 		tmp := StrSplit(det, "|")
