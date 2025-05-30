@@ -2801,7 +2801,13 @@ class psrV2
 	}
 
 	match(params) {
-		node := this.xml.selectSingleNode("//Details_Collection/Details" params)
+		if IsObject(params) {
+			if params.nodeName="Details" {
+				node := params
+			}
+		} else {
+			node := this.xml.selectSingleNode("//Details_Collection/Details" params)
+		}
 		return {node:node,
 			clinic:RegExReplace(this.getval(node,"Practice_Name"),"GB-SCH-"),
 			nameL:this.getval(node,"PatientLastName"),
