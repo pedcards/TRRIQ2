@@ -3317,7 +3317,7 @@ parsePrevEnroll(det) {
 	
 	/*	Ignore sites.ignored enrollments entirely
 	*/
-		if (res.site~=sites.ignored) {
+		if (sites.ignored~=res.site) {
 			Return
 		}
 
