@@ -1894,13 +1894,13 @@ WQpreventiceResults(&wqfiles,&lv) {
 		res := readWQ(id)															; wqid should always be present in hl7 downloads
 
 		if (obr.site="") {															; no "-site" in OBR.17 name, incorrectly registered
-			if (res.site=match.clinic) {
+			if (res.site=match.site) {
 				changed := false
 			}
-			else if InStr(sites.tracked,match.clinic) {
+			else if InStr(sites.tracked,match.site) {
 				changed := true
-				obr.site := match.clinic
-				eventlog(fileIn " - " obr.prov ". Found valid site " match.clinic " in PSR.")
+				obr.site := match.site
+				eventlog(fileIn " - " obr.prov ". Found valid site " match.site " in PSR.")
 			} 
 			else {
 				changed := true
