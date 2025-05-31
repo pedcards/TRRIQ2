@@ -974,9 +974,9 @@ parseORM() {
 		, provORC12:provHL7
 		, type:encType
 		, loc:location
-		, Account:fldval["ORC_ReqNum"]
-		, accountnum:fldval["PID_AcctNum"]
-		, encnum:fldval["PV1_VisitNum"]
+		; , Account:fldval["ORC_ReqNum"]
+		; , accountnum:fldval["PID_AcctNum"]
+		; , encnum:fldval["PV1_VisitNum"]
 		, order:fldval["ORC_ReqNum"]
 		, accession:fldval["ORC_FillerNum"]
 		, UID:tobase(fldval["ORC_ReqNum"] RegExReplace(fldval["ORC_FillerNum"],"[^0-9]"),36)
@@ -1683,8 +1683,8 @@ WQepicOrdersNew() {
 			}
 			wqSetVal(id,"order",e0.order)
 			wqSetVal(id,"accession",e0.accession)
-			wqSetVal(id,"acctnum",e0.accountnum)
-			wqSetVal(id,"encnum",e0.encnum)	
+			; wqSetVal(id,"acctnum",e0.accountnum)
+			; wqSetVal(id,"encnum",e0.encnum)	
 			k.setAttribute("id",e0.UID)
 			eventlog("Found pending/enroll=" id " that matches new Epic order " e0.order ". " e0.match_NM)
 			eventlog("enroll id " id " changed to " e0.UID)
@@ -1738,8 +1738,8 @@ WQepicOrdersNew() {
 			wq.addElement(newID,"prov",e0.prov)
 			wq.addElement(newID,"provname",e0.provname)
 			wq.addElement(newID,"site",e0.loc)
-			wq.addElement(newID,"acctnum",e0.accountnum)
-			wq.addElement(newID,"encnum",e0.encnum)
+			; wq.addElement(newID,"acctnum",e0.accountnum)
+			; wq.addElement(newID,"encnum",e0.encnum)
 			wq.addElement(newID,"ind",e0.ind)
 		eventlog("Added order ID " e0.UID ". " e0.name)
 		
@@ -2611,7 +2611,7 @@ moveHL7dem(oru) {
 
 	fldVal.dem["Indication"] := tryfldval("ind")
 	fldVal.dem["Site"] := tryfldval("site")
-	fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
+	; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
 	fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
 	fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
 	fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
@@ -3043,7 +3043,7 @@ CheckProc() {
 	ptDem["DOB"] := fldval.dem["DOB"] 
 	ptDem["Sex"] := fldval.dem["Sex"]
 	ptDem["Loc"] := fldval.dem["Site"]
-	ptDem["Account"] := fldval.dem["Billing"]											; If want to force click, don't include Acct Num
+	; ptDem["Account"] := fldval.dem["Billing"]											; If want to force click, don't include Acct Num
 	ptDem["Provider"] := filterProv(fldval.dem["Ordering"]).name
 	ptDem["EncDate"] := fldval.dem["Test_date"]
 	ptDem["Indication"] := fldval.dem["Indication"]
@@ -3091,7 +3091,7 @@ CheckProc() {
 		fldVal.dem["DOB"] := ptDem["DOB"] 
 		fldVal.dem["Sex"] := ptDem["Sex"]
 		fldVal.dem["Site"] := ptDem["Loc"]
-		fldVal.dem["Billing"] := ptDem["Account"]
+		; fldVal.dem["Billing"] := ptDem["Account"]
 		fldVal.dem["Ordering"] := ptDem["Provider"]
 		fldVal.dem["Test_date"] := ptDem["EncDate"]
 		fldVal.dem["Indication"] := ptDem["Indication"]
@@ -3136,7 +3136,7 @@ CheckProc() {
 	fldVal.dem["DOB"] := ptDem["DOB"] 
 	fldVal.dem["Sex"] := ptDem["Sex"]
 	fldVal.dem["Site"] := ptDem["Loc"]
-	fldVal.dem["Billing"] := ptDem["Account"]
+	; fldVal.dem["Billing"] := ptDem["Account"]
 	fldVal.dem["Ordering"] := ptDem["Provider"]
 	fldVal.dem["Test_date"] := ptDem["EncDate"]
 	fldVal.dem["Indication"] := ptDem["Indication"]
@@ -3392,8 +3392,8 @@ parsePrevEnroll(det) {
 				wqSetVal(id,"name",en.name)												; copy remaining values from order (en)
 				wqSetVal(id,"order",en.order)
 				wqSetVal(id,"accession",en.accession)
-				wqSetVal(id,"accountnum",en.acctnum)
-				wqSetVal(id,"encnum",en.encnum)
+				; wqSetVal(id,"accountnum",en.acctnum)
+				; wqSetVal(id,"encnum",en.encnum)
 				wqSetVal(id,"ind",en.ind)
 				wq.removeNode("/root/orders/enroll[@id='" id "']")
 				eventlog("addPrevEnroll moved Order ID " id " for " en.name " to Pending.")
@@ -3439,8 +3439,8 @@ parsePrevEnroll(det) {
 				addPrevEnroll(id,res)													; create a <pending> record
 				wqSetVal(id,"order",en.order)
 				wqSetVal(id,"accession",en.accession)
-				wqSetVal(id,"accountnum",en.acctnum)
-				wqSetVal(id,"encnum",en.encnum)
+				; wqSetVal(id,"accountnum",en.acctnum)
+				; wqSetVal(id,"encnum",en.encnum)
 				wqSetVal(id,"prov",en.provname)
 				wqSetVal(id,"dev",res.dev)
 				wqSetVal(id,"date",res.date)
