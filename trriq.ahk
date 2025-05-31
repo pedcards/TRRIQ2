@@ -3323,7 +3323,7 @@ parsePrevEnroll(det) {
 
 	/*	Check whether any params match this device
 	*/
-		try if (id:=enrollcheck("[@id='" res.id "']")) {									; id returned in Preventice ORU
+		try if (id:=enrollcheck("[@id='" res.id "']")) {								; id returned in Preventice ORU
 			en := readWQ(id)
 			if (en.node="done") {
 				return
@@ -3514,31 +3514,31 @@ parsePrevDev(txt) {
 }
 
 parsePrevElement(id,en,res,el) {
-	/*	Update <enroll/el> node with value from result of Preventice txt parse
+/*	Update <enroll/el> node with value from result of Preventice txt parse
+
+	id	= UID
+	en	= enrollment node
+	res	= result obj from Preventice txt
+	el	= element to check
+*/
+	global wq
 	
-		id	= UID
-		en	= enrollment node
-		res	= result obj from Preventice txt
-		el	= element to check
-	*/
-		global wq
-		
-		try en.%el%
-		catch {
-			en.%el% := ""
-		}
-		if (res.%el% == en.%el%) {														; Attr[el] is same in EN (wq) as RES (txt)
-			return																		; don't do anything
-		}
-		if (en.%el%) and (res.%el%="") {												; Never overwrite a node with NULL
-			return
-		}
-		
-		wqSetVal(id,el,res.%el%)
-		eventlog(en.name " (" id ") changed WQ " el " '" en.%el% "' ==> '" res.%el% "'")
-		
+	try en.%el%
+	catch {
+		en.%el% := ""
+	}
+	if (res.%el% == en.%el%) {														; Attr[el] is same in EN (wq) as RES (txt)
+		return																		; don't do anything
+	}
+	if (en.%el%) and (res.%el%="") {												; Never overwrite a node with NULL
 		return
 	}
+	
+	wqSetVal(id,el,res.%el%)
+	eventlog(en.name " (" id ") changed WQ " el " '" en.%el% "' ==> '" res.%el% "'")
+	
+	return
+}
 	
 addPrevEnroll(id,res) {
 /*	Create <enroll id> based on res object
