@@ -104,14 +104,6 @@ SetTitleMatchMode("2")
 
 	pb.sub("Indication codes")
 	indCodes := readIni("indCodes")																		; valid indications
-	; *** try to use indCodes array by itself
-	; ***
-	; for key,val in indCodes																				; in option string indOpts
-	; {
-	; 	tmpVal := strX(val,"",1,0,":",1)
-	; 	tmpStr := strX(val,":",1,1,"",0)
-	; 	indOpts .= tmpStr "|"
-	; }
 
 	pb.sub("Monitor strings")
 	monStrings := readIni("Monitors")																	; Monitor key strings
