@@ -1411,8 +1411,7 @@ filterProv(x) {
 	x := RegExReplace(x,"^, ")															; remove preceding "(, )Albers" in event this happens
 	if (site="") {																		; no site, substitute "MAIN"
 		site := Map()
-		site[1] := "MAIN"
-		eventlog("filterProv: " x " - No site found, substituting MAIN.")
+		site[1]:=""
 	}
 	if (site[1]="TRI") {																; sometimes site improperly registered as "tri"
 		site[1] := "TRI-CITIES"
