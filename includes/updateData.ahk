@@ -349,6 +349,7 @@ readQgenda() {
 	qg_fc := Map("HC - Attending","PM_We_A",
 				"HC - Fellow Call","PM_We_F",
 				"EP Service","EP",
+				"EP Diagnostic","EP_dx",
 				"HC - ICU Attending","ICU_A",
 				"HC - ICU Fellow","ICU_F",
 				"HC - Transplant ICU Attending","Txp_CICU",
