@@ -3562,17 +3562,23 @@ lateReportNotify() {
 */
 	global path, wq, epList
 
+	if (gl.isDevt) {
+		eventlog("lateReportNotify")
+		return
+	}
+
 	Loop files path.EpicHL7out "*.hl7"
 	{
 		uid := strX(A_LoopFileName,"@",0,1,".hl7",1,4)
 		e0 := wq.selectSingleNode("/root/done/enroll[@id='" uid "']/done")
-		if (abs(DateDiff(A_Now,e0.text,"Days") > 2)) {
-			read := e0.getAttribute("read")
-			epStr := epList[read]
-			name := ParseName(epStr).init
-			tmp := httpComm("late&to=" name)
-			eventlog("Notification email " tmp " to " name)
+		if (abs(DateDiff(A_Now,e0.text,"Days") < 3)) {
+			continue
 		}
+		read := e0.getAttribute("read")
+		epStr := epList[read]
+		name := ParseName(epStr).init
+		tmp := httpComm("late&to=" name)
+		eventlog("Notification email " tmp " to " name)
 	}
 	Return
 }
