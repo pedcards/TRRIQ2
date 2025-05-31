@@ -133,11 +133,6 @@ SetTitleMatchMode("2")
 
 	pb.sub("Reading EP list")
 	epList := readIni("epRead")																			; reading EP
-	; for key in epList																					; option string epStr
-	; {
-	; 	epStr .= key "|"
-	; }
-	; epStr := Trim(epStr,"|")
 
 	pb.sub("Screen dimensions")
 	dims := getDims()
