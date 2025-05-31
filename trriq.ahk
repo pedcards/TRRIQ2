@@ -419,7 +419,7 @@ PhaseGUI() {
 	}
 
 	prevGrab(*) {
-		Run("prevgrab.exe")
+		Run(".\files\prevgrab.exe")
 		return
 	}
 
@@ -3237,6 +3237,7 @@ readPrevTxt() {
 	txt := FileRead(filenm)
 	txt := StrReplace(txt, "`n", "`n",, &n)		 										; count number of lines
 	devct := false
+	enrollct := false
 	
 	loop parse txt, "`r`n", "`r"
 	{
