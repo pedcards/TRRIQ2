@@ -20,7 +20,7 @@ SetTitleMatchMode("2")
 	; A_Args[1] := "ftp"				;*******************************
 
 	gl.TRRIQ_path := A_ScriptDir
-	gl.files_dir := gl.TRRIQ_path "\files"
+	gl.data_dir := gl.TRRIQ_path "\data"
 	gl.pdfTemp := gl.TRRIQ_path "\pdfTemp"
 	wq := XML(gl.TRRIQ_path "\worklist.xml")
 	
@@ -78,8 +78,8 @@ SetTitleMatchMode("2")
 		if (gl.inv_ct < gl.inv_tot) {
 			gl.FAIL := true
 		}
-		FileDelete(gl.files_dir "\prev.txt*")											; writeout each one regardless
-		FileAppend(gl.prevtxt, gl.files_dir "\prev.txt")
+		FileDelete(gl.data_dir "\prev.txt*")											; writeout each one regardless
+		FileAppend(gl.prevtxt, gl.data_dir "\prev.txt")
 		eventlog("Enroll " gl.enroll_ct ", Inventory " gl.inv_ct ". (" round((A_TickCount-gl.t0)/1000,2) " sec)")
 	
 	}
