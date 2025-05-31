@@ -2801,6 +2801,9 @@ class psrV2
 			}
 		} else {
 			node := this.xml.selectSingleNode("//Details_Collection/Details" params)
+		} 
+		if !IsObject(node) {
+			return
 		}
 		return {node:node,
 			site:RegExReplace(this.getval(node,"Practice_Name"),"GB-SCH-"),
