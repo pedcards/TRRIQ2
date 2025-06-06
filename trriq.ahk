@@ -3554,11 +3554,6 @@ lateReportNotify() {
 */
 	global path, wq, epList
 
-	if (gl.isDevt) {
-		eventlog("lateReportNotify")
-		return
-	}
-
 	Loop files path.EpicHL7out "*.hl7"
 	{
 		uid := strX(A_LoopFileName,"@",0,1,".hl7",1,4)
@@ -3686,6 +3681,9 @@ divTime(sec,div) {
 }
 
 httpComm(verb) {
+	if (gl.isDevt) {															; don't actually send out if this isDevt
+		return
+	}
 	url := "http://depts.washington.edu/pedcards/change/direct.php?" 
 			. "do=" . verb
 	
