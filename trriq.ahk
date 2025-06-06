@@ -1730,7 +1730,7 @@ WQepicOrdersNew() {
 			  e0.MRN "_" 
 			. fldval["PID_NameL"] "^" fldval["PID_NameF"] "_"
 			. e0.date "_@"
-			. e0.uid 																	; new ORM filename ends with _[UID]Z.hl7
+			. e0.uid 																	; new ORM filename ends with _@[UID].hl7
 			. ".hl7"
 		
 		FileMove(A_LoopFileFullPath, path.EpicHL7in . fileOut)							; and rename ORM file
