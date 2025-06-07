@@ -21,6 +21,7 @@ SetTitleMatchMode("2")
 
 	gl.TRRIQ_path := getTRRIQpath()
 	gl.data_dir := gl.TRRIQ_path "\data"
+	gl.files_dir := gl.TRRIQ_path "\files"
 	gl.pdfTemp := gl.TRRIQ_path "\pdfTemp"
 	wq := XML(gl.TRRIQ_path "\worklist.xml")
 	
@@ -499,7 +500,7 @@ readIni(section) {
 		, i_res
 		, i_type := []
 		, i_lines := []
-		, iniFile := ".\files\prevgrab.ini"
+		, iniFile := gl.files_dir "\prevgrab.ini"
 	i_type.var := i_type.obj := i_type.arr := false
 
 	x:=IniRead(iniFile,section)
