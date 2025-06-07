@@ -19,7 +19,7 @@ SetTitleMatchMode("2")
 	}
 	; A_Args[1] := "ftp"				;*******************************
 
-	gl.TRRIQ_path := A_ScriptDir
+	gl.TRRIQ_path := getTRRIQpath()
 	gl.data_dir := gl.TRRIQ_path "\data"
 	gl.pdfTemp := gl.TRRIQ_path "\pdfTemp"
 	wq := XML(gl.TRRIQ_path "\worklist.xml")
@@ -462,6 +462,20 @@ FilePrepend( Text, Filename ) {
 	file.pos:=0
 	File.Write(text)
 	File.Close()
+}
+
+getTRRIQpath() {
+	path := A_ScriptFullPath
+	loop 3
+	{
+		SplitPath(path,,&dir)
+		short := StrX(dir,"\",0,1,"",0,0)
+		if InStr(short,"TRRIQ") {
+			return dir
+		} else {
+			path := StrX(dir,"",1,0,"\",0,0)
+		}
+	}
 }
 
 readIni(section) {
