@@ -1611,7 +1611,7 @@ WQscanEpicOrders(lv) {
 
 WQepicOrdersNew() {
 /*	First pass: process new files
-	Find noval (not renamed) hl7 files in path.EpicHL7in
+	Find novel (not renamed) hl7 files in path.EpicHL7in
 	Find matching <enroll> node
 		Skip sites0
 		Skip Name or MRN string varies by more than 15%
@@ -1740,7 +1740,7 @@ WQepicOrdersNew() {
 }
 
 WQepicOrdersPrevious(lv) {
-/*	Second pass: scan previously added *Z.hl7 files
+/*	Second pass: scan previously added _@*.hl7 files
 	Another chance to clear sites0 and remnant files
 	Add line to Inbox LV
 */
