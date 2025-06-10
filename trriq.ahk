@@ -2605,14 +2605,9 @@ moveHL7dem(oru) {
 
 checkEpicOrder() {
 /*	Check for presence of valid <pending> node (has accession number)
-	
 	Check for <orders> node that matches the parsed ORU
-	
-	"In-flight" legacy results will not have existing Epic orders
-	Epic order number necessary to move forward with resulting
-	If needed, MA will place order and check-in study to create ORM
 */
-	global fldval, wq
+	global fldval
 	
 	if (tryfldval("accession")) {														; Accession number exists, return to processing
 		return
@@ -2621,39 +2616,34 @@ checkEpicOrder() {
 	/*	Search for <orders/enroll> node that matches name in this result
 		Only occurs if ORM parsed but has no matching registration
 	*/
-	loop (ens := wq.selectNodes("/root/orders/enroll")).Length
-	{
+	enOrders := ""
+	loop (ens := wq.selectNodes("/root/orders/enroll[name=`"" fldval.dem["Name"] "`"]")).Length {	; Add all orders matching <name> to string
 		en := ens.item(A_Index-1)
 		en_id := en.getAttribute("id")
-		en_name := en.selectSingleNode("name").text
-		en_date := en.selectSingleNode("date").text
-		en_mrn := en.selectSingleNode("mrn").text
-		en_mon := en.selectSingleNode("mon").text										; en_mon=order HOL|BGM|BGH 
-		
-		if (en_name = fldval.dem["Name"]) {
-			eventlog("Found order for " en_name " (" en_id "), " en_mon ".")
-			pb.hide()
-			ask := MsgBox("Found this:`n"
-				.   "   " en_name "`n"
-				.   "   " parseDate(en_date).MDY "`n"
-				.   "   " en_mon "`n`n"
-				. "Use this order?"
-				, 262196)
-			if (ask="Yes")
-			{
-				fldval.order := en.selectSingleNode("order").text
-				fldval.accession := en.selectSingleNode("accession").text
-				wqsetval(fldval.wqid,"order",fldval.order)
-				wqsetval(fldval.wqid,"accession",fldval.accession)
-				writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
-				eventlog("Used order.")
-				return
-			} else {
-				eventlog("Cancelled.")
-			}
-			pb.Show()
-		}
+		en_date := wq.getText(en.selectSingleNode("date"))
+		en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
+		enOrders .= en_date "|" en_id "|" en_mon "`n"
 	}
+	if (enOrders="") {
+		pb.hide()
+		eventlog("No Epic order found.")
+		phase.hide()
+		MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
+		phase.show()
+		return
+	}
+	enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
+	enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
+
+	en_id := enOrd[2]
+	en := wq.selectSingleNode("/root/orders/enroll[@id=" en_id "]")
+	fldval.order := wq.getText(en.selectSingleNode("order"))
+	fldval.accession := wq.getText(en.selectSingleNode("accession"))
+	wqsetval(fldval.wqid,"order",fldval.order)
+	wqsetval(fldval.wqid,"accession",fldval.accession)
+	writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
+	eventlog("Used order " fldval.order "/" fldval.accession)
+	pb.Show()
 	
 	/*	Check if valid order already exists
 		Tech must find Order Report that includes "Order #" and "Accession #"
@@ -2861,7 +2851,7 @@ class monresult
 		}
 
 		moveHL7dem(oru_in)																; prepopulate the fldval["dem"] values
-		; checkEpicOrder()																; check for presence of valid Epic order
+		checkEpicOrder()																; check for presence of valid Epic order
 
 		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
 		fileNamTxt := fileNam ".txt"
