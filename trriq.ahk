@@ -2570,39 +2570,6 @@ readWQlv(agc,row,*)
 	return
 }
 
-moveHL7dem(oru) {
-/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
-*/
-	global fldVal
-
-	obxVal := oru.fldval
-
-	fldval.dem := Map()
-	
-	name := parseName(tryfldval("name"))
-	fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
-	fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
-	fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
-	fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
-	fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
-	fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
-						, (obxVal["PID_Sex"]~="F") ? "Female" 
-						: (obxVal["PID_Sex"]~="M") ? "Male"
-						: (obxVal["PID_Sex"]~="U") ? "Unknown"
-						: (obxVal["PID_Sex"]~="X")
-						,tryfldval("sex"))
-
-	fldVal.dem["Indication"] := tryfldval("ind")
-	fldVal.dem["Site"] := tryfldval("site")
-	; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
-	fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
-	fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
-	fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
-
-	return
-
-}
-
 checkEpicOrder() {
 /*	Check for presence of valid <pending> node (has accession number)
 	Check for <orders> node that matches the parsed ORU
@@ -2764,8 +2731,8 @@ class monresult
 			return																		; fail early if no PDF extracted from oru_in
 		}
 
-		moveHL7dem(oru_in)																; prepopulate the fldval["dem"] values
-		checkEpicOrder()																; check for presence of valid Epic order
+		this.moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
+		checkEpicOrder()																; check for presence of valid Epic order *** this may be obsolete
 
 		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
 		fileNamTxt := fileNam ".txt"
@@ -2796,6 +2763,38 @@ class monresult
 	}
 
 	return
+	}
+
+	moveHL7dem(oru) {
+	/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
+	*/
+		global fldVal
+
+		obxVal := oru.fldval
+
+		fldval.dem := Map()
+		
+		name := parseName(tryfldval("name"))
+		fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
+		fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
+		fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
+		fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
+		fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
+		fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
+							, (obxVal["PID_Sex"]~="F") ? "Female" 
+							: (obxVal["PID_Sex"]~="M") ? "Male"
+							: (obxVal["PID_Sex"]~="U") ? "Unknown"
+							: (obxVal["PID_Sex"]~="X")
+							,tryfldval("sex"))
+
+		fldVal.dem["Indication"] := tryfldval("ind")
+		fldVal.dem["Site"] := tryfldval("site")
+		; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
+		fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
+		fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
+		fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
+
+		return
 	}
 }
 
