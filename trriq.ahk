@@ -1130,7 +1130,7 @@ epRead() {
 
 	dlDate := FormatTime(dlDate, "yyyyMMdd")
 
-	RegExMatch(y.selectSingleNode("//call[@date='" dlDate "']/EP").text, "Oi)" epStr, &ymatch)
+	RegExMatch(y.selectSingleNode("//call[@date='" dlDate "']/EP").text, "i)" epStr, &ymatch)
 	if !(ep := ymatch.value()) {
 		ep := choiceBox(epStr,"Electronic Forecast not complete","Which EP on Monday?","Q")
 		if (ep="xClose") {
@@ -1140,7 +1140,7 @@ epRead() {
 		eventlog("Reading EP assigned to " ep ".")
 	}
 	
-	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, &epOrder))  {
+	if (RegExMatch(fldval["dem-Ordering"], "i)" epStr, &epOrder))  {
 		ep := epOrder.value()
 		fldval.MyPatient := ep
 	}
@@ -2002,7 +2002,7 @@ findFullPdf(wqid:="") {
 		
 		;---Skip any PDFs that have already been processed or are in the middle of being processed
 		if (fname~="i)-short\.pdf") {
-			RegExMatch(fname,"Oi)^\d+\s(.*?)\s([\d-]+)-short.pdf$",&x)
+			RegExMatch(fname,"i)^\d+\s(.*?)\s([\d-]+)-short.pdf$",&x)
 			fnam := path.AccessHL7out "..\ArchiveHL7\*" x[1] "_" ParseDate(x[2]).YMD "*"
 			if FileExist(fnam) {
 				FileDelete(fileIn)
