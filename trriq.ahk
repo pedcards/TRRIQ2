@@ -2703,7 +2703,7 @@ class monresult
 	if (fldval.dev~="PLUS") {
 		; gosub Event_BGH_Hl7
 	} else if (fldVal.dev~="Mini EL") {
-		Holter_BGM_EL_HL7(oru_in)
+		this.Holter_BGM_EL_HL7(oru_in)
 	} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
 		; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
 	} else {
@@ -2802,6 +2802,42 @@ class monresult
 
 		return
 	}
+
+	Holter_BGM_EL_HL7(oru_in) {
+		oruval := oru_in.obxVal
+
+		eventlog("Holter_BGMini_EL_HL7")
+		fldval.monType := "BGM"
+
+		if (oruval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+			eventlog("No OBX data.")
+			; gosub processPDF																; need to reprocess from extracted PDF
+			Return
+		}
+		
+		fldval.dem["Test_date"] := parsedate(oruval["Enroll_Start_Dt"]).MDY
+		fldval.dem["Test_end"]	:= parsedate(oruval["Enroll_End_Dt"]).MDY
+		fldval.dem["Recording_time"] := strQ(oruval["Monitoring_Period"], parsedate("###").DHM)
+										; , calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
+		fldval.dem["Analysis_time"] := strQ(oruval["Analyzed_Data"], parsedate("###").DHM)
+										; , calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
+
+	/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
+		if (fetchQuit=true) {
+			return																			; fetchGUI was quit, so skip processing
+		}
+		
+		fieldsToCSV()
+		fieldcoladd("","INTERP","")															; fldval["Narrative"]
+		fieldcoladd("","Mon_type","Holter")
+		
+		FileCopy, %fileIn%, %fileIn%-sh.pdf
+		
+		fldval.done := true
+	*/
+	return
+	}
+
 
 }
 
@@ -2981,45 +3017,6 @@ CheckProc() {
 	
 return
 }
-
-Holter_BGM_EL_HL7(oru_in) {
-	global fldval
-
-	oruval := oru_in.obxVal
-
-	eventlog("Holter_BGMini_EL_HL7")
-	fldval.monType := "BGM"
-
-	if (oruval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
-		eventlog("No OBX data.")
-		; gosub processPDF																; need to reprocess from extracted PDF
-		Return
-	}
-	
-	fldval.dem["Test_date"] := parsedate(oruval["Enroll_Start_Dt"]).MDY
-	fldval.dem["Test_end"]	:= parsedate(oruval["Enroll_End_Dt"]).MDY
-	fldval.dem["Recording_time"] := strQ(oruval["Monitoring_Period"], parsedate("###").DHM)
-									; , calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
-	fldval.dem["Analysis_time"] := strQ(oruval["Analyzed_Data"], parsedate("###").DHM)
-									; , calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
-
-/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
-	if (fetchQuit=true) {
-		return																			; fetchGUI was quit, so skip processing
-	}
-	
-	fieldsToCSV()
-	fieldcoladd("","INTERP","")															; fldval["Narrative"]
-	fieldcoladd("","Mon_type","Holter")
-	
-	FileCopy, %fileIn%, %fileIn%-sh.pdf
-	
-	fldval.done := true
-*/
-return
-}
-
-
 
 ;#endregion
 
