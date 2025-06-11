@@ -2688,7 +2688,7 @@ class monresult
 			return																		; fail early if no PDF extracted from oru_in
 		}
 
-		moveHL7dem()																; prepopulate the fldval["dem"] values
+		moveHL7dem()																	; prepopulate the fldval["dem"] values
 		if (checkEpicOrder()) {															; check for presence of valid Epic order *** this may be obsolete
 			return																		; if fails, return
 		}
@@ -2701,11 +2701,9 @@ class monresult
 		pb.close()
 
 		if (fldval.dev~="PLUS") {
-			this.Event_BGH_Hl7(oru_in)
-		} else if (fldVal.dev~="Mini EL") {
-			this.Holter_BGM_EL_HL7(oru_in)
-		} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
-			; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
+			this.Event_BGH_Hl7(oru_in.obxVal)
+		} else if (fldVal.dev~="Mini (?!PLUS)") {										; May be able to consolidate EL and SL
+			this.Holter_BGM_HL7(oru_in.obxVal)											; as the reports will be essentiall identical
 		} else {
 			eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
 			MsgBox "No filetype match!"
