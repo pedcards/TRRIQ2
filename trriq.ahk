@@ -2688,119 +2688,119 @@ class monresult
 			return																		; fail early if no PDF extracted from oru_in
 		}
 
-		this.moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
-		if (this.checkEpicOrder()) {													; check for presence of valid Epic order *** this may be obsolete
+		moveHL7dem()																; prepopulate the fldval["dem"] values
+		if (checkEpicOrder()) {															; check for presence of valid Epic order *** this may be obsolete
 			return																		; if fails, return
 		}
-		this.extractPdfText()															; extract text for analysis and troubleshooting
+		extractPdfText()																; extract text for analysis and troubleshooting
 		FileAppend(fldval.PDFtxt, fldval.file.filenam ".txt")							; create new tempfile with result, minus PDF
 		FileMove(fldval.file.filenam ".txt", ".\tempfiles\*", 1)						; move a copy into tempfiles for troubleshooting
 		FileAppend(oru_in.file, fldval.file.filenam "_hl7.txt")							; create a copy of hl7 file 
 		FileMove(fldval.file.filenam "_hl7.txt", ".\tempfiles\*", 1)					; move into tempfiles for troubleshooting
 
-	pb.close()
+		pb.close()
 
-	if (fldval.dev~="PLUS") {
-		; gosub Event_BGH_Hl7
-	} else if (fldVal.dev~="Mini EL") {
-		this.Holter_BGM_EL_HL7(oru_in)
-	} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
-		; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
-	} else {
-		eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
-		MsgBox "No filetype match!"
-		return
-	}
-
-	return
-	}
-
-	moveHL7dem(oru) {
-	/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
-	*/
-		obxVal := oru.fldval
-
-		fldval.dem := Map()
-		
-		name := parseName(tryfldval("name"))
-		fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
-		fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
-		fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
-		fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
-		fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
-		fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
-							, (obxVal["PID_Sex"]~="F") ? "Female" 
-							: (obxVal["PID_Sex"]~="M") ? "Male"
-							: (obxVal["PID_Sex"]~="U") ? "Unknown"
-							: (obxVal["PID_Sex"]~="X")
-							,tryfldval("sex"))
-
-		fldVal.dem["Indication"] := tryfldval("ind")
-		fldVal.dem["Site"] := tryfldval("site")
-		; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
-		fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
-		fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
-		fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
+		if (fldval.dev~="PLUS") {
+			; gosub Event_BGH_Hl7
+		} else if (fldVal.dev~="Mini EL") {
+			this.Holter_BGM_EL_HL7(oru_in)
+		} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
+			; gosub Holter_BGM_SL_Hl7															; as the reports will be essentiall identical
+		} else {
+			eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
+			MsgBox "No filetype match!"
+			return
+		}
 
 		return
-	}
 
-	checkEpicOrder() {
-	/*	Check for presence of valid <pending> node (has accession number)
-		Check for <orders> node that matches the parsed ORU
-	*/
-		if (tryfldval("accession")) {														; Accession number exists, return to processing
+		moveHL7dem() {
+		/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
+		*/
+			obxVal := oru_in.fldval
+
+			fldval.dem := Map()
+			
+			name := parseName(tryfldval("name"))
+			fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
+			fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
+			fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
+			fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
+			fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
+			fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
+								, (obxVal["PID_Sex"]~="F") ? "Female" 
+								: (obxVal["PID_Sex"]~="M") ? "Male"
+								: (obxVal["PID_Sex"]~="U") ? "Unknown"
+								: (obxVal["PID_Sex"]~="X")
+								,tryfldval("sex"))
+
+			fldVal.dem["Indication"] := tryfldval("ind")
+			fldVal.dem["Site"] := tryfldval("site")
+			; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
+			fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
+			fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
+			fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
+
+			return
+		}
+
+		checkEpicOrder() {
+		/*	Check for presence of valid <pending> node (has accession number)
+			Check for <orders> node that matches the parsed ORU
+		*/
+			if (tryfldval("accession")) {														; Accession number exists, return to processing
+				return 0
+			}
+			
+			/*	Search for <orders/enroll> node that matches name in this result
+				Only occurs if ORM parsed but has no matching registration
+			*/
+			enOrders := ""
+			loop (ens := wq.selectNodes("/root/orders/enroll[name=`"" fldval.dem["Name"] "`"]")).Length {	; Add all orders matching <name> to string
+				en := ens.item(A_Index-1)
+				en_id := en.getAttribute("id")
+				en_date := wq.getText(en.selectSingleNode("date"))
+				en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
+				enOrders .= en_date "|" en_id "|" en_mon "`n"
+			}
+			if (enOrders="") {
+				pb.hide()
+				eventlog("No Epic order found.")
+				phase.hide()
+				MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
+				return 1
+			}
+			enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
+			enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
+
+			en_id := enOrd[2]
+			en := wq.selectSingleNode("/root/orders/enroll[@id=" en_id "]")
+			fldval.order := wq.getText(en.selectSingleNode("order"))
+			fldval.accession := wq.getText(en.selectSingleNode("accession"))
+			wqsetval(fldval.wqid,"order",fldval.order)
+			wqsetval(fldval.wqid,"accession",fldval.accession)
+			writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
+			eventlog("Used order " fldval.order "/" fldval.accession)
+			pb.Show()
+			
 			return 0
 		}
-		
-		/*	Search for <orders/enroll> node that matches name in this result
-			Only occurs if ORM parsed but has no matching registration
+
+		extractPdfText() {
+		/*	Extract PDF from oru_in to newtxt for processing
 		*/
-		enOrders := ""
-		loop (ens := wq.selectNodes("/root/orders/enroll[name=`"" fldval.dem["Name"] "`"]")).Length {	; Add all orders matching <name> to string
-			en := ens.item(A_Index-1)
-			en_id := en.getAttribute("id")
-			en_date := wq.getText(en.selectSingleNode("date"))
-			en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
-			enOrders .= en_date "|" en_id "|" en_mon "`n"
+			fileNam := fldval.file.fileNam													; local fileNam is name only without extension, no path
+			fileNamTxt := fileNam ".txt"
+			fileNamHl7txt := fileNam "_hl7.txt"
+			
+			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+			pb.set(100)
+			newtxt := FileRead(fileNamTxt)													; load into newtxt
+			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
+			FileDelete(fileNamTxt)
+
+			return
 		}
-		if (enOrders="") {
-			pb.hide()
-			eventlog("No Epic order found.")
-			phase.hide()
-			MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
-			return 1
-		}
-		enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
-		enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
-
-		en_id := enOrd[2]
-		en := wq.selectSingleNode("/root/orders/enroll[@id=" en_id "]")
-		fldval.order := wq.getText(en.selectSingleNode("order"))
-		fldval.accession := wq.getText(en.selectSingleNode("accession"))
-		wqsetval(fldval.wqid,"order",fldval.order)
-		wqsetval(fldval.wqid,"accession",fldval.accession)
-		writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
-		eventlog("Used order " fldval.order "/" fldval.accession)
-		pb.Show()
-		
-		return 0
-	}
-
-	extractPdfText() {
-	/*	Extract PDF from oru_in to newtxt for processing
-	*/
-		fileNam := fldval.file.fileNam													; local fileNam is name only without extension, no path
-		fileNamTxt := fileNam ".txt"
-		fileNamHl7txt := fileNam "_hl7.txt"
-		
-		RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
-		pb.set(100)
-		newtxt := FileRead(fileNamTxt)													; load into newtxt
-		fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
-		FileDelete(fileNamTxt)
-
-		return
 	}
 
 	Holter_BGM_EL_HL7(oru_in) {
