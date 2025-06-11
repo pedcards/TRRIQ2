@@ -2570,51 +2570,6 @@ readWQlv(agc,row,*)
 	return
 }
 
-checkEpicOrder() {
-/*	Check for presence of valid <pending> node (has accession number)
-	Check for <orders> node that matches the parsed ORU
-*/
-	global fldval
-	
-	if (tryfldval("accession")) {														; Accession number exists, return to processing
-		return
-	}
-	
-	/*	Search for <orders/enroll> node that matches name in this result
-		Only occurs if ORM parsed but has no matching registration
-	*/
-	enOrders := ""
-	loop (ens := wq.selectNodes("/root/orders/enroll[name=`"" fldval.dem["Name"] "`"]")).Length {	; Add all orders matching <name> to string
-		en := ens.item(A_Index-1)
-		en_id := en.getAttribute("id")
-		en_date := wq.getText(en.selectSingleNode("date"))
-		en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
-		enOrders .= en_date "|" en_id "|" en_mon "`n"
-	}
-	if (enOrders="") {
-		pb.hide()
-		eventlog("No Epic order found.")
-		phase.hide()
-		MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
-		phase.show()
-		return
-	}
-	enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
-	enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
-
-	en_id := enOrd[2]
-	en := wq.selectSingleNode("/root/orders/enroll[@id=" en_id "]")
-	fldval.order := wq.getText(en.selectSingleNode("order"))
-	fldval.accession := wq.getText(en.selectSingleNode("accession"))
-	wqsetval(fldval.wqid,"order",fldval.order)
-	wqsetval(fldval.wqid,"accession",fldval.accession)
-	writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
-	eventlog("Used order " fldval.order "/" fldval.accession)
-	pb.Show()
-	
-	return
-}
-
 checkWQfile() {
 	tmpdt := FileGetTime(".\files\wqupdate")											; get mod dt for "wqupdate"
 	if (tmpdt > gl.wqfileDT) {															; file is more recent than internal var
@@ -2721,6 +2676,8 @@ class monresult
 	processHL7(fileIn) {
 	/*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
 	*/
+		global fldval
+
 		oru_in := HL7(fileIn)															; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
 		try PDFfileIn := path.PrevHL7in . oru_in.binfile								; fileIn has path .\Preventice\Results\*.pdf
 		catch
@@ -2732,7 +2689,8 @@ class monresult
 		}
 
 		this.moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
-		checkEpicOrder()																; check for presence of valid Epic order *** this may be obsolete
+		this.checkEpicOrder()															; check for presence of valid Epic order *** this may be obsolete
+		this.extractPdfText()															; extract text for analysis and troubleshooting
 
 		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
 		fileNamTxt := fileNam ".txt"
@@ -2768,8 +2726,6 @@ class monresult
 	moveHL7dem(oru) {
 	/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
 	*/
-		global fldVal
-
 		obxVal := oru.fldval
 
 		fldval.dem := Map()
@@ -2796,6 +2752,54 @@ class monresult
 
 		return
 	}
+
+	checkEpicOrder() {
+	/*	Check for presence of valid <pending> node (has accession number)
+		Check for <orders> node that matches the parsed ORU
+	*/
+		if (tryfldval("accession")) {														; Accession number exists, return to processing
+			return
+		}
+		
+		/*	Search for <orders/enroll> node that matches name in this result
+			Only occurs if ORM parsed but has no matching registration
+		*/
+		enOrders := ""
+		loop (ens := wq.selectNodes("/root/orders/enroll[name=`"" fldval.dem["Name"] "`"]")).Length {	; Add all orders matching <name> to string
+			en := ens.item(A_Index-1)
+			en_id := en.getAttribute("id")
+			en_date := wq.getText(en.selectSingleNode("date"))
+			en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
+			enOrders .= en_date "|" en_id "|" en_mon "`n"
+		}
+		if (enOrders="") {
+			pb.hide()
+			eventlog("No Epic order found.")
+			phase.hide()
+			MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
+			phase.show()
+			return
+		}
+		enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
+		enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
+
+		en_id := enOrd[2]
+		en := wq.selectSingleNode("/root/orders/enroll[@id=" en_id "]")
+		fldval.order := wq.getText(en.selectSingleNode("order"))
+		fldval.accession := wq.getText(en.selectSingleNode("accession"))
+		wqsetval(fldval.wqid,"order",fldval.order)
+		wqsetval(fldval.wqid,"accession",fldval.accession)
+		writeOut("/root/pending","enroll[@id='" fldval.wqid "']")
+		eventlog("Used order " fldval.order "/" fldval.accession)
+		pb.Show()
+		
+		return
+	}
+
+	extractPdfText() {
+		
+	}
+
 }
 
 ProcessPDF(fileIn,fileNam) {
