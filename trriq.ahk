@@ -2520,7 +2520,7 @@ readWQlv(agc,row,*)
 	
 	fldVal := readWQ(wqid)																; wqid would have been determined by parsing hl7
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
-	fldval.path := {fileIn:fileIn,fname:fname,fExt:fExt,fileNam:fileNam}
+	fldval.file := {fileIn:fileIn,fname:fname,fExt:fExt,fileNam:fileNam}
 	fldval.ftype := ftype
 	
 	if (fldval.node = "done") {															; task has been done already by another user
@@ -2864,9 +2864,9 @@ CheckProc() {
 	}
 	if (fldval.node = "done") {
 	;~ if (zzzfldval.node = "done") {
-		MsgBox fldval.path.fileIn " has been scanned already.`n`nDeleting file."
-		eventlog(fldval.path.fileIn " already scanned. PDF deleted.")
-		FileDelete(fldval.path.fileIn)
+		MsgBox fldval.file.fileIn " has been scanned already.`n`nDeleting file."
+		eventlog(fldval.file.fileIn " already scanned. PDF deleted.")
+		FileDelete(fldval.file.fileIn)
 		fldval.fetchQuit := true
 		return
 	}
