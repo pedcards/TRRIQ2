@@ -2801,11 +2801,9 @@ class monresult
 		}
 	}
 
-	Event_BGH_Hl7(oru_in) {
+	Event_BGH_Hl7(obxval) {
 	/*	Handle BGH event recorders
 	*/
-		obxval := oru_in.obxVal
-
 		eventlog("Event_BGH_HL7")
 		fldval.monType := "BGH"
 		
@@ -2866,14 +2864,16 @@ class monresult
 		Return
 	}
 
-
-	Holter_BGM_EL_HL7(oru_in) {
-		obxval := oru_in.obxVal
-
-		eventlog("Holter_BGMini_EL_HL7")
+	Holter_BGM_HL7(obxval) {
+		if (fldval.dev~="EL") {
+			holtype := "EL"
+		} else {
+			holtype := "SL"
+		}
+		eventlog("Holter_BGMini_" holtype "_HL7")
 		fldval.monType := "BGM"
 
-		if (obxval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+		if !(obxval["Enroll_Start_Dt"]) {													; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
 			; gosub processPDF																; need to reprocess from extracted PDF
 			Return
@@ -2882,9 +2882,7 @@ class monresult
 		fldval.dem["Test_date"] := parsedate(obxval["Enroll_Start_Dt"]).MDY
 		fldval.dem["Test_end"]	:= parsedate(obxval["Enroll_End_Dt"]).MDY
 		fldval.dem["Recording_time"] := strQ(obxval["Monitoring_Period"], parsedate("###").DHM)
-										; , calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
 		fldval.dem["Analysis_time"] := strQ(obxval["Analyzed_Data"], parsedate("###").DHM)
-										; , calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
 
 	/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
 		if (fetchQuit=true) {
