@@ -2033,46 +2033,7 @@ findFullPdf(wqid:="") {
 			FileMove(fileIn, path.holterPDF "archive\" fname, 1)
 			continue
 		}
-		
-		if (fnID.0 = "") {				
-			eventlog("Unmatched PDF: " fileIn)													; unmatched PDF
-			continue
-		
-			; ; Unmatched full disclosure PDF
-			; RunWait, .\files\pdftotext.exe -l %pdfScanPages% "%fileIn%" "%fnam%.txt",,min		; convert PDF pages with no tabular structure
-			; FileRead, newtxt, %fnam%.txt												; load into newtxt
-			; FileDelete, %fnam%.txt
-			; StringReplace, newtxt, newtxt, `r`n`r`n, `r`n, All							; remove double CRLF
-			
-			; flds := getPdfID(newtxt)
-			
-			; if (AllowSavedPDF="true") && InStr(flds.wqid,"00000") {
-			; 	eventlog("Unmatched PDF: " fileIn)
-			; 	continue
-			; }
-			
-			; newFnam := strQ(flds.nameL,"###_" flds.mrn,fnam) strQ(flds.wqid,"_WQ###")
-			; if InStr(newtxt, "Full Disclosure Report") {								; likely Full Disclosure Report
-			; 	dt := ParseDate(flds.date)
-			; 	newFnam := strQ(flds.mrn,"### " flds.nameL " " dt.MM "-" dt.DD "-" dt.YYYY "_WQ" flds.wqid,fnam)
-			; 	FileMove, %fileIn%, % path.holterPDF newFnam "-full.pdf", 1
-			; 	pdfList.push(newFnam "-full.pdf")
-			; 	Continue
-			; } else {
-			; 	FileMove, %fileIn%, % path.holterPDF newFnam ".pdf", 1					; Everything else, rename the unprocessed PDF
-			; }
-			; If ErrorLevel
-			; {
-			; 	MsgBox, 262160, File error, % ""										; Failed to move file
-			; 		. "Could not rename PDF file.`n`n"
-			; 		. "Make sure file is not open in Acrobat Reader!"
-			; 	eventlog("Holter PDF: " fname " file open error.")
-			; 	Continue
-			; } else {
-			; 	fName := newFnam ".pdf"													; successful move
-			; 	eventlog("Holter PDF: " fNam " renamed to " fName)
-			; }
-		} 
+		 
 		if !objhasvalue(pdfList,fName) {
 			pdfList.push(fName)
 		}
@@ -2791,7 +2752,7 @@ class monresult
 			fileNamTxt := fileNam ".txt"
 			fileNamHl7txt := fileNam "_hl7.txt"
 			
-			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+			RunWait(".\bin\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
 			pb.set(100)
 			newtxt := FileRead(fileNamTxt)													; load into newtxt
 			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
