@@ -2689,7 +2689,9 @@ class monresult
 		}
 
 		this.moveHL7dem(oru_in)															; prepopulate the fldval["dem"] values
-		this.checkEpicOrder()															; check for presence of valid Epic order *** this may be obsolete
+		if (this.checkEpicOrder()) {													; check for presence of valid Epic order *** this may be obsolete
+			return																		; if fails, return
+		}
 		this.extractPdfText()															; extract text for analysis and troubleshooting
 
 		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
@@ -2758,7 +2760,7 @@ class monresult
 		Check for <orders> node that matches the parsed ORU
 	*/
 		if (tryfldval("accession")) {														; Accession number exists, return to processing
-			return
+			return 0
 		}
 		
 		/*	Search for <orders/enroll> node that matches name in this result
@@ -2777,8 +2779,7 @@ class monresult
 			eventlog("No Epic order found.")
 			phase.hide()
 			MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
-			phase.show()
-			return
+			return 1
 		}
 		enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
 		enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
@@ -2793,7 +2794,7 @@ class monresult
 		eventlog("Used order " fldval.order "/" fldval.accession)
 		pb.Show()
 		
-		return
+		return 0
 	}
 
 	extractPdfText() {
