@@ -2679,7 +2679,7 @@ class monresult
 		global fldval
 
 		oru_in := HL7(fileIn)															; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
-		try PDFfileIn := path.PrevHL7in . oru_in.binfile								; fileIn has path .\Preventice\Results\*.pdf
+		try fldval.PDFfileIn := path.PrevHL7in . oru_in.binfile							; fileIn has path .\Preventice\Results\*.pdf
 		catch
 		{
 			eventlog("No PDF extracted.")
