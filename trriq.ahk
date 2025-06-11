@@ -2693,20 +2693,10 @@ class monresult
 			return																		; if fails, return
 		}
 		this.extractPdfText()															; extract text for analysis and troubleshooting
-
-		fileNam := fldval.path.fileNam													; local fileNam is name only without extension, no path
-		fileNamTxt := fileNam ".txt"
-		fileNamHl7txt := fileNam "_hl7.txt"
-		
-	RunWait(".\files\pdftotext.exe -l 2 `"" PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
-	pb.set(100)
-	newtxt := FileRead(fileNamTxt)														; load into newtxt
-	FileDelete(fileNamTxt)
-	newtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")									; remove double CRLF
-	FileAppend(newtxt, fileNamTxt)														; create new tempfile with result, minus PDF
-	FileMove(fileNamTxt, ".\tempfiles\*", 1)											; move a copy into tempfiles for troubleshooting
-	FileAppend(oru_in.file, fileNamHl7txt)												; create a copy of hl7 file
-	FileMove(fileNamHl7txt, ".\tempfiles\*", 1)											; move into tempfiles for troubleshooting
+		FileAppend(fldval.PDFtxt, fldval.file.filenam ".txt")							; create new tempfile with result, minus PDF
+		FileMove(fldval.file.filenam ".txt", ".\tempfiles\*", 1)						; move a copy into tempfiles for troubleshooting
+		FileAppend(oru_in.file, fldval.file.filenam "_hl7.txt")							; create a copy of hl7 file 
+		FileMove(fldval.file.filenam "_hl7.txt", ".\tempfiles\*", 1)					; move into tempfiles for troubleshooting
 
 	pb.close()
 
@@ -2798,7 +2788,19 @@ class monresult
 	}
 
 	extractPdfText() {
+	/*	Extract PDF from oru_in to newtxt for processing
+	*/
+		fileNam := fldval.file.fileNam													; local fileNam is name only without extension, no path
+		fileNamTxt := fileNam ".txt"
+		fileNamHl7txt := fileNam "_hl7.txt"
 		
+		RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+		pb.set(100)
+		newtxt := FileRead(fileNamTxt)													; load into newtxt
+		fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
+		FileDelete(fileNamTxt)
+
+		return
 	}
 
 }
