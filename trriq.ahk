@@ -2701,7 +2701,7 @@ class monresult
 		pb.close()
 
 		if (fldval.dev~="PLUS") {
-			; gosub Event_BGH_Hl7
+			this.Event_BGH_Hl7(oru_in)
 		} else if (fldVal.dev~="Mini EL") {
 			this.Holter_BGM_EL_HL7(oru_in)
 		} else if (fldVal.dev~="Mini (?!EL|PLUS)") {										; May be able to consolidate EL and SL
@@ -2803,23 +2803,89 @@ class monresult
 		}
 	}
 
+	Event_BGH_Hl7(oru_in) {
+	/*	Handle BGH event recorders
+	*/
+		obxval := oru_in.obxVal
+
+		eventlog("Event_BGH_HL7")
+		fldval.monType := "BGH"
+		
+		if !(obxval["Enroll_Start_Dt"]) {													; missing this if no OBX
+			eventlog("No OBX data.")
+			; gosub processPDF																; process as an ad hoc
+			return																			; and bail out
+		}
+	/*		
+		fieldcoladd("dem","Test_date",niceDate(obxVal["Enroll_Start_Dt"]))
+		fieldcoladd("dem","Test_end",niceDate(obxVal["Enroll_End_Dt"]))
+		
+		count_block := stregX(newtxt,"Event Counts",1,1,"Summary|Summarized|Rhythm",1)
+		count_block := RegExReplace(count_block,"(\d) ","$1`r`n")
+		fields[3] := ["Critical","Total","Serious","(Manual|Pt Trigger)","Stable","Auto Trigger","\R"]
+		labels[3] := ["Critical","Total","Serious","Manual","Stable","Auto","null"]
+		
+		if (fldval["counts-Auto"]="" && fldval["counts-Manual"]="")							; No Event Counts values
+		{																					; parse from PDF
+			fieldvals(count_block,3,"counts")
+		} 
+		else																				; Still no Event Counts (bad PDF)
+		{
+			count:=[]																		; create object for counts
+			count["Patient-Activated"]:=0													; zero the results instead of null
+			count["Auto-Detected"]:=0
+			count["Stable"]:=0
+			count["Serious"]:=0
+			count["Critical"]:=0
+			for key,val in obxVal															; recurse through obxVal results
+			{
+				if (key~="Event_Acuity|Event_Type") {										; count Critical/Serious/Stable and Auto/Manual events
+					count[val] ++															; more reliable than parsing PDF
+				}
+			}
+			fieldcoladd("counts","Critical",count["Critical"])
+			fieldcoladd("counts","Serious",count["Serious"])
+			fieldcoladd("counts","Stable",count["Stable"])
+			fieldcoladd("counts","Manual",count["Patient-Activated"])
+			fieldcoladd("counts","Auto",count["Auto-Detected"])
+			fieldcoladd("counts","Total",count["Auto-Detected"]+count["Patient-Activated"])
+			eventlog("Event Count block not parsed, counted from OBR.")
+		}
+		
+	/*	gosub checkProc												; check validity of PDF, make demographics valid if not
+		if (fetchQuit=true) {
+			return													; fetchGUI was quit, so skip processing
+		}
+		
+		fieldstoCSV()
+		
+		fieldcoladd("","Mon_type","Event")
+		
+		FileCopy, %fileIn%, %fileIn%-sh.pdf
+		
+		fldval.done := true
+	*/	
+		Return
+	}
+
+
 	Holter_BGM_EL_HL7(oru_in) {
-		oruval := oru_in.obxVal
+		obxval := oru_in.obxVal
 
 		eventlog("Holter_BGMini_EL_HL7")
 		fldval.monType := "BGM"
 
-		if (oruval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+		if (obxval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
 			; gosub processPDF																; need to reprocess from extracted PDF
 			Return
 		}
 		
-		fldval.dem["Test_date"] := parsedate(oruval["Enroll_Start_Dt"]).MDY
-		fldval.dem["Test_end"]	:= parsedate(oruval["Enroll_End_Dt"]).MDY
-		fldval.dem["Recording_time"] := strQ(oruval["Monitoring_Period"], parsedate("###").DHM)
+		fldval.dem["Test_date"] := parsedate(obxval["Enroll_Start_Dt"]).MDY
+		fldval.dem["Test_end"]	:= parsedate(obxval["Enroll_End_Dt"]).MDY
+		fldval.dem["Recording_time"] := strQ(obxval["Monitoring_Period"], parsedate("###").DHM)
 										; , calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
-		fldval.dem["Analysis_time"] := strQ(oruval["Analyzed_Data"], parsedate("###").DHM)
+		fldval.dem["Analysis_time"] := strQ(obxval["Analyzed_Data"], parsedate("###").DHM)
 										; , calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
 
 	/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
@@ -2837,6 +2903,74 @@ class monresult
 	*/
 	return
 	}
+
+	Holter_BGM_SL_HL7(oru_in) {
+		obxval := oru_in.obxVal
+
+		eventlog("Holter_BGMini_SL_HL7")
+		fldval.monType := "HOL"
+
+		if (obxval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+			eventlog("No OBX data.")
+			; gosub processPDF																; need to reprocess from extracted PDF
+			Return
+		}
+		/*
+		if !FileExist(path.holterPDF "*" fldval.wqid "_H-full.pdf") {
+			eventlog("Full disclosure PDF not found.")
+				
+			msg := cmsgbox("Missing full disclosure PDF"
+				, fldval["dem-Name_L"] ", " fldval["dem-Name_F"] "`n`n"
+				. "Click [Email] to send a message to Preventice,"
+				. "or [Cancel] to return to menu."
+				, "Email|Cancel"
+				, "E", "V")
+			if (msg~="Cancel|Close|xClose") {
+				eventlog("Skipping full disclosure. Return to menu.")
+			}
+			if (msg="Email") {
+				progress,100 ,,Generating email...
+				Eml := ComObjCreate("Outlook.Application").CreateItem(0)					; Create item [0]
+				Eml.BodyFormat := 2															; HTML format
+				
+				Eml.To := "HolterNotificationGroup@preventice.com"
+				Eml.cc := "EkgMaInbox@seattlechildrens.org; terrence.chun@seattlechildrens.org"
+				Eml.Subject := "Missing full disclosure PDF"
+				Eml.Display																	; Display first to get default signature
+				Eml.HTMLBody := "Please release the full disclosure PDF for " fldval["dem-Name_L"] ", " fldval["dem-Name_F"] 
+					. " MRN#" fldval["dem-MRN"] " study date " fldval["dem-Test_date"]
+					. " to the server.<br><br>Thank you!<br>"
+					. Eml.HTMLBody															; Prepend to existing default message
+				ObjRelease(Eml)																; or Eml:=""
+				eventlog("Email sent to Preventice.")
+			}
+			fldval.done := ""
+			Return
+		}
+		
+		fldval["dem-Test_date"] := parsedate(fldval["Enroll_Start_Dt"]).MDY
+		fldval["dem-Test_end"]	:= parsedate(fldval["Enroll_End_Dt"]).MDY
+		fldval["dem-Recording_time"] := strQ(fldval["Monitoring_Period"], parsedate("###").DHM
+										, calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
+		fldval["dem-Analysis_time"] := strQ(fldval["Analyzed_Data"], parsedate("###").DHM
+										, calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
+
+		gosub checkProc																		; check validity of PDF, make demographics valid if not
+		if (fetchQuit=true) {
+			return																			; fetchGUI was quit, so skip processing
+		}
+		
+		fieldsToCSV()
+		fieldcoladd("","INTERP","")															; fldval["Narrative"]
+		fieldcoladd("","Mon_type","Holter")
+		
+		FileCopy, %fileIn%, %fileIn%-sh.pdf
+		
+		fldval.done := true
+		*/		
+		return
+	}
+
 
 
 }
