@@ -2028,6 +2028,11 @@ findFullPdf(wqid:="") {
 		
 		RegExMatch(fname,"_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)										; get filename WQID if PDF has already been renamed
 		
+		try fnID[0]
+		catch {
+			eventlog("Unmatched PDF: " fileIn)													; unmatched PDF
+			continue
+		}
 		if (readWQ(fnID[1]).node = "done") {
 			eventlog("Leftover PDF: " fnam ", moved to archive.")
 			FileMove(fileIn, path.holterPDF "archive\" fname, 1)
