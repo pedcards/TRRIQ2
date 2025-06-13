@@ -1619,7 +1619,7 @@ WQepicOrdersNew() {
 	Adjust name, order, accession, account, encounter num for <enroll> node
 	Handle corresponding <orders> node
 */
-	global wq, path, sites, fldVal
+	global wq, path, sites, fldval
 	pb.sub("New orders...")
 
 	Loop files path.EpicHL7in "*"
@@ -1899,7 +1899,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 			}
 		}
 		if (obx1) {
-			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldVal, and PDF into hl7Dir
+			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldval, and PDF into hl7Dir
 			fldval := res_in.fldval
 			dt := ParseDate(res.date)
 			newFnam := strQ(res.mrn
@@ -2454,7 +2454,7 @@ readWQlv(agc,row,*)
 	Admin task:
 		* "HL7 error"
 */
-	global fldVal, gl, phase, pb
+	global fldval, gl, phase, pb
 
 	fileIn := agc.GetText(row,1)														; selection filename
 	wqid := agc.GetText(row,7)															; WQID
@@ -2484,7 +2484,7 @@ readWQlv(agc,row,*)
 	monType := ""
 	obxval := Object()
 	
-	fldVal := readWQ(wqid)																; wqid would have been determined by parsing hl7
+	fldval := readWQ(wqid)																; wqid would have been determined by parsing hl7
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
 	fldval.file := {fileIn:fileIn,fname:fname,fExt:fExt,fileNam:fileNam}
 	fldval.ftype := ftype
@@ -2499,10 +2499,10 @@ readWQlv(agc,row,*)
 		eventlog("WQlv " fldval.name " not found in webgrab.")
 		MsgBox("No registration found on Preventice site.`n"
 			. "Contact Preventice to correct.`n`n"
-			. "Name: " fldVal.name "`n"
-			. "MRN: " fldVal.mrn "`n"
-			. "Device: " fldVal.dev "`n"
-			. "Study date: " niceDate(fldVal.date) "`n"
+			. "Name: " fldval.name "`n"
+			. "MRN: " fldval.mrn "`n"
+			. "Device: " fldval.dev "`n"
+			. "Study date: " niceDate(fldval.date) "`n"
 			, "Registration issue"
 			, 0x40030)
 		WQlist()
@@ -2640,9 +2640,9 @@ class monresult
 	}
 
 	processHL7(fileIn) {
-	/*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
+	/*	Associate fldval data with extra metadata from extracted PDF, complete final CSV report, handle files
 	*/
-		oru_in := HL7(fileIn)															; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
+		oru_in := HL7(fileIn)															; extract ORU to this.fldval, OBX to this.obxval, and PDF into hl7Dir
 		try fldval.PDFfileIn := path.PrevHL7in . oru_in.binfile							; fileIn has path .\Preventice\Results\*.pdf
 		catch
 		{
@@ -2666,7 +2666,7 @@ class monresult
 
 		if (fldval.dev~="PLUS") {
 			this.Event_BGH_Hl7(oru_in.obxVal)
-		} else if (fldVal.dev~="Mini (?!PLUS)") {										; May be able to consolidate EL and SL
+		} else if (fldval.dev~="Mini (?!PLUS)") {										; May be able to consolidate EL and SL
 			this.Holter_BGM_HL7(oru_in.obxVal)											; as the reports will be essentiall identical
 		} else {
 			eventlog("No match. OBR_TestCode=" oru_in.fldval["OBR_TestCode"] ", ftype=" fldval.ftype ".")
@@ -2677,30 +2677,30 @@ class monresult
 		return
 
 		moveHL7dem() {
-		/*	Populate fldVal["dem"] with data from hl7 first, and wqlist (if missing)
+		/*	Populate fldval["dem"] with data from hl7 first, and wqlist (if missing)
 		*/
 			obxVal := oru_in.fldval
 
 			fldval.dem := Map()
 			
 			name := parseName(tryfldval("name"))
-			fldVal.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
-			fldVal.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
-			fldVal.dem["Name"] := fldVal.dem["Name_L"] strQ(fldVal.dem["Name_F"],", ###")
-			fldVal.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
-			fldVal.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
-			fldVal.dem["Sex"] := strQ(obxVal["PID_Sex"]
+			fldval.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
+			fldval.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
+			fldval.dem["Name"] := fldval.dem["Name_L"] strQ(fldval.dem["Name_F"],", ###")
+			fldval.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
+			fldval.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
+			fldval.dem["Sex"] := strQ(obxVal["PID_Sex"]
 								, (obxVal["PID_Sex"]~="F") ? "Female" 
 								: (obxVal["PID_Sex"]~="M") ? "Male"
 								: (obxVal["PID_Sex"]~="U") ? "Unknown"
 								: (obxVal["PID_Sex"]~="X")
 								,tryfldval("sex"))
 
-			fldVal.dem["Indication"] := tryfldval("ind")
-			fldVal.dem["Site"] := tryfldval("site")
-			; fldVal.dem["Billing"] := strQ(tryfldVal("encnum"),"###",tryfldVal("accession"))
-			fldVal.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
-			fldVal.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
+			fldval.dem["Indication"] := tryfldval("ind")
+			fldval.dem["Site"] := tryfldval("site")
+			; fldval.dem["Billing"] := strQ(tryfldval("encnum"),"###",tryfldval("accession"))
+			fldval.dem["Ordering"] := strQ(tryfldval("fellow"),"###",tryfldval("prov"))
+			fldval.dem["Ordering"] := strQ(fldval.dem["Ordering"],"###",filterProv(obxVal["PV1_AttgNameF"] " " obxVal["PV1_AttgNameL"]).name)
 			fldval.dem["Device_SN"] := strX(tryfldval("dev")," ",0,1,"",0,0)
 
 			return
@@ -3004,7 +3004,7 @@ CheckProc() {
 		return
 	}
 	
-	ptDem := Object()																	; Populate temp object ptDem with parsed data from HL7 or PDF fldVal
+	ptDem := Object()																	; Populate temp object ptDem with parsed data from HL7 or PDF fldval
 	ptDem["nameL"] := fldval.dem["Name_L"]												; dem-Name contains ['] not [^]
 	ptDem["nameF"] := fldval.dem["Name_F"] 
 	ptDem["Name"] := fldval.dem["Name"]
@@ -3051,19 +3051,19 @@ CheckProc() {
 			return
 		}
 		/*	When fetchGUI successfully completes,
-		 *	replace fldVal with newly acquired values
+		 *	replace fldval with newly acquired values
 		 */
-		fldVal.Name := ptDem["nameL"] ", " ptDem["nameF"]
-		fldVal.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
-		fldVal.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
-		fldVal.dem["MRN"] := ptDem["mrn"] 
-		fldVal.dem["DOB"] := ptDem["DOB"] 
-		fldVal.dem["Sex"] := ptDem["Sex"]
-		fldVal.dem["Site"] := ptDem["Loc"]
-		; fldVal.dem["Billing"] := ptDem["Account"]
-		fldVal.dem["Ordering"] := ptDem["Provider"]
-		fldVal.dem["Test_date"] := ptDem["EncDate"]
-		fldVal.dem["Indication"] := ptDem["Indication"]
+		fldval.Name := ptDem["nameL"] ", " ptDem["nameF"]
+		fldval.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
+		fldval.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+		fldval.dem["MRN"] := ptDem["mrn"] 
+		fldval.dem["DOB"] := ptDem["DOB"] 
+		fldval.dem["Sex"] := ptDem["Sex"]
+		fldval.dem["Site"] := ptDem["Loc"]
+		; fldval.dem["Billing"] := ptDem["Account"]
+		fldval.dem["Ordering"] := ptDem["Provider"]
+		fldval.dem["Test_date"] := ptDem["EncDate"]
+		fldval.dem["Indication"] := ptDem["Indication"]
 		
 		filecheck()
 		FileOpen(".lock", "W")															; Create lock file.
@@ -3087,7 +3087,7 @@ CheckProc() {
 			; 	: montype="ZIO" ? "Zio" 
 			; 	: montype="BGM" ? "BodyGuardian Mini - "
 			; 	: "")
-			; 	. fldVal.dem["Device_SN"])
+			; 	. fldval.dem["Device_SN"])
 			wqSetVal(id,"prov",ptDem["Provider"])
 			wqSetVal(id,"site",sites.long[ptDem["loc"]])								; need to transform site abbrevs
 			wqSetVal(id,"ind",ptDem["Indication"])
@@ -3097,18 +3097,18 @@ CheckProc() {
 		eventlog("Demographics updated for WQID " fldval.wqid ".") 
 	}
 	
-	;---Copy ptDem back to fldVal, whether fetched or not
-	fldVal.Name := ptDem["nameL"] ", " ptDem["nameF"]
-	fldVal.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
-	fldVal.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
-	fldVal.dem["MRN"] := fldval["MRN"] := ptDem["mrn"] 
-	fldVal.dem["DOB"] := ptDem["DOB"] 
-	fldVal.dem["Sex"] := ptDem["Sex"]
-	fldVal.dem["Site"] := ptDem["Loc"]
-	; fldVal.dem["Billing"] := ptDem["Account"]
-	fldVal.dem["Ordering"] := ptDem["Provider"]
-	fldVal.dem["Test_date"] := ptDem["EncDate"]
-	fldVal.dem["Indication"] := ptDem["Indication"]
+	;---Copy ptDem back to fldval, whether fetched or not
+	fldval.Name := ptDem["nameL"] ", " ptDem["nameF"]
+	fldval.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
+	fldval.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+	fldval.dem["MRN"] := fldval["MRN"] := ptDem["mrn"] 
+	fldval.dem["DOB"] := ptDem["DOB"] 
+	fldval.dem["Sex"] := ptDem["Sex"]
+	fldval.dem["Site"] := ptDem["Loc"]
+	; fldval.dem["Billing"] := ptDem["Account"]
+	fldval.dem["Ordering"] := ptDem["Provider"]
+	fldval.dem["Test_date"] := ptDem["EncDate"]
+	fldval.dem["Indication"] := ptDem["Indication"]
 	
 return
 }
