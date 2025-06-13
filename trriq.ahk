@@ -1579,15 +1579,15 @@ strVal(hay,n1,n2,BO:="",&N:="") {
 	n2	= needle2 end string
 	N	= return end position
 */
-	opt := "i)"
-	RegExMatch(hay,opt . n1 . ":?(?P<res>.*?)" . n2, &str, (BO)?BO:1)
+	opt := "is)"
+	RegExMatch(hay,opt . n1 . ":?(?<res>.*?)" . n2, &str, (BO)?BO:1)
 	N := str.pos("res")+str.len("res")
 	
 	if (str.pos("res")=="") {															; RexExMatch fail on n1 or n2 (i.e. bad field needles)
 		eventlog("*** strVal fail: ''" n1 "' ... '" n2 "'")								; Note the bad fields
 	}
 
-	return trim(str.value("res")," :`n`r`t")
+	return trim(str.res," :`n`r`t")
 }
 
 formatField(pre, lab, txt) {
