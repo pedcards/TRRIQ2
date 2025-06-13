@@ -1384,7 +1384,7 @@ cleanspace(&txt) {
 	txt := StrReplace(txt," . ",". ")
 	loop 
 	{
-		txt := StrReplace(txt,"  "," ", &count)
+		txt := StrReplace(txt,"  "," ",, &count)
 		if (count=0)	
 			break
 	}
