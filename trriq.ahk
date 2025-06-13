@@ -2974,18 +2974,18 @@ class monresult
 			; gosub processPDF																; process as an ad hoc
 			return																			; and bail out
 		}
-	/*		
+
 		fieldcoladd("dem","Test_date",niceDate(obxVal["Enroll_Start_Dt"]))
 		fieldcoladd("dem","Test_end",niceDate(obxVal["Enroll_End_Dt"]))
 		
-		count_block := stregX(newtxt,"Event Counts",1,1,"Summary|Summarized|Rhythm",1)
+		count_block := stregX(fldval.PDFtxt,"Event Counts",1,1,"Summary|Summarized|Rhythm",1)
 		count_block := RegExReplace(count_block,"(\d) ","$1`r`n")
-		fields[3] := ["Critical","Total","Serious","(Manual|Pt Trigger)","Stable","Auto Trigger","\R"]
-		labels[3] := ["Critical","Total","Serious","Manual","Stable","Auto","null"]
-		
+		fields := ["Critical","Total","Serious","(Manual|Pt Trigger)","Stable","Auto Trigger","\R"]
+		labels := ["Critical","Total","Serious","Manual","Stable","Auto","null"]
+	
 		if (fldval["counts-Auto"]="" && fldval["counts-Manual"]="")							; No Event Counts values
 		{																					; parse from PDF
-			fieldvals(count_block,3,"counts")
+			fieldvals(count_block,fields,labels,"counts")
 		} 
 		else																				; Still no Event Counts (bad PDF)
 		{
