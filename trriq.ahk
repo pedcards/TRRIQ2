@@ -1373,6 +1373,55 @@ strQ(var1,txt,null:="") {
 	try return (var1="") ? null : RegExReplace(txt,"###",var1)
 }
 
+cleancolon(&txt) {
+	if substr(txt,1,1)=":" {
+		txt:=Trim(substr(txt,2))
+	}
+}
+
+cleanspace(&txt) {
+	txt := StrReplace(txt,"`n"," ")
+	txt := StrReplace(txt," . ",". ")
+	loop 
+	{
+		txt := StrReplace(txt,"  "," ", &count)
+		if (count=0)	
+			break
+	}
+}
+
+checkCrd(x) {
+/*	Compares pl_ProvCard vs array of cardiologists
+	x = name
+	returns array[match score, best match, best match group]
+*/
+	global Docs
+	fuzz := 1																			; Initially, fuzz is 100%
+	if (x="") {																			; fuzzysearch fails if x = ""
+		return 
+	}
+	x := filterprov(x).name
+	for rowidx,row in Docs																; Groups
+	{
+		if (substr(rowIdx,-3)=".eml") {
+			continue
+		}
+		for colidx,item in row															; Providers
+		{
+			if (item="") {                                ; empty field will break fuzzysearch 
+				continue 
+			} 
+			res := fuzzysearch(x,item)
+			if (res<fuzz) {
+				fuzz := res
+				best:=item
+				group:=rowidx
+			}
+		}
+	}
+	return {fuzz:fuzz,best:best,group:group}
+}
+
 filterProv(x) {
 /*	Filters out all irregularities and common typos in Provider name from manual entry
 	Returns as {name:"Albers, Erin", site:"CRB"}
@@ -1487,6 +1536,153 @@ fieldColAdd(pre:="",lab:="",txt:="") {
 		return
 	}
 	fldval[prelab] := txt
+	return
+}
+
+fieldvals(x,fields,labels,pre) {
+/*	Matches field values and results. Gets text between FIELDS[k] to FIELDS[k+1]. Excess whitespace removed. Returns results in array BLK[].
+	x		= input text
+	fields	= array of strings
+	labels	= array of corresponding labels
+	prefix	= label prefix
+*/
+	x := StrReplace(x,"`r`n","`n")
+	n := 1
+	
+	for k, i in fields																	; Step through each val "i" from fields[bl,k]
+	{
+		j := fields[k+1]																; Next field [k+1]
+		m := (j) 
+			?	strVal(x,i,j,n,&n)														; ...is not null ==> returns value between
+			:	trim(strX(SubStr(x,n),":",1,1,"",0)," `n")								; ...is null ==> returns from field[k] to end
+		lbl := labels[A_Index]
+		if (lbl~="^\w{3}:") {															; has prefix e.g. "dem:name2"
+			pre := substr(lbl,1,3)														; change pre for this loop, e.g. "dem"
+			lbl := substr(lbl,5)														; change lbl for this loop, e.g. "name2"
+		}
+		cleanSpace(&m)
+		cleanColon(&m)
+		fldval[pre "-" lbl] := m
+		
+		formatField(pre,lbl,m)
+	}
+}
+
+strVal(hay,n1,n2,BO:="",&N:="") {
+/*	hay = search haystack
+	n1	= needle1 begin string
+	n2	= needle2 end string
+	N	= return end position
+*/
+	opt := "i)"
+	RegExMatch(hay,opt . n1 . ":?(?P<res>.*?)" . n2, &str, (BO)?BO:1)
+	N := str.pos("res")+str.len("res")
+	
+	if (str.pos("res")=="") {															; RexExMatch fail on n1 or n2 (i.e. bad field needles)
+		eventlog("*** strVal fail: ''" n1 "' ... '" n2 "'")								; Note the bad fields
+	}
+
+	return trim(str.value("res")," :`n`r`t")
+}
+
+formatField(pre, lab, txt) {
+/*	Last second formatting of values
+	Generic, and per report type
+	Send result to fileOut strings
+*/
+	; global ptDem
+
+	if RegExMatch(txt,"(\d{1,2}) hr (\d{1,2}) min",&t) {								; convert "24 hr 0 min" to "24:00"
+		txt := t[1] ":" zDigit(t[2])
+	}
+	txt:=RegExReplace(txt,"i)( BPM)|( Event(s)?)|( Beat(s)?)|( sec(ond)?(s)?)")			; Remove units from numbers
+	txt:=RegExReplace(txt,"(:\d{2}?)(AM|PM)","$1 $2")									; Fix time strings without space before AM|PM
+	txt:=RegExReplace(txt,"\(DD:HH:MM:SS\)")											; Remove time units "(DD:HH:MM:SS)"
+	txt := trim(txt)
+	
+	if (lab="Name") {
+		txt := RegExReplace(txt,"i),?( JR| III| IV)$")									; Filter out name suffixes
+		name := parseName(txt)
+		fieldColAdd(pre,"Name",name.last ", " name.first)
+		fieldColAdd(pre,"Name_L",name.last)
+		fieldColAdd(pre,"Name_F",name.first)
+		return
+	}
+	if (lab="DOB") {																	; remove (age) from DOB
+		txt := strX(txt,"",1,0," (",2)
+		txt := parseDate(txt).mdy
+	}
+
+	if (lab~="^(Referring|Ordering)$") {
+		tmpCrd := checkCrd(txt)															; Get Crd, Grp, and Eml via checkCrd()
+		fieldColAdd(pre,lab,tmpCrd.best)
+		fieldColAdd(pre,lab "_grp",tmpCrd.group)
+		fieldColAdd(pre,lab "_eml",Docs[tmpCrd.Group ".eml",ObjHasValue(Docs[tmpCrd.Group],tmpCrd.best)])
+		if (tmpCrd="") {
+			eventlog("*** Blank Crd value ***")
+		}
+		return
+	}
+	
+;	Body Guardian Heart specific fixes, possibly apply to BGM Plus Lite as well?
+	if (fldval.dev~="Heart|Lite") {
+		if (lab="Name") {
+			; ptDem["nameL"] := strX(txt," ",0,1,"",0)
+			; ptDem["nameF"] := strX(txt,"",1,0," ",1,1)
+			; fieldColAdd(pre,"Name_L",ptDem["nameL"])
+			; fieldColAdd(pre,"Name_F",ptDem["nameF"])
+			return
+		}
+	}
+
+;	Body Guardian Mini specific fixes, possibly applies to both EL and SL?
+	if (fldval.dev~="Mini") {
+		; convert dates to MDY format
+		if (lab ~= "Test_(date|end)") {
+			txt := parseDate(txt).mdy
+		}
+		; remove commas from numbers
+		if (pre~="hrd|ve|sve") {
+			txt := StrReplace(txt, ",", "")
+		}
+		; reconstitute Beats and BPM for longest/fastest/slowest fields
+		if RegExMatch(txt
+		,"(.*)? \((\d{1,2}/\d{1,2}/\d{2,4} at \d{1,2}:\d{2}:\d{2})\)"
+		,&res) {
+			fieldColAdd(pre,lab,RegExReplace(res[1],"(\d+)\s*,\s*(\d+)","$1 beats, $2 bpm"))
+			fieldColAdd(pre,lab "_time",res[2])
+			return
+		}
+		; convert Max/Min_time to readable format
+		if (lab ~= "(Max|Min)_time") {
+			txt := ParseDate(txt).DT
+		}
+		; split value times for "32 12/15 08:23:17"
+		if RegExMatch(txt
+		,"\b([\d\.]+)s?\s+(\d{1,2}/\d{1,2}(/\d{2,4})?\s+\d{2}:\d{2}:\d{2})"
+		,&res) {
+			fieldColAdd(pre,lab,res[1])
+			fieldColAdd(pre,lab "_time",res[2])
+			return
+		}
+		; split "57 (29.4%)" into "57" and "29.4"
+		if RegExMatch(txt,"(.*?)\((.*?%)\)",&res) {
+			fieldColAdd(pre,lab,res[1])
+			fieldColAdd(pre,lab "_per",res[2])
+			return
+		}
+		; convert DD:HH:MM:SS into Days & Hrs
+		if (lab~="_time") {
+			if RegExMatch(txt,"(\d{1,2}):(\d{2}):\d{2}:\d{2}",&res) {
+				txt := res[1] " days, " res[2] " hours"
+			}
+			if (txt~="^\d{14}$") {														; yyyymmddhhmmss
+				txt := parseDate(txt).DT												; = mm/dd/yyyy at hh:mm:ss
+			}
+		}
+	}
+		
+	fieldColAdd(pre,lab,txt)
 	return
 }
 
