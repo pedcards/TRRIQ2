@@ -2642,8 +2642,6 @@ class monresult
 	processHL7(fileIn) {
 	/*	Associate fldVal data with extra metadata from extracted PDF, complete final CSV report, handle files
 	*/
-		global fldval
-
 		oru_in := HL7(fileIn)															; extract ORU to this.fldVal, OBX to this.obxval, and PDF into hl7Dir
 		try fldval.PDFfileIn := path.PrevHL7in . oru_in.binfile							; fileIn has path .\Preventice\Results\*.pdf
 		catch
