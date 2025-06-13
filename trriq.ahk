@@ -2751,13 +2751,14 @@ class monresult
 		}
 
 		extractPdfText() {
-		/*	Extract PDF from oru_in to newtxt for processing
+		/*	Extract PDF from oru_in to text for processing
+			Now stored in fldval.PDFtxt rather than newtxt
 		*/
 			fileNam := fldval.file.fileNam													; local fileNam is name only without extension, no path
 			fileNamTxt := fileNam ".txt"
 			fileNamHl7txt := fileNam "_hl7.txt"
 			
-			RunWait(".\bin\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
 			pb.set(100)
 			newtxt := FileRead(fileNamTxt)													; load into newtxt
 			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
