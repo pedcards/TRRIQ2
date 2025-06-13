@@ -1553,6 +1553,9 @@ fieldvals(x,fields,labels,pre) {
 	
 	for k, i in fields																	; Step through each val "i" from fields[bl,k]
 	{
+		if (k=fields.length) {
+			break
+		}
 		j := fields[k+1]																; Next field [k+1]
 		m := (j) 
 			?	strVal(x,i,j,n,&n)														; ...is not null ==> returns value between
