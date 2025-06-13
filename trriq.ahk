@@ -1477,15 +1477,16 @@ tryfldval(x) {
 	}
 }
 
-fieldColAdd(pre,lab,txt) {
-	global fileOut1, fileOut2, fldVal
-	pre := (pre="") ? "" : pre "-"
-	if InStr(fileOut1,"`"" pre lab "`"") {
+fieldColAdd(pre:="",lab:="",txt:="") {
+	if (pre) {
+		prelab := pre "-" lab
+	} else {
+		prelab := lab
+	}
+	if ObjHasOwnProp(fldval,prelab) {
 		return
 	}
-	fileOut1 .= "`"" pre lab "`","
-	fileOut2 .= "`"" txt "`","
-	fldVal[pre lab] := txt
+	fldval[prelab] := txt
 	return
 }
 
