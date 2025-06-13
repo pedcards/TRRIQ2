@@ -1516,8 +1516,10 @@ ParseName(x) {
 }
 
 tryfldval(x) {
-	global fldval
-
+	try {
+		RegExMatch(x,"^\[(.*?)\]$",&res)
+		return fldval[res[1]]
+	}
 	try {
 		return fldval.%x%
 	}
