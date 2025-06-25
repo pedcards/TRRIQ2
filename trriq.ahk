@@ -2649,12 +2649,12 @@ moveWQ(id) {
 
 readWQlv(agc,row,*)
 {
-/*	Retrieve info from WQlist line
-	Will be for HL7 result, or an additional file in Holter PDFs folder
+/*	Process result (HL7 or PDF) from Inbox LV
+	Retrieve info from WQlist line
 	Tech task: 
 		* Process result
 	Admin task:
-		* "HL7 error"
+		* Deal with "HL7 error"
 */
 	global fldval, gl, phase, pb
 
