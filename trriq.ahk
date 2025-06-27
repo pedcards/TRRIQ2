@@ -2671,11 +2671,11 @@ readWQlv(agc,row,*)
 	wq := XML(path.data "worklist.xml")													; refresh WQ
 	fldval := Map()																		; values initially from worklist pending
 
-	blocks := Object()																	; clear all objects
-	fields := Object()
-	labels := Object()
-	blk := Object()
-	blk2 := Object()
+	; blocks := Object()																	; clear all objects
+	; fields := Object()
+	; labels := Object()
+	; blk := Object()
+	; blk2 := Object()
 	ptDem := Object()
 	pt := Object()
 	chk := Object()
