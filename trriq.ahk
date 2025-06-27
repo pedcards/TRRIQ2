@@ -1722,7 +1722,6 @@ wqSetVal(id,node,val) {
 	global wq
 	
 	newID := "/root/pending/enroll[@id=`"" id "`"]"
-	val := RegExReplace(val,"\'","^")													; make sure no val ever contains [']
 	
 	if IsObject(k := wq.selectSingleNode(newID "/" node)) {
 		if (k.text) and (val="") {														; don't overwrite an existing value with null
@@ -2787,9 +2786,7 @@ class psrV2
 		}
 		return {node:node,
 			site:RegExReplace(this.getval(node,"Practice_Name"),"GB-SCH-"),
-			name:RegExReplace(format("{:U}"
-						,this.getval(node,"PatientLastName") ", " this.getval(node,"PatientFirstName"))
-						,"\'","^"),
+			name:format("{:U}",this.getval(node,"PatientLastName") ", " this.getval(node,"PatientFirstName")),
 			nameL:this.getval(node,"PatientLastName"),
 			nameF:this.getval(node,"PatientFirstName"),
 			mrn:this.getval(node,"MRN1"),
@@ -2886,8 +2883,8 @@ class monresult
 			fldval.dem := Map()
 			
 			name := parseName(tryfldval("name"))
-			fldval.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",RegExReplace(name.last,"\^","'"))		; replace [^] with [']
-			fldval.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",RegExReplace(name.first,"\^","'"))
+			fldval.dem["Name_L"] := strQ(obxVal["PID_NameL"],"###",name.last)
+			fldval.dem["Name_F"] := strQ(obxVal["PID_NameF"],"###",name.first)
 			fldval.dem["Name"] := fldval.dem["Name_L"] strQ(fldval.dem["Name_F"],", ###")
 			fldval.dem["MRN"] := strQ(obxVal["PID_PatMRN"],"###",fldval.MRN)
 			fldval.dem["DOB"] := strQ(obxVal["PID_DOB"],niceDate(obxVal["PID_DOB"]),tryfldval("dob"))
@@ -3259,8 +3256,8 @@ CheckProc() {
 		 *	replace fldval with newly acquired values
 		 */
 		fldval.Name := ptDem["nameL"] ", " ptDem["nameF"]
-		fldval.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
-		fldval.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+		fldval.dem["Name_L"] := fldval["Name_L"] := ptDem["nameL"]
+		fldval.dem["Name_F"] := fldval["Name_F"] := ptDem["nameF"]
 		fldval.dem["MRN"] := ptDem["mrn"] 
 		fldval.dem["DOB"] := ptDem["DOB"] 
 		fldval.dem["Sex"] := ptDem["Sex"]
@@ -3304,8 +3301,8 @@ CheckProc() {
 	
 	;---Copy ptDem back to fldval, whether fetched or not
 	fldval.Name := ptDem["nameL"] ", " ptDem["nameF"]
-	fldval.dem["Name_L"] := fldval["Name_L"] := RegExReplace(ptDem["nameL"],"\^","'")
-	fldval.dem["Name_F"] := fldval["Name_F"] := RegExReplace(ptDem["nameF"],"\^","'")
+	fldval.dem["Name_L"] := fldval["Name_L"] := ptDem["nameL"]
+	fldval.dem["Name_F"] := fldval["Name_F"] := ptDem["nameF"]
 	fldval.dem["MRN"] := fldval["MRN"] := ptDem["mrn"] 
 	fldval.dem["DOB"] := ptDem["DOB"] 
 	fldval.dem["Sex"] := ptDem["Sex"]
