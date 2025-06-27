@@ -2988,7 +2988,7 @@ class monresult
 		fields := ["Critical","Total","Serious","(Manual|Pt Trigger)","Stable","Auto Trigger","\R"]
 		labels := ["Critical","Total","Serious","Manual","Stable","Auto","null"]
 	
-		if (fldval["counts-Auto"]="" && fldval["counts-Manual"]="")							; No Event Counts values
+		if (tryfldval("[counts-Auto]")="" && tryfldval("[counts-Manual]")="")				; No Event Counts values
 		{																					; parse from PDF
 			fieldvals(count_block,fields,labels,"counts")
 		} 
