@@ -3032,13 +3032,16 @@ class monresult
 	}
 
 	Holter_BGM_HL7(obxval) {
+	/*	Handle BGM Holters, SL and EL
+	*/
 		if (fldval.dev~="EL") {
 			holtype := "EL"
+			fldval.monType := "BGM"
 		} else {
 			holtype := "SL"
+			fldval.monType := "HOL"
 		}
 		eventlog("Holter_BGMini_" holtype "_HL7")
-		fldval.monType := "BGM"
 
 		if !(obxval["Enroll_Start_Dt"]) {													; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
