@@ -1115,23 +1115,10 @@ epRead() {
 	
 	y := XML(".\files\call.xml")
 	dlDate := A_Now
-	dlAdd := 0
-	dlHour := SubStr(dlDate, 9, 2)
-	dlDay := FormatTime(dlDate, "dddd")
-	if (dlDay="Friday") {
-		dlAdd := 3
-	}
-	if (dlDay="Wednesday") {
-		dlAdd := 1
-	}
-	if (dlHour > 12) {
-		dlDate := DateAdd(dlDate,dlAdd,"D")
-	}
-
 	dlDate := FormatTime(dlDate, "yyyyMMdd")
 
 	RegExMatch(y.selectSingleNode("//call[@date=`"" dlDate "`"]/EP").text, "i)" epStr, &ymatch)
-	if !(ep := ymatch.value()) {
+	if !(ep) {																			; No EP or EP_dx in call.xml 
 		ep := choiceBox(epStr,"Electronic Forecast not complete","Which EP on Monday?","Q")
 		if (ep="xClose") {
 			eventlog("Elec Forecast not complete. Quit EP selection.")
@@ -1140,7 +1127,7 @@ epRead() {
 		eventlog("Reading EP assigned to " ep ".")
 	}
 	
-	if (RegExMatch(fldval["dem-Ordering"], "i)" epStr, &epOrder))  {
+	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, epOrder))  {					; Check if belongs to any EP 
 		ep := epOrder.value()
 		fldval.MyPatient := ep
 	}
