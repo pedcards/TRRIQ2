@@ -1127,7 +1127,7 @@ epRead() {
 		eventlog("Reading EP assigned to " ep ".")
 	}
 	
-	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, epOrder))  {					; Check if belongs to any EP 
+	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, &epOrder))  {					; Check if belongs to any EP 
 		ep := epOrder.value()
 		fldval.MyPatient := ep
 	}
@@ -2072,7 +2072,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 		pid.name := ParseName(pid[6])
 		pid.nameL := pid.name.last
 		pid.dob := niceDate(pid[8])
-		obx1 := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
+		obxfull := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
 		match := psr.match("[@PatientLastName=`"" pid.nameL "`"][@MRN1=`"" pid.mrn "`"]")
 
 		try if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.clinic) {		; remove all sites0 results
@@ -2119,7 +2119,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 				eventlog(fileIn " - " obr.prov ". Changed site to " obr.site ".")
 			}
 		}
-		if (obx1) {
+		if (obxfull) {
 			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldval, and PDF into hl7Dir
 			fldval := res_in.fldval
 			dt := ParseDate(res.date)
