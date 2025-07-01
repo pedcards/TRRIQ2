@@ -100,31 +100,31 @@ SetTitleMatchMode("2")
 	pb.title("Initializing variables")
 	pb.sub("Demographics")
 	pb.set()
-	demVals := readIni("demVals")																		; valid field names for parseClip()
+	demVals := readIni("demVals")														; valid field names for parseClip()
 
 	pb.sub("Indication codes")
-	indCodes := readIni("indCodes")																		; valid indications
+	indCodes := readIni("indCodes")														; valid indications
 
 	pb.sub("Monitor strings")
-	monStrings := readIni("Monitors")																	; Monitor key strings
+	monStrings := readIni("Monitors")													; Monitor key strings
 
 	monTypes := Map()
 	for key,val in monStrings
 	{
 		monTypes[key] := Map() 
 		el := strSplit(val,":")
-		monTypes[key]["type"] := el[1]																	; Monitor letter code "H"
-		monTypes[key]["abbrev"] := el[2]																; Abbrev for PDF fname "HOL"
-		monTypes[key]["duration"] := el[3]																; Order list dur "24-hr"
-		monTypes[key]["regex"] := el[4]																	; Mon type regex "Pr|Hol"
-		monTypes[key]["serial"] := el[5]																; S/n regex "Mortara|Mini SL"
-		monTypes[key]["EAP"] := el[6]																	; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
+		monTypes[key]["type"] := el[1]													; Monitor letter code "H"
+		monTypes[key]["abbrev"] := el[2]												; Abbrev for PDF fname "HOL"
+		monTypes[key]["duration"] := el[3]												; Order list dur "24-hr"
+		monTypes[key]["regex"] := el[4]													; Mon type regex "Pr|Hol"
+		monTypes[key]["serial"] := el[5]												; S/n regex "Mortara|Mini SL"
+		monTypes[key]["EAP"] := el[6]													; Epic EAP "CVCAR102^HOLTER MONITOR 24 HOUR"
 	}
 
 	initHL7()
 
 	pb.sub("Reading EP list")
-	epList := readIni("epRead")																			; reading EP
+	epList := readIni("epRead")															; reading EP
 
 	pb.sub("Screen dimensions")
 	dims := getDims()
@@ -400,7 +400,7 @@ PhaseGUI() {
 			, "Unread"
 			, "ALL"
 			]
-		if !(gl.isMain) {																	; If not MAIN, remove INBOX
+		if !(gl.isMain) {																; If not MAIN, remove INBOX
 			alltabs.RemoveAt(2)
 		}
 		for val in StrSplit(sites.tracked,"|")
@@ -775,15 +775,15 @@ recoverDone(uid:="",*)
 		MsgBox("*** unknown ***")
 	}
 
-	wq := XML(path.data "worklist.xml")												; refresh WQ
+	wq := XML(path.data "worklist.xml")													; refresh WQ
 	en := readWQ(uid)
 	filecheck()
 	FileOpen(".lock", "W")
 
-	x := wq.selectSingleNode("/root/done/enroll[@id=`"" uid "`"]")					; reload x node
+	x := wq.selectSingleNode("/root/done/enroll[@id=`"" uid "`"]")						; reload x node
 	clone := x.cloneNode(true)
-	wq.selectSingleNode("/root/pending").appendChild(clone)							; copy x.clone to PENDING
-	x.parentNode.removeChild(x)														; remove x
+	wq.selectSingleNode("/root/pending").appendChild(clone)								; copy x.clone to PENDING
+	x.parentNode.removeChild(x)															; remove x
 	eventlog("***** wqid " uid " (" en.mrn " from " en.date ") moved back to PENDING list.")
 
 	writeSave(wq)
@@ -1156,8 +1156,8 @@ exitError(txt) {
 eventlog(event) {
 	global gl
 
-	sessDate := FormatTime(A_Now,"yyyy.MM")											; FormatTime, sessdate, A_Now, yyyy.MM
-	now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 								; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
+	sessDate := FormatTime(A_Now,"yyyy.MM")												; FormatTime, sessdate, A_Now, yyyy.MM
+	now := FormatTime(A_Now,"yyyy.MM.dd||HH:mm:ss") 									; FormatTime, now, A_Now, yyyy.MM.dd||HH:mm:ss
 	fname := ".\logs\" . sessdate . ".log"
 	txt := now " [" gl.user "/" gl.comp "/" gl.userinstance "] " event "`n"
 	try {
@@ -1343,7 +1343,7 @@ ParseDate(x) {
 	}
 
 	if RegExMatch(x,"i)(\d+):(\d{2})(:\d{2})?(:\d{2})?(.*)?(AM|PM)?",&t) {				; 17:42 PM
-		hasDays := (t[4]) ? true : false 											; 4 nums has days
+		hasDays := (t[4]) ? true : false 												; 4 nums has days
 		time.days := (hasDays) ? t[1] : ""
 		time.hr := trim(t[1+hasDays])
 		time.min := trim(t[2+hasDays]," :")
@@ -2053,20 +2053,19 @@ WQpreventiceResults(&wqfiles,&lv) {
 	global wq, path, sites, monTypes, psr
 
 	hl7dirMap := Map()
-	tmpHolters := ""
 	loop Files path.PrevHL7in "*.hl7"
 	{
 		fileIn := A_LoopFileName
 		x := StrSplit(fileIn,"_")
 
 		tmptxt := fileread(path.PrevHL7in fileIn)
-		obr:= segSplit("OBR")														; get OBR segment
-		obr.req := trim(obr[3]," ^")												; wqid from Preventice registration (PV1_19)
+		obr:= segSplit("OBR")															; get OBR segment
+		obr.req := trim(obr[3]," ^")													; wqid from Preventice registration (PV1_19)
 		obr.prov := strX(obr[17],"^",1,1,"^",1)
 		obr.site := strX(obr.prov,"-",1,1,"",0)
 		obr.date := obr[8]
-		pv1 := segSplit("PV1")														; get PV1 segment
-		pv1.dt := SubStr(pv1[40],1,8)												; pull out date of entry/registration (will not match for send out)
+		pv1 := segSplit("PV1")															; get PV1 segment
+		pv1.dt := SubStr(pv1[40],1,8)													; pull out date of entry/registration (will not match for send out)
 		pid := segSplit("PID")
 		pid.mrn := pid[4]
 		pid.name := ParseName(pid[6])
@@ -2081,23 +2080,23 @@ WQpreventiceResults(&wqfiles,&lv) {
 			continue
 		}
 
-		if (readWQ(obr.req).mrn) {													; check if obr_req is valid wqid
+		if (readWQ(obr.req).mrn) {														; check if obr_req is valid wqid
 			id := obr.req
 		} 
-		else if (id := findWQid(pv1.dt,x[3]).id) { 									; try to find wqid based on date in PV1.40 and mrn
+		else if (id := findWQid(pv1.dt,x[3]).id) { 										; try to find wqid based on date in PV1.40 and mrn
 		}
-		else if (id := match.wqid) {												; try to find wqid within PSR
+		else if (id := match.wqid) {													; try to find wqid within PSR
 		}
-		else {																		; can't find wqid, just admit defeat
+		else {																			; can't find wqid, just admit defeat
 			id := ""
 			eventlog(fileIn " - Cannot identify WQID from HL7 or PSR.")
 		}
 		if (id) {
 			hl7dirMap[fileIn] := id
 		}
-		res := readWQ(id)															; wqid should always be present in hl7 downloads
+		res := readWQ(id)																; wqid should always be present in hl7 downloads
 
-		if (obr.site="") {															; no "-site" in OBR.17 name, incorrectly registered
+		if (obr.site="") {																; no "-site" in OBR.17 name, incorrectly registered
 			if (res.site=match.site) {
 				changed := false
 			}
@@ -2243,15 +2242,15 @@ findFullPdf(wqid:="") {
 				eventlog("Found complete PDF, deleted " fname)
 				Continue
 			}
-			pdflist.push(fname)																	; Add to pdflist, no need to scan
+			pdflist.push(fname)															; Add to pdflist, no need to scan
 			Continue
 		}
 		
-		RegExMatch(fname,"_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)										; get filename WQID if PDF has already been renamed
+		RegExMatch(fname,"_WQ([A-Z0-9]+)(_\w)?\.pdf",&fnID)								; get filename WQID if PDF has already been renamed
 		
 		try fnID[0]
 		catch {
-			eventlog("Unmatched PDF: " fileIn)													; unmatched PDF
+			eventlog("Unmatched PDF: " fileIn)											; unmatched PDF
 			continue
 		}
 		if (readWQ(fnID[1]).node = "done") {
@@ -2290,16 +2289,16 @@ findWQid(DT:="",MRN:="",ser:="") {
 	global wq
 	
 	if IsObject(x := wq.selectSingleNode("//enroll"
-		. "[date=`"" DT "`"][mrn=`"" MRN "`"]")) {												; Perfect match DT and MRN
+		. "[date=`"" DT "`"][mrn=`"" MRN "`"]")) {										; Perfect match DT and MRN
 	} else if IsObject(x := wq.selectSingleNode("//enroll"
-		. "[dev=`"" ser "`"][mrn=`"" MRN "`"]")) {												; or matches S/N and MRN
+		. "[dev=`"" ser "`"][mrn=`"" MRN "`"]")) {										; or matches S/N and MRN
 	} else if IsObject(x := wq.selectSingleNode("//enroll"
-		. "[date=`"" DT "`"][dev=`"" ser "`"]")) {												; or matches DT and S/N
+		. "[date=`"" DT "`"][dev=`"" ser "`"]")) {										; or matches DT and S/N
 	} else {
-		x := ""																				; anything else is null
+		x := ""																			; anything else is null
 	}
 
-	return {id:x.getAttribute("id"),node:x.parentNode.nodeName}								; returns {id,node}; or null (error) if no match
+	return {id:x.getAttribute("id"),node:x.parentNode.nodeName}							; returns {id,node}; or null (error) if no match
 }
 		
 WQfindMissingWebgrab(&lv) {
@@ -2643,7 +2642,7 @@ moveWQ(id) {
 	if (mrn) {																			; record exists
 		wq.addElement(wqStr,"done",{user:gl.user},A_Now)								; set as done
 		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
-		x := wq.selectSingleNode("/root/pending/enroll[@id=`"" id "`"]")					; reload x node
+		x := wq.selectSingleNode("/root/pending/enroll[@id=`"" id "`"]")				; reload x node
 		clone := x.cloneNode(true)
 		wq.selectSingleNode("/root/done").appendChild(clone)							; copy x.clone to DONE
 		x.parentNode.removeChild(x)														; remove x
@@ -2929,7 +2928,7 @@ class monresult
 		/*	Check for presence of valid <pending> node (has accession number)
 			Check for <orders> node that matches the parsed ORU
 		*/
-			if (tryfldval("accession")) {														; Accession number exists, return to processing
+			if (tryfldval("accession")) {												; Accession number exists, return to processing
 				return 0
 			}
 			
@@ -2941,7 +2940,7 @@ class monresult
 				en := ens.item(A_Index-1)
 				en_id := en.getAttribute("id")
 				en_date := wq.getText(en.selectSingleNode("date"))
-				en_mon := wq.getText(en.selectSingleNode("mon"))								; en_mon=order HOL|BGM|BGH 
+				en_mon := wq.getText(en.selectSingleNode("mon"))						; en_mon=order HOL|BGM|BGH 
 				enOrders .= en_date "|" en_id "|" en_mon "`n"
 			}
 			if (enOrders="") {
@@ -2951,7 +2950,7 @@ class monresult
 				MsgBox("No EPIC order found.`nOrder & Accession number needed to process report.","ORDER ERROR", 262193)
 				return 1
 			}
-			enOrders := Sort(enOrders,"R")														; sort matching orders from newest to oldest
+			enOrders := Sort(enOrders,"R")												; sort matching orders from newest to oldest
 			enOrd := StrSplit(StrX(enOrders,"",0,1,"`n",1,1),"|")
 
 			en_id := enOrd[2]
@@ -2971,14 +2970,14 @@ class monresult
 		/*	Extract PDF from oru_in to text for processing
 			Now stored in fldval.PDFtxt rather than newtxt
 		*/
-			fileNam := fldval.file.fileNam													; local fileNam is name only without extension, no path
+			fileNam := fldval.file.fileNam												; local fileNam is name only without extension, no path
 			fileNamTxt := fileNam ".txt"
 			fileNamHl7txt := fileNam "_hl7.txt"
 			
 			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
 			pb.set(100)
-			newtxt := FileRead(fileNamTxt)													; load into newtxt
-			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")							; remove double CRLF
+			newtxt := FileRead(fileNamTxt)												; load into newtxt
+			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")						; remove double CRLF
 			FileDelete(fileNamTxt)
 
 			return
@@ -2991,10 +2990,10 @@ class monresult
 		eventlog("Event_BGH_HL7")
 		fldval.monType := "BGH"
 		
-		if !(obxval["Enroll_Start_Dt"]) {													; missing this if no OBX
+		if !(obxval["Enroll_Start_Dt"]) {												; missing this if no OBX
 			eventlog("No OBX data.")
-			; gosub processPDF																; process as an ad hoc
-			return																			; and bail out
+			; gosub processPDF															; process as an ad hoc
+			return																		; and bail out
 		}
 
 		fieldcoladd("dem","Test_date",niceDate(obxVal["Enroll_Start_Dt"]))
@@ -3005,22 +3004,22 @@ class monresult
 		fields := ["Critical","Total","Serious","(Manual|Pt Trigger)","Stable","Auto Trigger","\R"]
 		labels := ["Critical","Total","Serious","Manual","Stable","Auto","null"]
 	
-		if (tryfldval("[counts-Auto]")="" && tryfldval("[counts-Manual]")="")				; No Event Counts values
-		{																					; parse from PDF
+		if (tryfldval("[counts-Auto]")="" && tryfldval("[counts-Manual]")="")			; No Event Counts values
+		{																				; parse from PDF
 			fieldvals(count_block,fields,labels,"counts")
 		} 
-		else																				; Still no Event Counts (bad PDF)
+		else																			; Still no Event Counts (bad PDF)
 		{
-			count:=[]																		; create object for counts
-			count["Patient-Activated"]:=0													; zero the results instead of null
+			count:=[]																	; create object for counts
+			count["Patient-Activated"]:=0												; zero the results instead of null
 			count["Auto-Detected"]:=0
 			count["Stable"]:=0
 			count["Serious"]:=0
 			count["Critical"]:=0
-			for key,val in obxVal															; recurse through obxVal results
+			for key,val in obxVal														; recurse through obxVal results
 			{
-				if (key~="Event_Acuity|Event_Type") {										; count Critical/Serious/Stable and Auto/Manual events
-					count[val] ++															; more reliable than parsing PDF
+				if (key~="Event_Acuity|Event_Type") {									; count Critical/Serious/Stable and Auto/Manual events
+					count[val] ++														; more reliable than parsing PDF
 				}
 			}
 			fieldcoladd("counts","Critical",count["Critical"])
@@ -3060,9 +3059,9 @@ class monresult
 		}
 		eventlog("Holter_BGMini_" holtype "_HL7")
 
-		if !(obxval["Enroll_Start_Dt"]) {													; missing Start_Dt means no DDE
+		if !(obxval["Enroll_Start_Dt"]) {												; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
-			; gosub processPDF																; need to reprocess from extracted PDF
+			; gosub processPDF															; need to reprocess from extracted PDF
 			Return
 		}
 		
@@ -3071,13 +3070,13 @@ class monresult
 		fldval.dem["Recording_time"] := strQ(obxval["Monitoring_Period"], parsedate("###").DHM)
 		fldval.dem["Analysis_time"] := strQ(obxval["Analyzed_Data"], parsedate("###").DHM)
 
-	/*	gosub checkProc																		; check validity of PDF, make demographics valid if not
+	/*	gosub checkProc																	; check validity of PDF, make demographics valid if not
 		if (fetchQuit=true) {
-			return																			; fetchGUI was quit, so skip processing
+			return																		; fetchGUI was quit, so skip processing
 		}
 		
 		fieldsToCSV()
-		fieldcoladd("","INTERP","")															; fldval["Narrative"]
+		fieldcoladd("","INTERP","")														; fldval["Narrative"]
 		fieldcoladd("","Mon_type","Holter")
 		
 		FileCopy, %fileIn%, %fileIn%-sh.pdf
@@ -3093,9 +3092,9 @@ class monresult
 		eventlog("Holter_BGMini_SL_HL7")
 		fldval.monType := "HOL"
 
-		if (obxval["Enroll_Start_Dt"]="") {													; missing Start_Dt means no DDE
+		if (obxval["Enroll_Start_Dt"]="") {												; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
-			; gosub processPDF																; need to reprocess from extracted PDF
+			; gosub processPDF															; need to reprocess from extracted PDF
 			Return
 		}
 		/*
@@ -3189,7 +3188,7 @@ ProcessPDF(fileIn,fileNam) {
 		MsgBox("No match!","ProcessPDF error","IconX")
 		return
 	}
-	if (fldval.fetchQuit=true) {																; exited demographics fetchGUI
+	if (fldval.fetchQuit=true) {														; exited demographics fetchGUI
 		return																			; so skip processing this file
 	}
 return
@@ -3506,7 +3505,7 @@ parsePrevEnroll(det) {
 			return
 		}
 		if (id:=enrollcheck("[name=`"" res.name "`"]"									; 4/6 perfect match
-			. "[mrn=`"" res.mrn "`"]"														; everything but PROV or SITE
+			. "[mrn=`"" res.mrn "`"]"													; everything but PROV or SITE
 			. "[date=`"" res.date "`"]"
 			. "[dev=`"" res.dev "`"]" )) {
 			en:=readWQ(id)
@@ -3535,7 +3534,7 @@ parsePrevEnroll(det) {
 			checkweb(id)
 			return
 		}
-		if (id:=enrollcheck("[mrn=`"" res.mrn "`"][date=`"" res.date "`"]")) {				; MRN+DATE, no S/N
+		if (id:=enrollcheck("[mrn=`"" res.mrn "`"][date=`"" res.date "`"]")) {			; MRN+DATE, no S/N
 			en:=readWQ(id)
 			if (en.node="done") {
 				return
@@ -3558,7 +3557,7 @@ parsePrevEnroll(det) {
 			checkweb(id)
 			return
 		}
-		if (id:=enrollcheck("[date=`"" res.date "`"][dev=`"" res.dev "`"]")) {				; DATE+S/N, no MRN
+		if (id:=enrollcheck("[date=`"" res.date "`"][dev=`"" res.dev "`"]")) {			; DATE+S/N, no MRN
 			en:=readWQ(id)
 			if (en.node="done") {
 				return
@@ -3569,7 +3568,7 @@ parsePrevEnroll(det) {
 			checkweb(id)
 			return
 		} 
-		if (id:=enrollcheck("[mrn=`"" res.mrn "`"][dev=`"" res.dev "`"]")) {				; MRN+S/N, no DATE match
+		if (id:=enrollcheck("[mrn=`"" res.mrn "`"][dev=`"" res.dev "`"]")) {			; MRN+S/N, no DATE match
 			en:=readWQ(id)
 			if (en.node="done") {
 				return
@@ -3680,10 +3679,10 @@ parsePrevElement(id,en,res,el) {
 	catch {
 		en.%el% := ""
 	}
-	if (res.%el% == en.%el%) {														; Attr[el] is same in EN (wq) as RES (txt)
-		return																		; don't do anything
+	if (res.%el% == en.%el%) {															; Attr[el] is same in EN (wq) as RES (txt)
+		return																			; don't do anything
 	}
-	if (en.%el%) and (res.%el%="") {												; Never overwrite a node with NULL
+	if (en.%el%) and (res.%el%="") {													; Never overwrite a node with NULL
 		return
 	}
 	
@@ -3823,9 +3822,9 @@ cleanBakFiles() {
 inputOnTop() {
 /*	Check for ahk_class #32770
  */
-	ib_ahk := 'ahk_class #32770'  						     ; The class and exe for the inputbox
-	if WinExist(ib_ahk)                                         ; When it exists
-		WinSetAlwaysOnTop(1, ib_ahk)                            ;  Apply always on top attribute
+	ib_ahk := 'ahk_class #32770'														; The class and exe for the inputbox
+	if WinExist(ib_ahk)																	; When it exists
+		WinSetAlwaysOnTop(1, ib_ahk)													;  Apply always on top attribute
 }
 
 ; Convert duration secs to DDHHMMSS
@@ -3847,17 +3846,17 @@ divTime(sec,div) {
 }
 
 httpComm(verb) {
-	if (gl.isDevt) {															; don't actually send out if this isDevt
+	if (gl.isDevt) {																	; don't actually send out if this isDevt
 		return
 	}
 	url := "http://depts.washington.edu/pedcards/change/direct.php?" 
 			. "do=" . verb
 	
-	whr := ComObject("WinHttp.WinHttpRequest.5.1")								; initialize http request in object whr
-	whr.Open("GET"																; set the http verb to GET file "change"
+	whr := ComObject("WinHttp.WinHttpRequest.5.1")										; initialize http request in object whr
+	whr.Open("GET"																		; set the http verb to GET file "change"
 		, url)
-	whr.Send()																	; SEND the command to the address
-	whr.WaitForResponse()														; and wait for the http response
+	whr.Send()																			; SEND the command to the address
+	whr.WaitForResponse()																; and wait for the http response
 	response := whr.ResponseText
 
 	if (response="")|(response~="i)504 Gateway|Permission Denied") {
