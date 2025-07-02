@@ -1119,7 +1119,7 @@ epRead() {
 
 	RegExMatch(y.selectSingleNode("//call[@date=`"" dlDate "`"]/EP").text, "i)" epStr, &ymatch)
 	if !(ep) {																			; No EP or EP_dx in call.xml 
-		ep := choiceBox(epStr,"Electronic Forecast not complete","Which EP on Monday?","Q")
+		ep := choiceBox(epStr,"Electronic Forecast not complete","Who is EP Diagnostic for today?","Q")
 		if (ep="xClose") {
 			eventlog("Elec Forecast not complete. Quit EP selection.")
 			ep:=""
