@@ -23,6 +23,9 @@ class XML
 				this.doc.load(src)
 				this.filename := src
 			}
+			if !(this.doc.hasChildNodes) {
+				throw ValueError("Parameter does not appear to be valid XML.")
+			}
 		} else {
 			src := "<?xml version=`"1.0`" encoding=`"UTF-8`"?><root />"
 			this.doc.loadXML(src)
@@ -35,8 +38,7 @@ class XML
 				return this.doc.%method%(params[1])
 			}
 			catch as err {
-				MsgBox("Error: " err.Message)
-				return false
+				throw ValueError(this.errString(err))
 			} 
 		}
 	}
@@ -54,8 +56,7 @@ class XML
 			IsObject(node)
 		} 
 		catch as err {
-			MsgBox("Error: " err.Message)
-			return false
+			throw ValueError(this.errString(err))
 		} 
 		else {
 			n := this.doc
@@ -82,7 +83,7 @@ class XML
 			IsObject(node.ParentNode)
 		}
 		catch as err {
-			MsgBox("Error: " err.Message)
+			throw ValueError(this.errString(err))
 		} 
 		else {
 			n := this.doc
@@ -107,8 +108,8 @@ class XML
 		node := this.isNode(node)
 		try {
 			return node.text
-		} catch {
-			return ""
+		} catch as err {
+			throw ValueError(this.errString(err))
 		}
 	}
 
@@ -167,9 +168,8 @@ class XML
 	}
 	
 	findXPath(node) {
-	/*	Returns xpath of node
+	/*	Returns rough xpath of node
 	*/
-		; x := node.nodeType
 		build := ""
 
 		while (node.parentNode) {
@@ -200,6 +200,14 @@ class XML
 /*	====================================================================================
 	INTERNAL SUPPORT FUNCTIONS
 */
+	errString(err) {
+		return "Error: " err.Message "`n"
+			. "What: " err.What "`n"
+			. "Where: " err.Extra "`n"
+			. "File: " err.File "`n"
+			. "Line: " err.Line "`n"
+			. "Stack: " err.Stack
+	}
 	isNode(node) {
 		if (node is String) {
 			try node := this.doc.selectSingleNode(node)
@@ -210,12 +218,15 @@ class XML
 	}
 
 	elementIndex(node) {
-		parent := node.parentNode
-		for candidate in parent.childNodes {
-			if (candidate.nodeName=node.nodeName) {
-				return A_Index
+		loop {
+			try {
+				node := node.previousSibling
+				idx := A_Index
+			} catch {
+				break
 			}
 		}
+		return idx
 	}
 
 	style() {
