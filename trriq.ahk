@@ -2694,7 +2694,7 @@ readWQlv(agc,row,*)
 	; labels := Object()
 	; blk := Object()
 	; blk2 := Object()
-	ptDem := Object()
+	; ptDem := Object()
 	pt := Object()
 	chk := Object()
 	matchProv := Object()
@@ -3225,7 +3225,7 @@ CheckProc() {
 		return
 	}
 	
-	ptDem := Object()																	; Populate temp object ptDem with parsed data from HL7 or PDF fldval
+	ptDem := Map()																		; Populate temp object ptDem with parsed data from HL7 or PDF fldval
 	ptDem["nameL"] := fldval.dem["Name_L"]												; dem-Name contains ['] not [^]
 	ptDem["nameF"] := fldval.dem["Name_F"] 
 	ptDem["Name"] := fldval.dem["Name"]
