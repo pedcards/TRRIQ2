@@ -2,19 +2,23 @@
 
 class XML
 {
-/*	new() = return new XML document
+/*	XML class for AHK v2 (2025) by docterry
+	new() = return new XML document
 	addElement() = append new element to node object
 	insertElement() = insert new element above node object
 	getText() = return element text if present
 	setText() = set element text, create element if needed
+	getAtt() = get attribute
 	setAtt() = set attributes
+	copyNode() = clone a node and append to another node
+	moveNode() = clode a node and move to another node 
 	removeNode() = remove a node
 	findXPath() = return xpath to node (needs work)
 	transformXML() = format XML stream
 	saveXML() = saves XML with filename param or original filename
 */
 	__New(src:="") {
-		this.doc := ComObject("Msxml2.DOMDocument")
+		this.doc := ComObject("Msxml2.DOMDocument.6.0")
 		if (src) {
 			if (src ~= "s)^<.*>$") {
 				this.doc.loadXML(src)
@@ -24,7 +28,7 @@ class XML
 				this.filename := src
 			}
 			if !(this.doc.hasChildNodes) {
-				throw ValueError("Parameter does not appear to be valid XML.")
+				throw ValueError("Cannot initialize XML object. Parameter does not appear to contain valid XML.")
 			}
 		} else {
 			src := "<?xml version=`"1.0`" encoding=`"UTF-8`"?><root />"
@@ -59,8 +63,7 @@ class XML
 			throw ValueError(this.errString(err))
 		} 
 		else {
-			n := this.doc
-			newElem := n.createElement(child)
+			newElem := this.doc.createElement(child)
 			for p in params {
 				if IsObject(p) {
 					for key,val in p.OwnProps() {
@@ -86,8 +89,7 @@ class XML
 			throw ValueError(this.errString(err))
 		} 
 		else {
-			n := this.doc
-			newElem := n.createElement(new)
+			newElem := this.doc.createElement(new)
 			for p in params {
 				if IsObject(p) {
 					for key,val in p.OwnProps() {
@@ -116,7 +118,7 @@ class XML
 	setText(node,txt) {
 	/*	Set text value for a node
 		If node does not exist, create node first
-		Must have valide parent node
+		Must have valid parent node
 	*/
 		node := this.isNode(node)
 		parent := node.parentNode
@@ -125,10 +127,9 @@ class XML
 			node.text := txt
 		}
 		catch {
-			n := this.doc
-			newElem := n.createElement(child)
+			newElem := this.doc.createElement(child)
 			newElem.text := txt
-			return parent.appendChild(newElem)
+			parent.appendChild(newElem)
 		}
 	}
 
@@ -140,6 +141,75 @@ class XML
 		for att,val in atts.OwnProps()
 		{
 			try node.setAttribute(att,val)
+		}
+	}
+
+	getAtt(nodein,att) {
+	/*	Get attribute for existing node
+		Here mostly for consistency, to match setAtt
+	*/
+		node := this.isNode(nodein)
+		try {
+			return node.getAttribute(att)
+		}
+		catch {
+			return ""
+		}
+	}
+
+	renameNode(nodein,newName) {
+	/*	Renames a node
+		Retains all attributes and children
+	*/
+		node := this.isNode(nodein)
+		newnode := this.doc.createElement(newName)
+
+		while node.hasChildNodes {
+			newnode.appendChild(node.firstChild)
+		}
+		
+		while (node.attributes.length > 0) {
+			newnode.setAttributeNode(node.removeAttributeNode(node.attributes[0]))
+		}
+
+		try {
+			node.parentNode.replaceChild(newnode,node)
+		} 
+		catch as err {
+			throw ValueError(this.errString(err))
+		}
+	}
+
+	copyNode(nodein,dest) {
+	/*	Copies a clone of node to destination node
+	*/
+		node := this.isNode(nodein)
+		destnode := this.isNode(dest)
+
+		try {
+			copy := node.cloneNode(true)
+			x := destnode.nodeName
+			y := destnode.text
+			destnode.appendChild(copy)
+		}
+		catch as err {
+			throw ValueError(this.errString(err))
+		}
+	}
+
+	moveNode(nodein,dest) {
+	/*	Moves a clone of node to destination node
+	*/
+		node := this.isNode(nodein)
+		destnode := this.isNode(dest)
+
+		try {
+			copy := node.cloneNode(true)
+			destnode.appendChild(copy)
+			node.parentNode.removeChild(node)
+		} 
+		catch as err {
+			throw ValueError(this.errString(err))
 		}
 	}
 
@@ -236,9 +306,7 @@ class XML
 			IsObject(xsl)
 		}
 		catch {
-			RegExMatch(ComObjType(this.doc, "Name"), "IXMLDOMDocument\K(?:\d|$)", &m)
-			MSXML := "MSXML2.DOMDocument" (m[0] < 3 ? "" : ".6.0")
-			xsl := ComObject(MSXML)
+			xsl := ComObject("Msxml2.DOMDocument.6.0")
 			style := "
 			(LTrim
 			<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
