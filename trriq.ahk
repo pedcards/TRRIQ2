@@ -3031,11 +3031,11 @@ class monresult
 			eventlog("Event Count block not parsed, counted from OBR.")
 		}
 		
-	/*	gosub checkProc												; check validity of PDF, make demographics valid if not
-		if (fetchQuit=true) {
-			return													; fetchGUI was quit, so skip processing
+		checkProc()																		; check validity of PDF, make demographics valid if not
+		if (fldval.fetchQuit=true) {
+			return																		; fetchGUI was quit, so skip processing
 		}
-		
+	/*	
 		fieldstoCSV()
 		
 		fieldcoladd("","Mon_type","Event")
@@ -3197,7 +3197,6 @@ return
 CheckProc() {
 /*	Check processed file for valid values
  */
-	global fldval, sites
 	eventlog("CheckProc")
 	fldval.fetchQuit := false
 	
@@ -3237,12 +3236,12 @@ CheckProc() {
 	ptDem["Provider"] := filterProv(fldval.dem["Ordering"]).name
 	ptDem["EncDate"] := fldval.dem["Test_date"]
 	ptDem["Indication"] := fldval.dem["Indication"]
-	eventlog("PDF demog: " ptDem.nameL ", " ptDem.nameF " " ptDem.mrn " " ptDem.EncDate)
+	eventlog("PDF demog: " ptDem["nameL"] ", " ptDem["nameF"] " " ptDem["mrn"] " " ptDem["EncDate"])
 	
 	if (fldval.accession) {																; <accession> exists, has been registered or uploaded through TRRIQ
 		eventlog("Pulled valid data for " fldval.name " " fldval.mrn " " fldval.date)
 		MsgBox("" 
-		  . fldval.name "`n" 
+		  . fldval.dem["name"] "`n" 
 		  . "MRN " fldval.mrn "`n" 
 		  . "Accession: " fldval.accession "`n" 
 		  . "Ordering: " fldval.prov "`n" 
