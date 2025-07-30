@@ -1537,8 +1537,11 @@ ParseName(x) {
 
 tryfldval(x) {
 	try {
-		RegExMatch(x,"^\[(.*?)\]$",&res)
-		return fldval[res[1]]
+		RegExMatch(x,"^\[(.*?)-(.*?)\]$",&res)
+		pre := res[1]
+		lab := res[2]
+		; fldmap(pre)
+		return fldval.%pre%[lab]
 	}
 	try {
 		return fldval.%x%
@@ -1548,17 +1551,24 @@ tryfldval(x) {
 	}
 }
 
+fldmap(pre) {
+	if !ObjHasOwnProp(fldval,pre) {
+		fldval.%pre% := Map()
+	}
+}
+
 fieldColAdd(pre:="",lab:="",txt:="") {
 	if (pre) {
-		prelab := pre "-" lab
+		fldmap(pre)
+		fldval.%pre%[lab] := txt
 	} else {
-		prelab := lab
+		fldval.%lab% := txt
 	}
-	if ObjHasOwnProp(fldval,prelab) {
-		return
-	}
-	fldval[prelab] := txt
-	return
+	; if ObjHasOwnProp(fldval,prelab) {
+	; 	return
+	; }
+	; fldval[prelab] := txt
+	; return
 }
 
 fieldvals(x,fields,labels,pre) {
@@ -1587,7 +1597,8 @@ fieldvals(x,fields,labels,pre) {
 		}
 		cleanSpace(&m)
 		cleanColon(&m)
-		fldval[pre "-" lbl] := m
+		fldmap(pre)
+		fldval.%pre%[lbl] := m
 		
 		formatField(pre,lbl,m)
 	}
