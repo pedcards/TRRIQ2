@@ -3252,7 +3252,7 @@ CheckProc() {
 	if (fldval.accession) {																; <accession> exists, has been registered or uploaded through TRRIQ
 		eventlog("Pulled valid data for " fldval.name " " fldval.mrn " " fldval.date)
 		MsgBox("" 
-		  . fldval.dem["name"] "`n" 
+		  . fldval.name "`n" 
 		  . "MRN " fldval.mrn "`n" 
 		  . "Accession: " fldval.accession "`n" 
 		  . "Ordering: " fldval.prov "`n" 
