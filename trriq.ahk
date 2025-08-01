@@ -2866,7 +2866,7 @@ class monresult
 	/*	Associate fldval data with extra metadata from extracted PDF, complete final CSV report, handle files
 	*/
 		oru_in := HL7(fileIn)															; extract ORU to this.fldval, OBX to this.obxval, and PDF into hl7Dir
-		try fldval.PDFfileIn := path.PrevHL7in . oru_in.binfile							; fileIn has path .\Preventice\Results\*.pdf
+		try fldval.file.PDFfileIn := path.PrevHL7in . oru_in.binfile					; fileIn has path .\Preventice\Results\*.pdf
 		catch
 		{
 			eventlog("No PDF extracted.")
@@ -2979,7 +2979,7 @@ class monresult
 			fileNamTxt := fileNam ".txt"
 			fileNamHl7txt := fileNam "_hl7.txt"
 			
-			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
+			RunWait(".\files\pdftotext.exe -l 2 `"" fldval.file.PDFfileIn "`" `"" fileNamTxt "`"",,"Hide")		; convert PDF pages 1-2 with no tabular structure
 			pb.set(100)
 			newtxt := FileRead(fileNamTxt)												; load into newtxt
 			fldval.PDFtxt := StrReplace(newtxt, "`r`n`r`n", "`r`n")						; remove double CRLF
@@ -3045,7 +3045,7 @@ class monresult
 		
 		fieldcoladd("","Mon_type","Event")
 		
-		FileCopy, %fileIn%, %fileIn%-sh.pdf
+		FileCopy(fldval.file.PDFfileIn, fldval.file.PDFfileIn "-sh.pdf",1)
 		
 		fldval.done := true
 
