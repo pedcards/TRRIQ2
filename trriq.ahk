@@ -3272,13 +3272,10 @@ return
 }
 
 fieldsToCSV() {
-/*	tabs = tab-delim string
+/*	tabs = ordered array for csv
 	"hrd-Total_beats(0)" -> fldval["hrd-Total_beats"] (default 0 if null)
 */
-	; global fldval, fileOut1, fileOut2, monType
-	monType := fldval.monType
-	
-	if (monType~="PR|HOL|Zio|Mini|BGM") {
+	if (fldval.monType~="PR|HOL|Zio|Mini|BGM") {
 		tabs := ["dem-Name_L","dem-Name_F","dem-Name_M","dem-MRN","dem-DOB","dem-Sex(NA)"
 				,"dem-Site","dem-Billing","dem-Device_SN","dem-VOID1","dem-Hookup_tech"
 				,"dem-VOID2","dem-Meds","dem-Ordering","dem-Scanned_by","dem-Reading"
@@ -3290,7 +3287,7 @@ fieldsToCSV() {
 				,"sve-Total(0)","sve-Total_per(0)","sve-Runs(0)","sve-Beats(0)","sve-Longest(0)","sve-Longest_time"
 				,"sve-Fastest(0)","sve-Fastest_time","sve-Pairs(0)","sve-Drop(0)","sve-Late(0)"
 				,"sve-LongRR(0)","sve-LongRR_time","sve-Single(0)","sve-Bigem(0)","sve-Trigem(0)","sve-AF(0)"]
-	} else if (monType="BGH") {
+	} else if (fldval.monType="BGH") {
 		tabs := ["dem-Name_L","dem-Name_F","dem-MRN","dem-Ordering","dem-Sex(NA)","dem-DOB"
 				,"dem-VOID_Practice","dem-Indication","dem-Test_date","dem-Test_end","dem-VOID","dem-Billing"
 				,"counts-Critical(0)","counts-Total(0)","counts-Serious(0)","counts-Manual(0)","counts-Stable(0)","counts-Auto(0)"]
