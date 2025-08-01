@@ -2999,6 +2999,9 @@ class monresult
 			return																		; and bail out
 		}
 
+		fldval.dem["Test_date"] := parsedate(obxval["Enroll_Start_Dt"]).MDY
+		fldval.dem["Test_end"]	:= parsedate(obxval["Enroll_End_Dt"]).MDY
+
 		fieldcoladd("dem","Test_date",niceDate(obxVal["Enroll_Start_Dt"]))
 		fieldcoladd("dem","Test_end",niceDate(obxVal["Enroll_End_Dt"]))
 		
