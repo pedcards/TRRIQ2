@@ -1616,7 +1616,7 @@ strVal(hay,n1,n2,BO:="",&N:="") {
 formatField(pre, lab, txt) {
 /*	Last second formatting of values
 	Generic, and per report type
-	Send result to fileOut strings
+	Send result to fldval.out
 */
 	; global ptDem
 
@@ -2701,7 +2701,7 @@ readWQlv(agc,row,*)
 	pt := Object()
 	chk := Object()
 	matchProv := Object()
-	fileOut := fileOut1 := fileOut2 := ""
+	; fileOut := fileOut1 := fileOut2 := ""
 	summBl := summ := ""
 	fullDisc := ""
 	monType := ""
@@ -3166,9 +3166,7 @@ class monresult
 ProcessPDF(fileIn,fileNam) {
 /*	This main loop accepts a %fileIn% filename,
  *	determines the filetype based on header contents,
- *	concatenates the CSV strings of header (fileOut1) and values (fileOut2)
- *	into a single file (fileOut),
- *	move around the temp, CSV, and PDF files.
+ *	process based on device type
  */
 	RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
 	fileNamTxt := fileNam ".txt"
@@ -3276,7 +3274,6 @@ return
 fieldsToCSV() {
 /*	tabs = tab-delim string
 	"hrd-Total_beats(0)" -> fldval["hrd-Total_beats"] (default 0 if null)
-	Regenerates new fileOut
 */
 	; global fldval, fileOut1, fileOut2, monType
 	monType := fldval.monType
@@ -3298,8 +3295,7 @@ fieldsToCSV() {
 				,"dem-VOID_Practice","dem-Indication","dem-Test_date","dem-Test_end","dem-VOID","dem-Billing"
 				,"counts-Critical(0)","counts-Total(0)","counts-Serious(0)","counts-Manual(0)","counts-Stable(0)","counts-Auto(0)"]
 	}
-	fileOut1 := ""
-	fileOut2 := ""
+
 	for tab in tabs																		; PRE-LAB(default val)
 	{
 		fld := strX(tab,"",1,0,"(",1,1)													; field
@@ -3308,7 +3304,7 @@ fieldsToCSV() {
 		def := strX(tab,"(",1,1,")",1,1)												; default value
 		val := tryfldval("[" fld "]")													; value in fldval[pre-lab]
 		res := (val = "") ? def : val													; result is value if exists, else default
-		formatfield(pre,lab,res)														; sends formatted results, i.e. recreates fresh fileOut
+		formatfield(pre,lab,res)														; sends formatted results to fldval.out
 	}
 	eventlog("Fields mapping complete.")
 	
