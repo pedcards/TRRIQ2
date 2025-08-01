@@ -1534,7 +1534,6 @@ tryfldval(x) {
 		RegExMatch(x,"^\[(.*?)-(.*?)\]$",&res)
 		pre := res[1]
 		lab := res[2]
-		; fldmap(pre)
 		return fldval.%pre%[lab]
 	}
 	try {
@@ -3299,7 +3298,7 @@ fieldsToCSV() {
 			pre := strX(fld,"",1,0,"-",1,1)												; prefix
 			lab := strX(fld,"-",1,1,"",0)												; label
 		def := strX(tab,"(",1,1,")",1,1)												; default value
-		val := tryfldval("[" fld "]")													; value in fldval[pre-lab]
+		val := tryfldval("[" fld "]")													; value in fldval.pre[lab]
 		res := (val = "") ? def : val													; result is value if exists, else default
 		formatfield(pre,lab,res)														; sends formatted results to fldval.out
 	}
