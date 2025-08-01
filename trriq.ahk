@@ -1423,15 +1423,9 @@ checkCrd(x) {
 	x := filterprov(x).name
 	for rowidx,row in Docs																; Groups
 	{
-		if (substr(rowIdx,-3)=".eml") {
-			continue
-		}
 		for colidx,item in row															; Providers
 		{
-			if (item="") {                                ; empty field will break fuzzysearch 
-				continue 
-			} 
-			res := fuzzysearch(x,item)
+			res := fuzzysearch(x,item.name)
 			if (res<fuzz) {
 				fuzz := res
 				best:=item
@@ -1651,10 +1645,10 @@ formatField(pre, lab, txt) {
 
 	if (lab~="^(Referring|Ordering)$") {
 		tmpCrd := checkCrd(txt)															; Get Crd, Grp, and Eml via checkCrd()
-		fieldColAdd(pre,lab,tmpCrd.best)
+		fieldColAdd(pre,lab,tmpCrd.best.name)
 		fieldColAdd(pre,lab "_grp",tmpCrd.group)
-		fieldColAdd(pre,lab "_eml",Docs[tmpCrd.Group ".eml",ObjHasValue(Docs[tmpCrd.Group],tmpCrd.best)])
-		if (tmpCrd="") {
+		fieldColAdd(pre,lab "_eml",tmpCrd.best.eml)
+		if (tmpCrd.best.name="") {
 			eventlog("*** Blank Crd value ***")
 		}
 		return
