@@ -3733,23 +3733,58 @@ checkPreventiceOrdersOut() {
 
 ;#region == OTHER FUNCTIONS ============================================================
 ObjHasValue(aObj, aValue, rx:="") {
-	for key, val in aObj
-		if (rx) {																		; argument 3 is any value 
-			if (aValue="") {															; null aValue in "RX" is error
-				return false
+/*	Check if aValue is contained within aObj, return index value
+	If aObj is Map(), also check key:value pairs for matching value, then key names
+	If (rx), compare RegEx in both directions
+ */
+	if (aValue="") {																	; null aValue is error
+		return false
+	}
+	props := ObjOwnPropCount(aObj)
+	aProps := aObj.OwnProps()
+	aKeys := aObj.OwnProps()
+	
+	/*	First pass: Check values in object (i.e. arrays)
+	*/
+	for key,val in aObj
+	{
+		if (compare(val)) {
+			return key
+		}
+	}
+	/*	Second pass: Check values of property keys
+	*/
+	for key,val in aProps
+	{
+		if (compare(val)) {
+			return key
+		}
+	}
+	/*	Third pass: Check property key names
+	*/
+	for key,val in aKeys
+	{
+		if (compare(key)) {
+			return key
+		}
+	}
+	return false
+
+	compare(val) {
+		if (rx) {
+			if (val ~= "i)" aValue) {													; val=text, aValue=RX
+				return true
 			}
-			if (val ~= aValue) {														; val=text, aValue=RX
-				return key
-			}
-			if (aValue ~= val) {														; aValue=text, val=RX
-				return key
+			if (aValue ~= "i)" val) {													; aValue=text, val=RX
+				return true
 			}
 		} else {
 			if (val = aValue) {															; otherwise just string match
-				return key
+				return true
 			}
 		}
-	return false																		; fails match, return err
+		return false
+	}
 }
 
 ToBase(n,b) {
