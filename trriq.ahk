@@ -1105,21 +1105,24 @@ fileCount(folder) {
 }
 
 epRead() {
-	global y, path, ma_date, fldval, epStr
+	ep := ""
 
-/*	This is just for debugging purposes
- */
-	epStr := ""
-/*
- */
-	
-	y := XML(".\files\call.xml")
-	dlDate := A_Now
-	dlDate := FormatTime(dlDate, "yyyyMMdd")
+	y := XML(".\data\call.xml")
+	dlDate := FormatTime(A_Now, "yyyyMMdd")
+	; dlDate := ""
 
-	RegExMatch(y.selectSingleNode("//call[@date=`"" dlDate "`"]/EP").text, "i)" epStr, &ymatch)
+	try ep := y.GetText("//call[@date=`"" dlDate "`"]/EP_dx")
+	catch {
+		try ep := y.GetText("//call[@date=`"" dlDate "`"]/EP")
+	}
 	if !(ep) {																			; No EP or EP_dx in call.xml 
-		ep := choiceBox(epStr,"Electronic Forecast not complete","Who is EP Diagnostic for today?","Q")
+		epStr := []
+		for key in epList.OwnProps()
+		{
+			epStr.Push(key)
+		}
+		ep := choiceBox("Electronic Forecast not complete"
+				,"Who is EP Diagnostic for today?",epStr,"Q")
 		if (ep="xClose") {
 			eventlog("Elec Forecast not complete. Quit EP selection.")
 			ep:=""
