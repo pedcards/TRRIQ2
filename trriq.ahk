@@ -2731,11 +2731,13 @@ readWQlv(agc,row,*)
 		return
 	}
 	
+	phase.hide()
 	monRes := monresult(fileIn)
+	/*
 	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
 		eventlog("===> " fname )
 		phase.hide()
-		; processHl7result()																; process ORU and extracted PDF
+		processHl7result()																; process ORU and extracted PDF
 	}
 	else if (ftype) {																	; Any other PDF type
 		fileInSize := FileGetSize(fileIn)
@@ -2749,6 +2751,7 @@ readWQlv(agc,row,*)
 		MsgBox("Unrecognized filetype (somehow)",, 16) 
 		Return
 	}
+	*/
 	
 	if (tryfldval("done")) {
 		; epRead()																		; find out which EP is reading today
