@@ -1557,12 +1557,21 @@ fieldColAdd(pre:="",lab:="",txt:="") {
 	if !ObjHasOwnProp(fldval,"out") {
 		fldval.out := []
 	}
-	pre := (pre="") ? "" : pre "-"
-	prelab := pre lab
+	prelab := (pre="") ? pre "-" lab : lab
 	if ObjHasOwnProp(fldval.out,prelab) {
 		return
 	}
 	fldval.out.push({label:prelab,val:txt})
+
+	fldmap(pre)
+	if ObjHasOwnProp(fldval.%pre%,lab) {
+		return
+	}
+	if (pre) {
+		fldval.%pre%[lab] := txt
+	} else {
+		fldval[lab] := txt
+	}
 }
 
 fieldvals(x,fields,labels,pre) {
