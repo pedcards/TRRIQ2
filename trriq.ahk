@@ -1068,6 +1068,188 @@ makeEpicORM(*) {
 	return
 }
 
+;Generate an outbound ORU message for Epic
+makeORU(wqid) {
+/*	Real world incoming Preventice ORU MSH.8 is a Preventice number.
+	If MSH.8 contains "EPIC", was generated from MakeTestORU(),	so test ORU will set to OBR.32 and OBX.5 as "###" for filling in by Access DB
+*/
+	; global fldval, hl7out, montype, isDevt, epList, monEpicEAP
+	dict:=readIni("EpicResult")
+	
+	hl7time := A_Now
+	hl7out := Map()
+	
+	buildHL7("MSH"
+		,{1:"^~\&"
+		, 2:"CVTRRIQ"
+		, 3:"CVTRRIQ"
+		, 4:"HS"
+		, 6:hl7time
+		, 8:"ORU^R01"
+		, 9:wqid
+		, 10:"T"
+		, 11:"2.5.1"})
+	
+	buildHL7("PID"
+		,{2:fldval["dem-MRN"]
+		, 3:fldval["dem-MRN"] "^^^^CHRMC"
+		, 5:fldval["dem-Name_L"] "^" fldval["dem-Name_F"]
+		, 7:parseDate(fldval["dem-DOB"]).YMD
+		, 8:substr(fldval["dem-Sex"],1,1)
+		, 18:fldval.accountnum})
+	
+	buildHL7("PV1"
+		,{19:fldval.encnum
+		, 50:wqid})
+	
+
+/*	Insert fake RTF 
+	with reading EP	and monType in OBR_4
+*/
+	if (gl.isDevt=true) {
+		isTest := MsgBox("Create ORU with fake RTF and reading EP?", "Testing", 36)
+	}
+	if (isTest="Yes")
+	{
+	;~ if (fldval.MSH_ctrlID~="EPIC") {
+		rtf := FileRead(".\files\test-RTF.txt")
+		EPdoc := epList[fldval["dem-Reading"]]
+	} 
+	else
+	{
+		rtf := "###"
+		EPdoc := "###"
+	}
+	fldval.obr4 := monEpicEAP[montype]
+	obrProv := fldvalProv()
+
+	buildHL7("OBR"
+		,{2:fldval.order
+		, 3:fldval.accession
+		, 4:fldval.obr4
+		, 7:fldval.date
+		, 16:obrProv.attg
+		, 25:"F"
+		, 28:obrProv.cc																	; for inpatient or fellow ordered
+		, 32:EPdoc })																	; Epic test: Substitute reading EP string "NPI^LAST^FIRST"
+	
+	buildHL7("OBX"
+		,{2:"FT"
+		, 3:"&GDT^HOLTER/EVENT RECORDER REPORT"
+		, 5:rtf																			; Epic test: Substitute test rtf
+		, 11:"F"
+		, 14:hl7time})
+	
+	if (montype~="BGH") {																; no DDE for CEM
+		return
+	}
+	
+	for key,val in dict																	; Loop through all values in Dict (from ini)
+	{
+		str:=StrSplit(val,"^")
+		buildHL7("OBX"																	; generate OBX for each value
+			,{2:"TX"
+			, 3:key "^" str.1 "^IMGLRR"
+			, 5:fldval[str.2]
+			, 11:"F"
+			, 14:hl7time})
+	}
+	
+	return
+}
+
+
+makeTestORU() {
+/*	Generate a fake Preventice inbound ORU message based on the Preventice ORM registration data
+*/
+
+/*
+	global ptDem, hl7out, path
+	hl7time := A_Now
+	hl7out := Object()
+	PVID := "2459720"
+	
+	buildHL7("MSH"
+		,{1:"^~\&"
+		, 2:"ADEPTIA"
+		, 3:"ECARDIO"
+		, 5:"8382"
+		, 6:hl7time
+		, 8:"ORU^R01"
+		, 9:"EPIC" A_TickCount
+		, 10:"P"
+		, 11:"2.5"})
+	
+	buildHL7("PID"
+		,{2:PVID
+		, 3:ptDem.MRN
+		, 5:ptDem.nameL "^" ptDem.nameF
+		, 7:parseDate(ptDem.dob).YMD
+		, 8:substr(ptDem.sex,1,1)
+		, 11:ptDem.Addr1 "^" ptDem.Addr2 "^" ptDem.city "^" ptDem.state "^" ptDem.zip
+		, 13:ptDem.phone
+		, 18:PVID })
+	
+	tmpPrv := parseName(ptDem.provider)
+	buildHL7("PV1"
+		,{7:ptDem.NPI "^" tmpPrv.last "-" ptDem.loc "^" tmpPrv.first
+		, 39:A_Now })
+	
+	buildHL7("OBR"
+		,{2:ptDem.wqid
+		, 3:PVID
+		, 4:strQ(ptDem.model~="Mortara" ? 1 : "","Holter^Holter")
+			. strQ(ptDem.model~="Heart|Lite" ? 1 : "","CEM^CEM")
+			. strQ(ptDem.model~="Mini" ? 1 : "","Holter^Holter")
+		, 7:hl7time
+		, 16:ptDem.NPI "^" tmpPrv.last "-" ptDem.loc "^" tmpPrv.first
+		, 20:"OnComplete"
+		, 22:A_Now })
+	
+	buildHL7("OBX"
+		,{2:"TX"
+		, 3:strQ(ptDem.model~="Mortara" ? 1 : "","Holter^Holter")
+			. strQ(ptDem.model~="Heart" ? 1 : "","CEM^CEM")
+			. strQ(ptDem.model~="Mini" ? 1 : "","Holter^Holter")
+		, 11:"F"
+		, 14:A_Now })
+	
+	FileRead, testTXT, % ".\files\test-ED_"
+		. strQ(ptDem.model~="Mortara" ? 1 : "","HOL")
+		. strQ(ptDem.model~="Heart" ? 1 : "","CEM")
+		. strQ(ptDem.model~="Mini" ? 1 : "","MCT")
+		. ".txt"
+	buildHL7("OBX"
+		,{2:"ED"
+		, 3:"PDFReport1^PDF Report^^^^"
+		, 4:ptDem.nameL "_" ptDem.nameF "_" ptDem.mrn "_" parseDate(ptDem.dob).YMD "_" A_Now ".pdf"
+		, 5:testTXT
+		, 6:8
+		, 11:"F"
+		, 14:A_Now })
+	
+	buildHL7("OBX",{2:"NM|Brady_AvgRate^Bradycardia average rate^Preventice^^^||51|bpm|||||" })
+	buildHL7("OBX",{2:"TX|Brady_LongestDur^Bradycardia longest duration^Preventice^^^||01:09:06|time|||||" })
+	buildHL7("OBX",{2:"DTM|Brady_LongestDur_Dt^Date and Time of longest Bradycardia episode^Preventice^^^||20191206012300|datetime|||||" })
+	buildHL7("OBX",{2:"TX|Brady_ShortestDur^Bradycardia shortest duration^Preventice^^^||00:00:06|time|||||" })
+	buildHL7("OBX",{2:"DTM|Brady_ShortestDur_Dt^Date and Time of shortest Bradycardia episode^Preventice^^^||20191115171500|datetime|||||" })
+	buildHL7("OBX",{2:"TX|Diagnosis^Diagnosis (Indication for Monitoring)^Preventice^^^||R00.2: Palpitations||||||" })
+	buildHL7("OBX",{2:"TX|Disconnect_Dur^Overall disconnect duration^Preventice^^^||3.18:26:04|time|||||" })
+	buildHL7("OBX",{2:"DTM|Enroll_End_Dt^Enrollment End Date^Preventice^^^||20191206000000|datetime|||||" })
+	buildHL7("OBX",{2:"DTM|Enroll_Start_Dt^Enrollment Start Date^Preventice^^^||20191107000000|datetime|||||" })
+	buildHL7("OBX",{2:"NM|HTRate_MaxRate^Maximum heart rate^Preventice^^^||162|bpm|||||" })
+	buildHL7("OBX",{2:"NM|HTRate_MeanRate^Mean heart rate^Preventice^^^||69|bpm|||||" })
+	buildHL7("OBX",{2:"NM|HTRate_MinRate^Minimum heart rate^Preventice^^^||38|bpm|||||" })
+	buildHL7("OBX",{2:"NM|Pause_Count^Pauses >= 3 seconds^Preventice^^^||0||||||" })
+	
+	FileAppend
+		, % hl7out.msg
+		, % path.PrevHL7in ptDem.nameL "_" ptDem.nameF "_" ptDem.mrn "_" parseDate(ptDem.dob).YMD "_" A_Now ".hl7"
+	
+	return
+	*/
+}
+
 WriteSave(z) {
 /*	Saves worklist.xml with integrity check
 	presence of .lock does not matter
@@ -2771,7 +2953,7 @@ readWQlv(agc,row,*)
 		if (fldval.fetchQuit=true) {
 			return
 		}
-		; makeORU(wqid)
+		makeORU(wqid)
 		; gosub outputfiles																; generate and save output CSV, rename and move PDFs
 	}
 	return
