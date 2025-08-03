@@ -1105,42 +1105,43 @@ fileCount(folder) {
 }
 
 epRead() {
-	ep := ""
+	reading := ""
 
 	y := XML(".\data\call.xml")
 	dlDate := FormatTime(A_Now, "yyyyMMdd")
 	; dlDate := ""
 
-	try ep := y.GetText("//call[@date=`"" dlDate "`"]/EP_dx")
+	try reading := y.GetText("//call[@date=`"" dlDate "`"]/EP_dx")
 	catch {
-		try ep := y.GetText("//call[@date=`"" dlDate "`"]/EP")
+		try reading := y.GetText("//call[@date=`"" dlDate "`"]/EP")
 	}
-	if !(ep) {																			; No EP or EP_dx in call.xml 
+	if !(reading) {																		; No EP or EP_dx in call.xml 
 		epStr := []
 		for key in epList.OwnProps()
 		{
 			epStr.Push(key)
 		}
-		ep := choiceBox("Electronic Forecast not complete"
+		reading := choiceBox("Electronic Forecast not complete"
 				,"Who is EP Diagnostic for today?",epStr,"Q")
-		if (ep="xClose") {
+		if (reading="xClose") {
 			eventlog("Elec Forecast not complete. Quit EP selection.")
-			ep:=""
+			fldval.fetchQuit := true
+			return
 		}
-		eventlog("Reading EP assigned to " ep ".")
+		eventlog("Reading EP assigned to " reading ".")
 	}
-	
-	if (RegExMatch(fldval["dem-Ordering"], "Oi)" epStr, &epOrder))  {					; Check if belongs to any EP 
-		ep := epOrder.value()
-		fldval.MyPatient := ep
+	reading := ObjHasValue(epList,reading,"RX")											; just EP last name
+
+	if (x := ObjHasValue(epList,fldval.dem["Ordering"],"RX"))  {						; Check if ordering is any reading EP 
+		reading := x
+		fldval.MyPatient := reading
 	}
-	fldval["dem-Reading"] := ep
+	fldval.dem["Reading"] := reading
 	
-	ma_date := FormatTime(A_Now, "MM/dd/yyyy")
-	fieldcoladd("","EP_read",ep)
+	fieldcoladd("","EP_read",reading)
 	fieldcoladd("","EP_date",niceDate(dlDate))
 	fieldcoladd("","MA",gl.user)
-	fieldcoladd("","MA_date",ma_date)
+	fieldcoladd("","MA_date",FormatTime(A_Now, "MM/dd/yyyy"))
 	fieldcoladd("TRRIQ","UID",fldval.wqid)
 	fieldcoladd("TRRIQ","order",fldval.order)
 	fieldcoladd("TRRIQ","accession",fldval.accession)
@@ -2766,7 +2767,10 @@ readWQlv(agc,row,*)
 	*/
 	
 	if (tryfldval("done")) {
-		; epRead()																		; find out which EP is reading today
+		epRead()																		; find out which EP is reading today
+		if (fldval.fetchQuit=true) {
+			return
+		}
 		; makeORU(wqid)
 		; gosub outputfiles																; generate and save output CSV, rename and move PDFs
 	}
