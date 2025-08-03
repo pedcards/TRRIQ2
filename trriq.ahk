@@ -2710,14 +2710,14 @@ readWQlv(agc,row,*)
 	; blk := Object()
 	; blk2 := Object()
 	; ptDem := Object()
-	pt := Object()
-	chk := Object()
-	matchProv := Object()
+	; pt := Object()
+	; chk := Object()
+	; matchProv := Object()
 	; fileOut := fileOut1 := fileOut2 := ""
-	summBl := summ := ""
-	fullDisc := ""
-	monType := ""
-	obxval := Object()
+	; summBl := summ := ""
+	; fullDisc := ""
+	; monType := ""
+	; obxval := Object()
 	
 	fldval := readWQ(wqid)																; wqid would have been determined by parsing hl7
 	fldval.wqid := wqid																	; or findFullPdf scan of extra PDFs
