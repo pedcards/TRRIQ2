@@ -3511,6 +3511,28 @@ fieldsToCSV() {
 return	
 }
 
+fldvalProv() {
+	; global fldval, Docs
+	attg := fldval.OBR_ProviderCode "^"
+			. fldval.OBR_ProviderNameL "^"
+			. fldval.OBR_ProviderNameF
+			. "^^^^^^MSOW_ORG_ID"
+	
+	if !!(fldval.fellow) {
+		pos := ObjHasValue(Docs.FELLOWS,fldval.fellow)
+		npi := Docs["Fellows.NPI"][pos]
+		fName := ParseName(fldval.fellow)
+		cc := npi "^"
+			. fName.Last "^"
+			. fName.First
+			. "^^^^^^MSOW_ORG_ID"
+	} else {
+		cc := attg
+	}
+
+	Return {attg:attg,cc:cc}
+}
+
 ;#endregion
 
 ;#region == PREVENTICE FUNCTIONS =======================================================
