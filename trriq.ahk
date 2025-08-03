@@ -1094,11 +1094,11 @@ makeORU(wqid) {
 		, 11:"2.5.1"})
 	
 	buildHL7("PID"
-		,{2:fldval["dem-MRN"]
-		, 3:fldval["dem-MRN"] "^^^^CHRMC"
-		, 5:fldval["dem-Name_L"] "^" fldval["dem-Name_F"]
-		, 7:parseDate(fldval["dem-DOB"]).YMD
-		, 8:substr(fldval["dem-Sex"],1,1)
+		,{2:fldval.dem["MRN"]
+		, 3:fldval.dem["MRN"] "^^^^CHRMC"
+		, 5:fldval.dem["Name_L"] "^" fldval.dem["Name_F"]
+		, 7:parseDate(fldval.dem["DOB"]).YMD
+		, 8:substr(fldval.dem["Sex"],1,1)
 		, 18:fldval.accountnum})
 	
 	buildHL7("PV1"
@@ -1116,14 +1116,14 @@ makeORU(wqid) {
 	{
 	;~ if (fldval.MSH_ctrlID~="EPIC") {
 		rtf := FileRead(".\files\test-RTF.txt")
-		EPdoc := epList[fldval["dem-Reading"]]
+		EPdoc := epList.%fldval.dem["Reading"]%
 	} 
 	else
 	{
 		rtf := "###"
 		EPdoc := "###"
 	}
-	fldval.obr4 := monEpicEAP[montype]
+	fldval.obr4 := "monEpicEAP[montype]"
 	obrProv := fldvalProv()
 
 	buildHL7("OBR"
