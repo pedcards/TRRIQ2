@@ -2874,7 +2874,7 @@ readWQlv(agc,row,*)
 	Admin task:
 		* Deal with "HL7 error"
 */
-	global fldval, gl, phase, pb
+	global fldval, gl, phase, pb, monRes
 
 	fileIn := agc.GetText(row,1)														; selection filename
 	wqid := agc.GetText(row,7)															; WQID
