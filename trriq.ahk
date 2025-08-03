@@ -1074,10 +1074,13 @@ makeORU(wqid) {
 	If MSH.8 contains "EPIC", was generated from MakeTestORU(),	so test ORU will set to OBR.32 and OBX.5 as "###" for filling in by Access DB
 */
 	; global fldval, hl7out, montype, isDevt, epList, monEpicEAP
+	global hl7out
+
 	dict:=readIni("EpicResult")
 	
 	hl7time := A_Now
 	hl7out := Map()
+	hl7out.msg := ""
 	
 	buildHL7("MSH"
 		,{1:"^~\&"
