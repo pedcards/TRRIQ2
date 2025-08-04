@@ -211,8 +211,6 @@ buildHL7(seg,params) {
 	keeps seg counts in hl7out[seg] = idx
 	params is a sparse object with {2:"TX", 3:str1, 5:value, 11:"F", 14:A_now}
 */
-	global hl7out
-
 	txt := seg
 	seqnum := 0
 	maxkey := 1
@@ -233,16 +231,16 @@ buildHL7(seg,params) {
 		
 		
 		if (seg!="MSH")&&(A_index=1) {
-			try seqnum := hl7out[seg]													; get last sequence number for this segment
+			try seqnum := fldval.hl7out[seg]											; get last sequence number for this segment
 			seqnum++
-			hl7out[seg] := seqnum
+			fldval.hl7out[seg] := seqnum
 			param := seqnum
 		}
 		
 		txt .= "|" param
 	}
 
-	hl7out.msg .= txt "`n"																; append result to hl7out.msg
+	fldval.hl7out.msg .= txt "`n"														; append result to hl7out.msg
 
 	return
 }
