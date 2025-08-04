@@ -1073,14 +1073,11 @@ makeORU(wqid) {
 /*	Real world incoming Preventice ORU MSH.8 is a Preventice number.
 	If MSH.8 contains "EPIC", was generated from MakeTestORU(),	so test ORU will set to OBR.32 and OBX.5 as "###" for filling in by Access DB
 */
-	; global fldval, hl7out, montype, isDevt, epList, monEpicEAP
-	global hl7out
-
 	dict:=readIni("EpicResult")
 	
 	hl7time := A_Now
-	hl7out := Map()
-	hl7out.msg := ""
+	fldval.hl7out := Map()
+	fldval.hl7out.msg := ""
 	
 	buildHL7("MSH"
 		,{1:"^~\&"
@@ -1123,7 +1120,7 @@ makeORU(wqid) {
 		rtf := "###"
 		EPdoc := "###"
 	}
-	fldval.obr4 := "monEpicEAP[montype]"
+	fldval.obr4 := getMonType(fldval.montype,true)["EAP"]
 	obrProv := fldvalProv()
 
 	buildHL7("OBR"
@@ -1143,7 +1140,7 @@ makeORU(wqid) {
 		, 11:"F"
 		, 14:hl7time})
 	
-	if (montype~="BGH") {																; no DDE for CEM
+	if (fldval.montype~="BGH") {														; no DDE for CEM
 		return
 	}
 	
