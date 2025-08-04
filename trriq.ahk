@@ -3510,19 +3510,25 @@ return
 
 fldvalProv() {
 	; global fldval, Docs
-	attg := fldval.OBR_ProviderCode "^"
-			. fldval.OBR_ProviderNameL "^"
-			. fldval.OBR_ProviderNameF
+	attg := fldval.oru_in["OBR_ProviderCode"] "^"
+			. fldval.oru_in["OBR_ProviderNameL"] "^"
+			. fldval.oru_in["OBR_ProviderNameF"]
 			. "^^^^^^MSOW_ORG_ID"
 	
-	if !!(fldval.fellow) {
-		pos := ObjHasValue(Docs.FELLOWS,fldval.fellow)
-		npi := Docs["Fellows.NPI"][pos]
-		fName := ParseName(fldval.fellow)
-		cc := npi "^"
-			. fName.Last "^"
-			. fName.First
-			. "^^^^^^MSOW_ORG_ID"
+	if tryfldval("fellow") {
+		fellows := docs["FELLOWS"]
+		for key,val in fellows {
+			if (val.name=fldval.fellow) {
+				pos := val
+				npi := pos.npi
+				fName := ParseName(pos.name)
+				cc := npi "^"
+					. fName.Last "^"
+					. fName.First
+					. "^^^^^^MSOW_ORG_ID"
+				break
+			}
+		}
 	} else {
 		cc := attg
 	}
