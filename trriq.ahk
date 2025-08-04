@@ -3095,6 +3095,8 @@ class monresult
 			return
 		}
 
+		fldval.oru_in := oru_in.fldval
+
 		return
 
 		moveHL7dem() {
