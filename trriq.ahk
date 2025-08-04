@@ -2954,7 +2954,7 @@ readWQlv(agc,row,*)
 			return
 		}
 		makeORU(wqid)
-		; gosub outputfiles																; generate and save output CSV, rename and move PDFs
+		outputFiles()																	; generate and save output CSV, rename and move PDFs
 	}
 	return
 }
@@ -3536,6 +3536,112 @@ fldvalProv() {
 	}
 
 	Return {attg:attg,cc:cc}
+}
+
+outputFiles() {
+/*	Output the results and move files around
+*/
+	fileOut1 := trim(fileOut1,",`t`r`n") "`n"												; make sure that there is only one `n 
+	fileOut2 := trim(fileOut2,",`t`r`n") "`n"												; on the header and data lines
+	fileout := fileOut1 . fileout2															; concatenate the header and data lines
+	tmpDate := parseDate(fldval.dem["Test_Date"])											; get the study date from PDF result
+	filenameOut := fldval.dem["MRN"] " " fldval.dem["Name_L"] " " tmpDate.MM "-" tmpDate.DD "-" tmpDate.YYYY
+	
+	/*	Save hl7Out result
+	*/
+	tmpFile := ".\tempfiles\"																; HL7 for tempfiles,
+		. "TRRIQ_ORU_" 																		; to copy to RawHL7 (for Access use)
+		. fldval.dem["Name_L"] "_" 
+		. tmpDate.YMD "_"
+		. "@" fldval.wqid ".hl7"
+	pb.title("Moving output files")
+	pb.sub(tmpFile)
+	pb.set(20)
+
+	FileDelete(tmpFile)
+	FileAppend(hl7Out.msg, tmpFile)															; copy ORU hl7 to tempfiles
+	FileCopy(tmpFile, path.EpicHL7out)														; create copy in RawHL7
+	if (gl.isDevt) {
+		FileCopy(tmpFile, path.AccessHL7out)												; copy fake ORU to OutboundHL7
+	}
+	
+	/*	Save CSV in tempfiles, and copy to Import folder
+	*/
+	pb.title("Save CSV in Import folder")
+	pb.sub("")
+	pb.set(40)
+	FileDelete(".\tempfiles\" fileNameOut ".csv")											; clear any previous CSV
+	FileAppend(fileOut, ".\tempfiles\" fileNameOut ".csv")									; create a new CSV in tempfiles
+	
+	impSub := (fldval.monType~="BGH") ? "EventCSV\" : "HolterCSV\"							; Import subfolder Event or Holter
+	FileCopy(".\tempfiles\" fileNameOut ".csv", path.import impSub "*.*", 1)				; copy CSV from tempfiles to importFld\impSub
+	
+	/*	Copy PDF to OnBase
+	*/
+	onbaseFile := path.OnBase																; PDF for OnBase
+		. "TRRIQ_" 
+		. fldval["order"] "_" 
+		. tmpDate.YMD "_" 
+		. fldval.dem["Name_L"] "_" 
+		. fldval.dem["MRN"] ".pdf"
+	
+	fileHIM := FileExist(fldval.fileIn "-sh.pdf")											; filename for OnbaseDir
+			? fldval.fileIn "-sh.pdf"														; prefer shortened if it exists
+			: fldval.fileIn
+	
+	FileCopy(fileHIM, onbaseFile, 1)														; Copy to OnbaseDir
+	
+	/*	Copy PDF to HolterPDF folder and archive
+	*/
+	pb.title("Copy PDF to HolterPDF and Archive")
+	pb.set(60)
+	FileCopy(fldval.fileIn, path.holterPDF "Archive\" filenameOut ".pdf", 1)				; Copy the original PDF to holterDir Archive
+	FileCopy(fileHIM, path.holterPDF filenameOut "-short.pdf", 1)							; Copy the shortened PDF, if it exists
+	FileDelete(fldval.fileIn)																; Need to use Copy+Delete because if file opened
+	FileDelete(fldval.fileIn "-sh.pdf")														;	was never completing filemove
+	;~ FileDelete, % path.PrevHL7in fileNam ".hl7"											; We can delete the original HL7, if exists
+	FileMove(path.PrevHL7in fldval.fileNam ".hl7", ".\tempfiles\" fldval.fileNam ".hl7")
+	eventlog("Move files '" fldval.fileIn "' -> '" filenameOut)
+
+	/*	Move full disclosure to FullDisclosure folder
+	*/
+	pb.title("Concatenate full PDF")
+	pb.set(95)
+	Loop Files, path.holterPDF "*WQ" fldval.wqid "_H-full.pdf", "F"
+	{
+		fnfull := A_LoopFileFullPath
+		FileMove(fnfull, path.holterPDF "FullDisclosure\" filenameOut "-full.pdf", 1)		; Copy the concatenated PDF to holterDir Archive
+	}
+	
+	/*	Append info to fileWQ (probably obsolete in Epic)
+	*/
+	pb.title("Clean up")
+	pb.set(100)
+	fileWQ := fldval.ma_date "," gl.user "," 												; date processed and MA user
+			. "`"" fldval.dem["Ordering"] "`"" ","											; extracted provider
+			. "`"" fldval.dem["Name_L"] ", " fldval.dem["Name_F"] "`"" ","					; CIS name
+			. "`"" fldval.dem["MRN"] "`"" ","												; CIS MRN
+			. "`"" fldval.dem["Test_date"] "`"" ","											; extracted Test date (or CIS encounter date if none)
+			. "`"" fldval.dem["Test_end"] "`"" ","											; extracted Test end
+			. "`"" fldval.dem["Site"] "`"" ","												; CIS location
+			. "`"" fldval.dem["Indication"] "`"" ","										; Indication
+			. "`"" fldval.monType "`"" ; ","												; Monitor type
+			. "`n"
+	FileAppend(fileWQ, ".\logs\" fileWQ ".csv")												; Add to logs\fileWQ list
+	FileCopy(".\logs\" fileWQ ".csv", path.chip "fileWQ-copy.csv", 1)
+	
+	setwqupdate()
+	wq := XML("worklist.xml")
+	moveWQ(fldval["wqid"])																	; Move enroll[@id] from Pending to Done list
+	
+	if (fldval.MyPatient)  {
+		enc_MD := parseName(fldval.dem["Ordering"]).init
+		tmp := httpComm("read&to=" enc_MD)
+		eventlog("Notification email " tmp " to " enc_MD)
+	}
+
+Return
+
 }
 
 ;#endregion
