@@ -2228,12 +2228,12 @@ WQepicOrdersCleanup() {
 	Return
 }
 
-getMonType(val) {
+getMonType(val,exact:=false) {
 	global monTypes
 
 	for key,arr in monTypes
 	{
-		if ObjHasValue(arr,val,"RX") {
+		if ObjHasValue(arr,val,!exact) {
 			return monTypes[A_Index]
 		}
 	}
