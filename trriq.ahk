@@ -3965,34 +3965,37 @@ ObjHasValue(aObj, aValue, rx:="") {
 	if (aValue="") {																	; null aValue is error
 		return false
 	}
-	props := ObjOwnPropCount(aObj)
-	aProps := aObj.OwnProps()
-	aKeys := aObj.OwnProps()
+	if (props := ObjOwnPropCount(aObj)) {
+		aProps := aObj.OwnProps()
+		aKeys := aObj.OwnProps()
+		/*	Check values of property keys
+		*/
+		for key,val in aProps
+		{
+			if (compare(val)) {
+				return key
+			}
+		}
+		/*	Check property key names
+		*/
+		for key,val in aKeys
+		{
+			if (compare(key)) {
+				return key
+			}
+		}
+
+	} else {
+		/*	Check values in object (i.e. arrays)
+		*/
+		for key,val in aObj
+		{
+			if (compare(val)) {
+				return key
+			}
+		}
+	}
 	
-	/*	First pass: Check values in object (i.e. arrays)
-	*/
-	for key,val in aObj
-	{
-		if (compare(val)) {
-			return key
-		}
-	}
-	/*	Second pass: Check values of property keys
-	*/
-	for key,val in aProps
-	{
-		if (compare(val)) {
-			return key
-		}
-	}
-	/*	Third pass: Check property key names
-	*/
-	for key,val in aKeys
-	{
-		if (compare(key)) {
-			return key
-		}
-	}
 	return false
 
 	compare(val) {
