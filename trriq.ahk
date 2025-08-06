@@ -3278,7 +3278,7 @@ class monresult
 				eventlog("Full disclosure PDF not found.")
 					
 				msg := choiceBox("Missing full disclosure PDF"
-					, fldval["dem-Name_L"] ", " fldval["dem-Name_F"] "`n`n"
+					, fldval.dem["Name_L"] ", " fldval.dem["Name_F"] "`n`n"
 					. "Click [Email] to send a message to Preventice,"
 					. "or [Cancel] to return to menu."
 					, ["Email","Cancel"]
@@ -3295,8 +3295,8 @@ class monresult
 					Eml.cc := "EkgMaInbox@seattlechildrens.org; terrence.chun@seattlechildrens.org"
 					Eml.Subject := "Missing full disclosure PDF"
 					Eml.Display															; Display first to get default signature
-					Eml.HTMLBody := "Please release the full disclosure PDF for " fldval["dem-Name_L"] ", " fldval["dem-Name_F"] 
-						. " MRN#" fldval["dem-MRN"] " study date " fldval["dem-Test_date"]
+					Eml.HTMLBody := "Please release the full disclosure PDF for " fldval.dem["Name_L"] ", " fldval.dem["Name_F"] 
+						. " MRN#" fldval.dem["MRN"] " study date " fldval.dem["Test_date"]
 						. " to the server.<br><br>Thank you!<br>"
 						. Eml.HTMLBody													; Prepend to existing default message
 					ObjRelease(Eml)														; or Eml:=""
