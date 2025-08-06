@@ -142,7 +142,7 @@ class hl7
 			} else {
 				label := res["OBX_ResCode"]													; result value
 				try {
-					resCode := prevDDE[label]
+					resCode := prevDDE.%label%
 				}
 				catch {
 					resCode := label
