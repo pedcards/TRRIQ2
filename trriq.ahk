@@ -2829,7 +2829,7 @@ moveWQ(id) {
 	date := x.selectSingleNode("date").text
 	mrn := x.selectSingleNode("mrn").text
 	try {
-		reading := fldval["dem-Reading"]
+		reading := fldval.dem["Reading"]
 	}
 	catch {
 		reading := ""
@@ -2838,10 +2838,7 @@ moveWQ(id) {
 	if (mrn) {																			; record exists
 		wq.addElement(wqStr,"done",{user:gl.user},A_Now)								; set as done
 		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
-		x := wq.selectSingleNode("/root/pending/enroll[@id=`"" id "`"]")				; reload x node
-		clone := x.cloneNode(true)
-		wq.selectSingleNode("/root/done").appendChild(clone)							; copy x.clone to DONE
-		x.parentNode.removeChild(x)														; remove x
+		wq.moveNode(wqStr,"/root/done")
 		eventlog("wqid " id " (" mrn " from " date ") moved to DONE list.")
 	} else {																			; no record exists (enrollment never captured, or Zio)
 		id := makeUID()																	; create an id
