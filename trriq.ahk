@@ -1741,7 +1741,7 @@ fieldColAdd(pre:="",lab:="",txt:="") {
 		fldval.fileout1 := ""
 		fldval.fileout2 := ""
 	}
-	prelab := (pre="") ? pre "-" lab : lab
+	prelab := (pre="") ? lab : pre "-" lab
 	fldval.fileout1 .= "`"" prelab "`","
 	fldval.fileout2 .= "`"" txt "`","
 
