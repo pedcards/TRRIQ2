@@ -3060,6 +3060,7 @@ class monresult
 	/*	Associate fldval data with extra metadata from extracted PDF, complete final CSV report, handle files
 	*/
 		oru_in := HL7(fileIn)															; extract ORU to this.fldval, OBX to this.obxval, and PDF into hl7Dir
+		remapDDE()
 		try fldval.file.PDFfileIn := path.PrevHL7in . oru_in.binfile					; fileIn has path .\Preventice\Results\*.pdf
 		catch
 		{
@@ -3094,6 +3095,19 @@ class monresult
 		fldval.oru_in := oru_in.fldval
 
 		return
+
+		remapDDE() {
+			prefix := "hrd|ve|sve"
+			for key,val in oru_in.obxVal {
+				if (key~="^(" prefix ")-") {
+					pre := strX(key,"",1,0,"-",1,1)
+					lab := strX(key,"-",1,1,"",0)
+					fldmap(pre)
+					fldval.%pre%[lab] := val
+				}
+
+			}
+		}
 
 		moveHL7dem() {
 		/*	Populate fldval["dem"] with data from hl7 first, and wqlist (if missing)
