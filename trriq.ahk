@@ -3105,7 +3105,6 @@ class monresult
 					fldmap(pre)
 					fldval.%pre%[lab] := val
 				}
-
 			}
 		}
 
@@ -4197,11 +4196,14 @@ calcDuration(sec) {
 	SS := MM.rem
 
 	return { DHM: zDigit(DD.val) ":" zDigit(HH.val) ":" zDigit(MM.val)
-			, DHMS: zDigit(DD.val) ":" zDigit(HH.val) ":" zDigit(MM.val) ":" zDigit(SS.val) }
+			, DHMS: zDigit(DD.val) ":" zDigit(HH.val) ":" zDigit(MM.val) ":" zDigit(SS) }
 }
 
 divTime(sec,div) {
-	static T:={D:86400,H:3600,M:60,S:1}
+	static T:=Map("D",86400,
+				"H",3600,
+				"M",60,
+				"S",1)
 	xx := Floor(sec/T[div])
 	rem := sec-xx*T[div]
 	Return {val:xx,rem:rem}
