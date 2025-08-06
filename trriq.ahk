@@ -1737,14 +1737,13 @@ fldmap(pre) {
 }
 
 fieldColAdd(pre:="",lab:="",txt:="") {
-	if !ObjHasOwnProp(fldval,"out") {
-		fldval.out := []
+	if !ObjHasOwnProp(fldval,"fileout1") {
+		fldval.fileout1 := ""
+		fldval.fileout2 := ""
 	}
 	prelab := (pre="") ? pre "-" lab : lab
-	if ObjHasOwnProp(fldval.out,prelab) {
-		return
-	}
-	fldval.out.push({label:prelab,val:txt})
+	fldval.fileout1 .= "`"" prelab "`","
+	fldval.fileout2 .= "`"" txt "`","
 
 	fldmap(pre)
 	if ObjHasOwnProp(fldval.%pre%,lab) {
@@ -3495,6 +3494,8 @@ fieldsToCSV() {
 				,"counts-Critical(0)","counts-Total(0)","counts-Serious(0)","counts-Manual(0)","counts-Stable(0)","counts-Auto(0)"]
 	}
 
+	fldval.fileout1 := ""
+	fldval.fileout2 := ""
 	for tab in tabs																		; PRE-LAB(default val)
 	{
 		fld := strX(tab,"",1,0,"(",1,1)													; field
@@ -3541,8 +3542,8 @@ fldvalProv() {
 outputFiles() {
 /*	Output the results and move files around
 */
-	fileOut1 := trim(fileOut1,",`t`r`n") "`n"												; make sure that there is only one `n 
-	fileOut2 := trim(fileOut2,",`t`r`n") "`n"												; on the header and data lines
+	fileOut1 := trim(fldval.fileOut1,",`t`r`n") "`n"										; make sure that there is only one `n 
+	fileOut2 := trim(fldval.fileOut2,",`t`r`n") "`n"										; on the header and data lines
 	fileout := fileOut1 . fileout2															; concatenate the header and data lines
 	tmpDate := parseDate(fldval.dem["Test_Date"])											; get the study date from PDF result
 	filenameOut := fldval.dem["MRN"] " " fldval.dem["Name_L"] " " tmpDate.MM "-" tmpDate.DD "-" tmpDate.YYYY
