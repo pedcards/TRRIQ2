@@ -3273,105 +3273,70 @@ class monresult
 		} else {
 			holtype := "SL"
 			fldval.monType := "HOL"
+
+			if !FileExist(path.holterPDF "*" fldval.wqid "_H-full.pdf") {
+				eventlog("Full disclosure PDF not found.")
+					
+				msg := choiceBox("Missing full disclosure PDF"
+					, fldval["dem-Name_L"] ", " fldval["dem-Name_F"] "`n`n"
+					. "Click [Email] to send a message to Preventice,"
+					. "or [Cancel] to return to menu."
+					, ["Email","Cancel"]
+					, "E", "V")
+				if (msg~="Cancel|Close|xClose") {
+					eventlog("Skipping full disclosure. Return to menu.")
+				}
+				if (msg="Email") {
+					; progress,100 ,,Generating email...
+					Eml := ComObject("Outlook.Application").CreateItem(0)				; Create item [0]
+					Eml.BodyFormat := 2													; HTML format
+					
+					Eml.To := "HolterNotificationGroup@preventice.com"
+					Eml.cc := "EkgMaInbox@seattlechildrens.org; terrence.chun@seattlechildrens.org"
+					Eml.Subject := "Missing full disclosure PDF"
+					Eml.Display															; Display first to get default signature
+					Eml.HTMLBody := "Please release the full disclosure PDF for " fldval["dem-Name_L"] ", " fldval["dem-Name_F"] 
+						. " MRN#" fldval["dem-MRN"] " study date " fldval["dem-Test_date"]
+						. " to the server.<br><br>Thank you!<br>"
+						. Eml.HTMLBody													; Prepend to existing default message
+					ObjRelease(Eml)														; or Eml:=""
+					eventlog("Email sent to Preventice.")
+				}
+				fldval.done := ""
+				Return
+			}
 		}
 		eventlog("Holter_BGMini_" holtype "_HL7")
 
 		if !(obxval["Enroll_Start_Dt"]) {												; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
-			; gosub processPDF															; need to reprocess from extracted PDF
+			this.processPDF()															; need to reprocess from extracted PDF
 			Return
 		}
 		
 		fldval.dem["Test_date"] := parsedate(obxval["Enroll_Start_Dt"]).MDY
 		fldval.dem["Test_end"]	:= parsedate(obxval["Enroll_End_Dt"]).MDY
-		fldval.dem["Recording_time"] := strQ(obxval["Monitoring_Period"], parsedate("###").DHM)
-		fldval.dem["Analysis_time"] := strQ(obxval["Analyzed_Data"], parsedate("###").DHM)
+		fldval.dem["Recording_time"] := strQ(tryfldval("Monitoring_Period"), parsedate("###").DHM
+										, calcDuration(obxval["hrd-Total_time"]).DHM " (DD:HH:MM)")
+		fldval.dem["Analysis_time"] := strQ(tryfldval("Analyzed_Data"), parsedate("###").DHM
+										, calcDuration(obxval["hrd-Analyzed_time"]).DHM " (DD:HH:MM)")
 
-	/*	gosub checkProc																	; check validity of PDF, make demographics valid if not
-		if (fetchQuit=true) {
+		checkProc()																		; check validity of PDF, make demographics valid if not
+		if (fldval.fetchQuit=true) {
 			return																		; fetchGUI was quit, so skip processing
 		}
-		
+
 		fieldsToCSV()
-		fieldcoladd("","INTERP","")														; fldval["Narrative"]
-		fieldcoladd("","Mon_type","Holter")
 		
-		FileCopy, %fileIn%, %fileIn%-sh.pdf
+		fieldColAdd("","INTERP","")														; fldval["Narrative"]
+		fieldColAdd("","Mon_type","Holter")
+		
+		FileCopy(fldval.file.PDFfileIn, fldval.file.PDFfileIn "-sh.pdf",1)
 		
 		fldval.done := true
-	*/
+		
 	return
 	}
-
-	Holter_BGM_SL_HL7(oru_in) {
-		obxval := oru_in.obxVal
-
-		eventlog("Holter_BGMini_SL_HL7")
-		fldval.monType := "HOL"
-
-		if (obxval["Enroll_Start_Dt"]="") {												; missing Start_Dt means no DDE
-			eventlog("No OBX data.")
-			; gosub processPDF															; need to reprocess from extracted PDF
-			Return
-		}
-		/*
-		if !FileExist(path.holterPDF "*" fldval.wqid "_H-full.pdf") {
-			eventlog("Full disclosure PDF not found.")
-				
-			msg := cmsgbox("Missing full disclosure PDF"
-				, fldval["dem-Name_L"] ", " fldval["dem-Name_F"] "`n`n"
-				. "Click [Email] to send a message to Preventice,"
-				. "or [Cancel] to return to menu."
-				, "Email|Cancel"
-				, "E", "V")
-			if (msg~="Cancel|Close|xClose") {
-				eventlog("Skipping full disclosure. Return to menu.")
-			}
-			if (msg="Email") {
-				progress,100 ,,Generating email...
-				Eml := ComObjCreate("Outlook.Application").CreateItem(0)					; Create item [0]
-				Eml.BodyFormat := 2															; HTML format
-				
-				Eml.To := "HolterNotificationGroup@preventice.com"
-				Eml.cc := "EkgMaInbox@seattlechildrens.org; terrence.chun@seattlechildrens.org"
-				Eml.Subject := "Missing full disclosure PDF"
-				Eml.Display																	; Display first to get default signature
-				Eml.HTMLBody := "Please release the full disclosure PDF for " fldval["dem-Name_L"] ", " fldval["dem-Name_F"] 
-					. " MRN#" fldval["dem-MRN"] " study date " fldval["dem-Test_date"]
-					. " to the server.<br><br>Thank you!<br>"
-					. Eml.HTMLBody															; Prepend to existing default message
-				ObjRelease(Eml)																; or Eml:=""
-				eventlog("Email sent to Preventice.")
-			}
-			fldval.done := ""
-			Return
-		}
-		
-		fldval["dem-Test_date"] := parsedate(fldval["Enroll_Start_Dt"]).MDY
-		fldval["dem-Test_end"]	:= parsedate(fldval["Enroll_End_Dt"]).MDY
-		fldval["dem-Recording_time"] := strQ(fldval["Monitoring_Period"], parsedate("###").DHM
-										, calcDuration(fldval["hrd-Total_Time"]).DHM " (DD:HH:MM)")
-		fldval["dem-Analysis_time"] := strQ(fldval["Analyzed_Data"], parsedate("###").DHM
-										, calcDuration(fldval["hrd-Analyzed_Time"]).DHM " (DD:HH:MM)")
-
-		gosub checkProc																		; check validity of PDF, make demographics valid if not
-		if (fetchQuit=true) {
-			return																			; fetchGUI was quit, so skip processing
-		}
-		
-		fieldsToCSV()
-		fieldcoladd("","INTERP","")															; fldval["Narrative"]
-		fieldcoladd("","Mon_type","Holter")
-		
-		FileCopy, %fileIn%, %fileIn%-sh.pdf
-		
-		fldval.done := true
-		*/		
-		return
-	}
-
-
-
 }
 
 ProcessPDF(fileIn,fileNam) {
