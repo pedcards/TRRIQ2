@@ -3206,7 +3206,7 @@ class monresult
 		
 		if !(obxval["Enroll_Start_Dt"]) {												; missing this if no OBX
 			eventlog("No OBX data.")
-			; gosub processPDF															; process as an ad hoc
+			this.processPDF()															; process as an ad hoc
 			return																		; and bail out
 		}
 
@@ -3253,7 +3253,7 @@ class monresult
 			return																		; fetchGUI was quit, so skip processing
 		}
 
-		fieldstoCSV()
+		fieldsToCSV()
 		
 		fieldcoladd("","Mon_type","Event")
 		
