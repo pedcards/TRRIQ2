@@ -3045,6 +3045,10 @@ class monresult
 
 		case "PDF":
 			this.ext := "PDF"
+			fileInSize := FileGetSize(fileIn)
+			phase.hide()
+			eventlog("===> " fileIn " type " fileExt " (" thousandsSep(fileInSize) ").")
+			this.processPDF(fileIn)
 		default:
 			phase.hide()
 			eventlog("Filetype cannot be determined from WQlist (somehow).")
@@ -3206,7 +3210,7 @@ class monresult
 		
 		if !(obxval["Enroll_Start_Dt"]) {												; missing this if no OBX
 			eventlog("No OBX data.")
-			this.processPDF()															; process as an ad hoc
+			this.processPDF("fileIn")													; process as an ad hoc
 			return																		; and bail out
 		}
 
@@ -3310,7 +3314,7 @@ class monresult
 
 		if !(obxval["Enroll_Start_Dt"]) {												; missing Start_Dt means no DDE
 			eventlog("No OBX data.")
-			this.processPDF()															; need to reprocess from extracted PDF
+			this.processPDF("fileIn")													; need to reprocess from extracted PDF
 			Return
 		}
 		
@@ -3337,41 +3341,41 @@ class monresult
 		
 	return
 	}
-}
 
-ProcessPDF(fileIn,fileNam) {
-/*	This main loop accepts a %fileIn% filename,
- *	determines the filetype based on header contents,
- *	process based on device type
- */
-	RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
-	fileNamTxt := fileNam ".txt"
-	newTxt:=""																			; clear the full txt variable
-	maintxt := FileRead(fileNamTxt)														; load into maintxt
-	FileDelete(fileNamTxt)
-	newtxt := StrReplace(maintxt, "`r`n`r`n", "`r`n")
-	FileAppend(newtxt, fileNamTxt)														; create new tempfile with newtxt result
-	FileMove(fileNamTxt, ".\tempfiles\" fileNamTxt, 1)									; move a copy into tempfiles for troubleshooting
+	ProcessPDF(fileIn) {
+	/*	This main loop accepts a %fileIn% filename,
+	*	determines the filetype based on header contents,
+	*	process based on device type
+	*/
+		RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
+		fileNamTxt := fileNam ".txt"
+		newTxt:=""																			; clear the full txt variable
+		maintxt := FileRead(fileNamTxt)														; load into maintxt
+		FileDelete(fileNamTxt)
+		newtxt := StrReplace(maintxt, "`r`n`r`n", "`r`n")
+		FileAppend(newtxt, fileNamTxt)														; create new tempfile with newtxt result
+		FileMove(fileNamTxt, ".\tempfiles\" fileNamTxt, 1)									; move a copy into tempfiles for troubleshooting
 
-	if (InStr(newtxt,"zio xt")) {														; Processing loop based on identifying string in newtxt
-		; gosub Zio
-	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"HScribe")) 	{				; New Preventice Holter 2017
-		; gosub Holter_Pr2
-	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"End of Service Report")) {	; Body Guardian Heart CEM
-		; gosub Event_BGH
-	} else if (InStr(newtxt,"Global Instrumentation LLC")) {							; BG Mini extended Holter
-		; gosub Holter_BGM
-	} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"Long-Term Holter Report")) {		; New BG Mini EL Holter 2023
-		; Holter_BGM2(newtxt)
-	} else {
-		eventlog(fileNam " bad file.")
-		MsgBox("No match!","ProcessPDF error","IconX")
+		if (InStr(newtxt,"zio xt")) {														; Processing loop based on identifying string in newtxt
+			; gosub Zio
+		} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"HScribe")) 	{				; New Preventice Holter 2017
+			; gosub Holter_Pr2
+		} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"End of Service Report")) {	; Body Guardian Heart CEM
+			; gosub Event_BGH
+		} else if (InStr(newtxt,"Global Instrumentation LLC")) {							; BG Mini extended Holter
+			; gosub Holter_BGM
+		} else if (InStr(newtxt,"CDx.Boston") && InStr(newtxt,"Long-Term Holter Report")) {		; New BG Mini EL Holter 2023
+			; Holter_BGM2(newtxt)
+		} else {
+			eventlog(fileNam " bad file.")
+			MsgBox("No match!","ProcessPDF error","IconX")
+			return
+		}
+		if (fldval.fetchQuit=true) {														; exited demographics fetchGUI
+			return																			; so skip processing this file
+		}
 		return
 	}
-	if (fldval.fetchQuit=true) {														; exited demographics fetchGUI
-		return																			; so skip processing this file
-	}
-return
 }
 
 CheckProc() {
