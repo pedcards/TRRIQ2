@@ -2924,25 +2924,6 @@ readWQlv(agc,row,*)
 	
 	phase.hide()
 	monRes := monresult(fileIn)
-	/*
-	if (fExt="hl7") {																	; hl7 file (could still be Holter or CEM)
-		eventlog("===> " fname )
-		phase.hide()
-		processHl7result()																; process ORU and extracted PDF
-	}
-	else if (ftype) {																	; Any other PDF type
-		fileInSize := FileGetSize(fileIn)
-		phase.hide()
-		eventlog("===> " fname " type " ftype " (" thousandsSep(fileInSize) ").")
-		processPDF(fileIn,fileNam)
-	}
-	else {
-		phase.hide()
-		eventlog("Filetype cannot be determined from WQlist (somehow).")
-		MsgBox("Unrecognized filetype (somehow)",, 16) 
-		Return
-	}
-	*/
 	
 	if (tryfldval("done")) {
 		epRead()																		; find out which EP is reading today
@@ -3347,6 +3328,10 @@ class monresult
 	*	determines the filetype based on header contents,
 	*	process based on device type
 	*/
+		fileNam := fldval.file.fileNam
+		eventlog("Got to processPDF somehow.")
+		return
+
 		RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
 		fileNamTxt := fileNam ".txt"
 		newTxt:=""																			; clear the full txt variable
