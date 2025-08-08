@@ -3328,9 +3328,10 @@ class monresult
 	*	determines the filetype based on header contents,
 	*	process based on device type
 	*/
-		fileNam := fldval.file.fileNam
-		eventlog("Got to processPDF somehow.")
-		return
+		if (fileNam := fldval.file.fileNam) {
+			eventlog("Got to processPDF somehow.")
+			return
+		}
 
 		RunWait(".\files\pdftotext.exe -l 2 -table -fixed 3 `"" fileIn "`" `"" fileNam ".txt`"",,min)		; convert PDF pages 1-2 to txt file
 		fileNamTxt := fileNam ".txt"
