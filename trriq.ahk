@@ -36,7 +36,8 @@ SetTitleMatchMode("2")
 		eventlog(">>>>> Started in PROD mode. " A_ScriptName " ver " substr(gl.runningVer,1,12) " " A_Args[1])
 	}
 	if InStr(fileDir,"TEST") {
-		gl.isDevt := True
+		gl.isDevt := true
+		gl.isTest := true
 		eventlog("***** launched from TEST folder.")
 	}
 	if ObjHasOwnProp(A_Args,"launch") {
@@ -351,6 +352,7 @@ PhaseGUI() {
 		menuAdmin.Add("Recover DONE record", recoverDone)
 		menuAdmin.Add("Check running users/versions", runningUsers)
 		menuAdmin.Add("Create test order", makeEpicORM)
+		menuAdmin.Add("Mirror PROD files", mirrorPROD)
 		
 	phaseMenu := MenuBar()
 		phaseMenu.Add("System",menuSys)
@@ -871,6 +873,24 @@ runningUsers(*) {
 	}
 	running := ""
 	Return
+}
+
+mirrorPROD(*) {
+/*	Only available when working from TEST
+	Copy important files over then restart
+*/
+	if !(gl.isTest) {
+		return
+	}
+	prod := ".\..\..\PROD\TRRIQ"
+	FileCopy(prod "\worklist.xml",".\data")
+	FileCopy(prod "\files\call.xml",".\data")
+	FileCopy(prod "\files\Patient Status Report_v2.xml",".\data")
+	FileCopy(prod "\files\outdocs.xlsx",".\data")
+	FileCopy(prod "\files\outdocs.csv",".\data")
+	FileCopy(prod "\files\prev.txt",".\data")
+	FileCopy(prod "\Preventice\Results\*.hl7",".\Preventice\Results")
+	FileCopy(prod "\Epic\Orders\*.hl7",".\Epic\Orders")
 }
 
 idleTimer() {
