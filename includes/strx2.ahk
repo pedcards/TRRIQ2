@@ -1,40 +1,46 @@
 ﻿#Requires AutoHotkey v2
 
 /*	Newer string trim from skan, can use to parse \<tags>\</tags>
-
-	H = Haystack 
-	C = Case sensitivity [0=none, 1=B sensitive, 2=E sensitive, 3=both]
-	B = Begin match
-	E = End match
-	BO = Begin offset
-	EO = End offet
-	BI = Begin instance
-	EI = End instance
-	BT = Begin (un)trim [positive=trim, negative=untrim]
-	ET = End (un)trim
 */
-xStr(H, C:=0, B:="", E:="", BO:=1, EO:=0, BI:=1, EI:=1, BT:=0, ET:=0) {          
-	Local L, LB, LE, P1, P2, Q, F:=0 ; xStr v0.97_dev by SKAN on D1AL/D343 @ tiny.cc/xstr  
-	
-	P1 := ( L := StrLen(H) ) 
-			  ? ( LB := StrLen(B) )
-						? ( F := InStr(H, B, C&1, BO, BI) ) 
-							 ? F+(BT="" ? LB : BT) 
-							 : 0 
-			  : ( Q := (BO=1 && BT>0 ? BT+1 : BO>0 ? BO : L+BO) )>1 ? Q : 1      
-		  : 0 
-	
-	
-	P2 := P1              
-			  ?  ( LE := StrLen(E) ) 
-						? ( F := InStr(H, E, C>>1, EO=0 ? (F ? F+LB : P1) : EO, EI) )   
-							 ? F+LE-(ET=0 ? LE : ET) 
-							 : 0 
-			  : EO=0 ? (ET>0 ? L-ET+1 : L+1) : P1+EO  
-		  : 0
-	
-	Return SubStr(H, !( ErrorLevel := !((P1) && (P2)>=P1) ) ? P1 : L+1, ( BO := Min(P2, L+1) )-P1)  
-	}
+xStr( H_, F   := 0                 ;  Haystack, Flags (Case sensitivity)  ;           xStr v1.00 by SKAN
+        , B   := "",   E  := ""    ;  Begin match, End match              ;         for ah2 on D1AL/D92J
+        , BO_ := 1,    EO := ""    ;  Begin offset, End offset            ;  @ autohotkey.com/r?t=140202
+        , BI  := 1,    EI := 1     ;  Begin instance, End instance
+        , BT  := "",   ET := "" )  ;  Begin (un)trim, End (un)trim
+{
+    Local  P  := 0,   L, LB, LE, P1, P2, Q
+        ,  H  := (H_  is VarRef ? H_  : &H_)
+        ,  BO := (BO_ is VarRef ? BO_ : &BO_)        
+
+    P1 := ( L := StrLen(%H%) )
+            ? ( LB := StrLen(B) )
+                ? ( P := InStr(%H%, B, F & 1, %BO%, BI) )
+                    ? P + (BT = "" ? LB : BT)
+                    : ( F >> 2 & 1 )
+                : ( Q := (%BO% = 1 && BT != "" ? BT + 1 : %BO% > 0 ? %BO% : L + %BO%) ) > 1 ? Q : 1
+            : 0
+
+  , P2 := ( P1 )
+            ? ( LE := StrLen(E) )
+                ? ( P := InStr(%H%, E, F >> 1 & 1, EO = "" ? ( P ? P + LB : P1 ) : EO, EI) )
+                    ? P + LE - (ET = "" ? LE : ET)
+                    : ( F >> 3 & 1 ? L + 1 : 0 )
+                : ( EO = "" ) ? (ET != "" ? L - ET + 1 : L + 1) : P1 + EO
+            : 0
+
+    Return SubStr( %H%, !(xStr.Error := !((P1) && (P2) >= P1)) ? P1 : L + 1
+                      , (%BO% := Min(P2, L + 1)) - P1 )
+}
+
+/*	Wrapper function for xStr
+
+	Str := "Item1|Item2|Item3|Item4|Item5|Item6|Item7|Item8|Item9"
+	MsgBox GetStr(&Str)        ;  Item1
+	MsgBox GetStr(&Str, 5)     ;  Item5
+	MsgBox GetStr(&Str, 7, 2)  ;  Item7|Item8
+	MsgBox GetStr(&Str, 10)    ;
+*/
+GetStr(Str, I := 1, C := 1, D := "|")  =>  xStr(Str, 0x8, I > 1 ? D : "", D,,, I - 1, C)
 
 /*	Search between two strings using RegEx terms 
 
