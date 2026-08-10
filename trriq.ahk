@@ -62,7 +62,7 @@ SetTitleMatchMode("2")
 	wks := GetLocation()
 	if !(wksLoc := wks.location) {
 		pb.close()
-		MsgBox("No clinic location specified!`n`nExiting","Location error",262160)
+		MsgBox("No clinic location specified!`n`nExiting","Location error","0x40010")
 		ExitApp
 	}
 	gl.isMain := (wksLoc~="Main|Bellevue|Everett") ? true : false
