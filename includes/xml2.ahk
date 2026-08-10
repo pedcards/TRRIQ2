@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0
+﻿#Requires AutoHotkey v2.0
 
 class XML
 {
@@ -76,7 +76,7 @@ class XML
 		}
 	}
 
-	insertElement(node,new,params*) {
+	insertElement(new,node,params*) {
 	/*	Inserts new sibling above node object
 		Object must have valid parentNode
 	*/

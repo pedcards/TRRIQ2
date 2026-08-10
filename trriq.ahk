@@ -686,7 +686,7 @@ fixDuration(*) {
 			case (kDev~="Mini EL"): kDur := "14"
 			case (kDev~="Heart|PLUS Lite"): kDur := "30"
 		}
-		wq.InsertElement(kDevNode.NextSibling,"duration",kDur)
+		wq.InsertElement("duration",kDevNode.NextSibling,kDur)
 		eventlog(id " Inserted duration '" kDur "'")
 	}
 	pb.hide
