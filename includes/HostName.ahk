@@ -226,7 +226,9 @@ class getLocation
 				, long:locationLong
 				, code:codeNum
 				, facility:codeName
-				, tab:tabname}
+				, tab:tabname
+				, data:locationData
+		}
 	}	
 }
 #Include xml2.ahk
