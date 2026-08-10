@@ -85,7 +85,7 @@ updateCall(*) {
 		y := XML(path.data "call.xml")
 	} else {
 		y := XML("<root/>")
-		y.addElement("/root","forecast")
+		y.addElement("forecast","/root")
 		y.save(path.data "call.xml")
 	}
 	
@@ -184,7 +184,7 @@ parseForecast(fcRecent) {
 	
 	; Initialize some stuff
 	if !IsObject(y.selectSingleNode("/root/forecast")) {								; create if for some reason doesn't exist
-		y.addElement("/root","forecast")
+		y.addElement("forecast","/root")
 	} 
 	Forecast_svc := []
 	Forecast_val := []
@@ -221,7 +221,7 @@ parseForecast(fcRecent) {
 				tmpDt := ParseDate(cel).YMD									 			; tmpDt in format YYYYMMDD
 				fcDate[colNum] := tmpDt													; fill fcDate[1-7] with date strings
 				if !IsObject(y.selectSingleNode("/root/forecast/call[@date='" tmpDt "']")) {
-					y.addElement("/root/forecast","call", {date:tmpDt})					; create node if doesn't exist
+					y.addElement("call","/root/forecast", {date:tmpDt})					; create node if doesn't exist
 				}
 				continue																; keep getting col dates but don't get values yet
 			}
@@ -247,7 +247,7 @@ parseForecast(fcRecent) {
 			
 			fcNode := "/root/forecast/call[@date='" fcDate[colNum] "']"
 			if !IsObject(y.selectSingleNode(fcNode "/" row_name)) {						; create node for service person if not present
-				y.addElement(fcNode,row_name)
+				y.addElement(row_name,fcNode)
 			}
 			y.selectSingleNode(fcNode "/" row_name).text := cleanString(cel)			; setText changes text value for that node
 			
@@ -410,11 +410,11 @@ readQgenda() {
 		
 		fcNode := "/root/forecast/call[@date='" qDate.YMD "']"
 		if !IsObject(y.selectSingleNode(fcNode)) {										; create node if doesn't exist
-			y.addElement("/root/forecast","call",{date:qDate.YMD})
+			y.addElement("call","/root/forecast",{date:qDate.YMD})
 		}
 		
 		if !IsObject(y.selectSingleNode(fcNode "/" qTask)) {							; create node for service person if not present
-			y.addElement(fcNode,qTask)
+			y.addElement(qTask,fcNode)
 		}
 		y.selectSingleNode(fcNode "/" qTask).text := qNameF " " qNameL					; change text value for that node
 		y.selectSingleNode("/root/forecast").setAttribute("mod",A_Now)					; change forecast[@mod] to now

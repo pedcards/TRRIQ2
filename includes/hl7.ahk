@@ -186,7 +186,7 @@ class hl7
 		loop split.length()
 		{
 			i := A_index
-			res.addElement("/root","idx",{num:i})
+			res.addElement("idx","/root",{num:i})
 			id := "/root/idx[@num='" i "']"
 			subfld := StrSplit(split[i],"^")
 			sublbl := StrSplit(lbl,"^")
@@ -195,10 +195,10 @@ class hl7
 				j := A_Index
 				k := sublbl[j]
 				if (k="") {
-					res.addElement(id,"node",{num:j},subfld[j])
+					res.addElement("node",id,{num:j},subfld[j])
 				}
 				else {
-					res.addElement(id,k,subfld[j])
+					res.addElement(k,id,subfld[j])
 				}
 			}
 		}

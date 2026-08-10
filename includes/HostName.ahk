@@ -170,9 +170,9 @@ class getLocation
 		locationData := XML(this.m_strXmlFilename) 
 		
 		workstations := locationData.SelectSingleNode(this.m_strXmlWorkstationsPath)
-		workstation := locationData.addElement(workstations,this.m_strXmlWksNodeName)
-		workstationName := locationData.addElement(workstation,this.m_strXmlWksName,A_ComputerName)
-		locationData.addElement(workstation,this.m_strXmlLocationName,location)
+		workstation := locationData.addElement(this.m_strXmlWksNodeName,workstations)
+		workstationName := locationData.addElement(this.m_strXmlWksName,workstation,A_ComputerName)
+		locationData.addElement(this.m_strXmlLocationName,workstation,location)
 		locationData.TransformXML()
 		locationData.saveXML()
 		

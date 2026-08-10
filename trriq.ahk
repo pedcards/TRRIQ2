@@ -85,8 +85,8 @@ SetTitleMatchMode("2")
 		wq := XML(gl.wq_filename)
 	} else {
 		wq := XML("<root/>")
-		wq.addElement("/root","pending")
-		wq.addElement("/root","done")
+		wq.addElement("pending","/root")
+		wq.addElement("done","/root")
 		wq.save(gl.wq_filename)
 	}
 	psr := psrV2(path.data "Patient Status Report_v2.xml")
@@ -1965,7 +1965,7 @@ wqSetVal(id,node,val) {
 		}
 		k.text := val
 	} else {
-		wq.addElement(newID,node,val)													; create new node with val
+		wq.addElement(node,newID,val)													; create new node with val
 	}
 
 	return
@@ -1978,7 +1978,7 @@ checkweb(id) {
 	if (wq.getText(en "/webgrab")) {													; webgrab already exists
 		Return
 	} else {
-		wq.addElement(en,"webgrab",A_Now)
+		wq.addElement("webgrab",en,A_Now)
 		eventlog("Added webgrab for id " id)
 		Return
 	}
@@ -2032,7 +2032,7 @@ WQscanEpicOrders(lv) {
 	global wq
 
 	if !IsObject(wq.selectSingleNode("/root/orders")) {
-		wq.addElement("/root","orders")
+		wq.addElement("orders","/root")
 	}
 	
 	WQEpicOrdersNew()																	; Process new files
@@ -2145,22 +2145,22 @@ WQepicOrdersNew() {
 		}
 		
 		newID := "/root/orders/enroll[@id=`"" e0.UID "`"]"								; otherwise create a new node
-			wq.addElement("/root/orders","enroll",{id:e0.UID})
-			wq.addElement(newID,"order",e0.order)
-			wq.addElement(newID,"accession",e0.accession)
-			wq.addElement(newID,"ctrlID",e0.CtrlID)
-			wq.addElement(newID,"date",e0.date)
-			wq.addElement(newID,"name",e0.name)
-			wq.addElement(newID,"mrn",e0.mrn)
-			wq.addElement(newID,"sex",e0.sex)
-			wq.addElement(newID,"dob",e0.dob)
-			wq.addElement(newID,"mon",e0.mon)
-			wq.addElement(newID,"prov",e0.prov)
-			wq.addElement(newID,"provname",e0.provname)
-			wq.addElement(newID,"site",e0.loc)
+			wq.addElement("enroll","/root/orders",{id:e0.UID})
+			wq.addElement("order",newID,e0.order)
+			wq.addElement("accession",newID,e0.accession)
+			wq.addElement("ctrlID",newID,e0.CtrlID)
+			wq.addElement("name",newID,e0.name)
+			wq.addElement("date",newID,e0.date)
+			wq.addElement("mrn",newID,e0.mrn)
+			wq.addElement("sex",newID,e0.sex)
+			wq.addElement("dob",newID,e0.dob)
+			wq.addElement("mon",newID,e0.mon)
+			wq.addElement("prov",newID,e0.prov)
+			wq.addElement("provname",newID,e0.provname)
+			wq.addElement("site",newID,e0.loc)
 			; wq.addElement(newID,"acctnum",e0.accountnum)
 			; wq.addElement(newID,"encnum",e0.encnum)
-			wq.addElement(newID,"ind",e0.ind)
+			wq.addElement("ind",newID,e0.ind)
 		eventlog("Added order ID " e0.UID ". " e0.name)
 		
 		fileOut := 
@@ -2722,7 +2722,7 @@ WQtask(agc,row,*) {
 		}
 		wq := XML(path.data "worklist.xml")
 		if !IsObject(wq.selectSingleNode(idstr "/sent")) {
-			wq.addElement(idstr,"sent")
+			wq.addElement("sent",idstr)
 		}
 		wq.setText(idstr "/sent",parseDate(inDT.Value).YMD)
 		wq.setAtt(idstr "/sent",{user:gl.user})
@@ -2747,21 +2747,21 @@ WQtask(agc,row,*) {
 			return
 		}
 		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
-			wq.addElement(idstr,"notes")
+			wq.addElement("notes",idstr)
 		}
 		if (RegExMatch(note.Value,"((\d\s*){12})",&fedex)) {
 			if (MsgBox("FedEx tracking number?`n" fedex[1],,4132)="Yes")
 			{
 				fedex := RegExReplace(fedex[1]," ")
 				if !IsObject(wq.selectSingleNode(idstr "/fedex")) {
-					wq.addElement(idstr,"fedex")
+					wq.addElement("fedex",idstr)
 				}
 				wq.setText(idstr "/fedex",fedex[1])
 				wq.setAtt(idstr "/fedex", {user:gl.user, date:substr(A_Now,1,8)})
 				eventlog(pt.MRN "[" pt.Date "] FedEx tracking #" fedex[1])
 			}
 		}
-		wq.addElement(idstr "/notes","note",{user:gl.user, date:substr(A_Now,1,8)},note.Value)
+		wq.addElement("note",idstr "/notes",{user:gl.user, date:substr(A_Now,1,8)},note.Value)
 		WriteOut("/root/pending","enroll[@id=`"" idx "`"]")
 		eventlog(pt.MRN "[" pt.Date "] Note from " gl.user ": " note.Value)
 		setwqupdate()
@@ -2786,9 +2786,9 @@ WQtask(agc,row,*) {
 		}
 		wq := XML(path.data "worklist.xml")
 		if !IsObject(wq.selectSingleNode(idstr "/notes")) {
-			wq.addElement(idstr,"notes")
+			wq.addElement("notes",idstr)
 		}
-		wq.addElement(idstr "/notes","note",{user:gl.user, date:substr(A_Now,1,8)},"MOVED: " reason)
+		wq.addElement("note",idstr "/notes",{user:gl.user, date:substr(A_Now,1,8)},"MOVED: " reason)
 		moveWQ(idx)
 		eventlog(idx " Move from WQ: " reason)
 		setwqupdate()
@@ -2824,7 +2824,7 @@ WriteOut(parentpath,node) {
 	z := XML(path.data "worklist.xml")													; load a copy into z
 	
 	if !IsObject(z.selectSingleNode(parentpath "/" node)) {								; no such node in z
-		z.addElement(parentpath,"newnode")												; create a blank node
+		z.addElement("newnode",parentpath)												; create a blank node
 		node := "newnode"
 	}
 	zPath := z.selectSingleNode(parentpath)												; find same "node" in z
@@ -2856,18 +2856,18 @@ moveWQ(id) {
 	} 
 	
 	if (mrn) {																			; record exists
-		wq.addElement(wqStr,"done",{user:gl.user},A_Now)								; set as done
+		wq.addElement("done",wqStr,{user:gl.user},A_Now)								; set as done
 		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
 		wq.moveNode(wqStr,"/root/done")
 		eventlog("wqid " id " (" mrn " from " date ") moved to DONE list.")
 	} else {																			; no record exists (enrollment never captured, or Zio)
 		id := makeUID()																	; create an id
-		wq.addElement("/root/done","enroll",{id:id})									; in </root/done>
+		wq.addElement("enroll","/root/done",{id:id})									; in </root/done>
 		newID := "/root/done/enroll[@id=`"" id "`"]"
-		wq.addElement(newID,"date",parseDate(fldval["dem-Test_date"]).YMD)				; add these to the new done node
-		wq.addElement(newID,"name",fldval["dem-Name"])
-		wq.addElement(newID,"mrn",fldval["dem-MRN"])
-		wq.addElement(newID,"done",{user:A_UserName},A_Now)
+		wq.addElement("date",newID,parseDate(fldval["dem-Test_date"]).YMD)				; add these to the new done node
+		wq.addElement("name",newID,fldval["dem-Name"])
+		wq.addElement("mrn",newID,fldval["dem-MRN"])
+		wq.addElement("done",newID,{user:A_UserName},A_Now)
 		wq.selectSingleNode(wqStr "/done").setAttribute("read",reading)
 		eventlog("No wqid. Saved new DONE record " fldval["dem-MRN"] ".")
 	}
@@ -3706,7 +3706,7 @@ readPrevTxt() {
 			if !(devct) {
 				inv := wq.selectSingleNode("/root/inventory")							; create fresh inventory node
 				inv.parentNode.removeChild(inv)
-				wq.addElement("/root","inventory")
+				wq.addElement("inventory","/root")
 				devct := true
 			}
 			parsePrevDev(k)
@@ -3957,7 +3957,7 @@ parsePrevDev(txt) {
 		return
 	}
 	
-	wq.addElement("/root/inventory","dev",{model:dev,ser:ser})
+	wq.addElement("dev","/root/inventory",{model:dev,ser:ser})
 	;~ eventlog("Added new Inventory dev " ser)
 	
 	return
@@ -3996,14 +3996,14 @@ addPrevEnroll(id,res) {
 	global wq
 	
 	newID := "/root/pending/enroll[@id=`"" id "`"]"
-	wq.addElement("/root/pending","enroll",{id:id})
-	wq.addElement(newID,"date",res.date)
-	wq.addElement(newID,"name",res.name)
-	wq.addElement(newID,"mrn",res.mrn)
-	wq.addElement(newID,"dev",res.dev)
-	wq.addElement(newID,"prov",res.prov)
-	wq.addElement(newID,"site",res.site)
-	wq.addElement(newID,"webgrab",A_Now)
+	wq.addElement("enroll","/root/pending",{id:id})
+	wq.addElement("date",newID,res.date)
+	wq.addElement("name",newID,res.name)
+	wq.addElement("mrn",newID,res.mrn)
+	wq.addElement("dev",newID,res.dev)
+	wq.addElement("prov",newID,res.prov)
+	wq.addElement("site",newID,res.site)
+	wq.addElement("webgrab",newID,A_Now)
 	
 	return
 }
