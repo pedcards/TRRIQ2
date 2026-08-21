@@ -73,6 +73,7 @@ SetTitleMatchMode("2")
 	; sites.long									= {CIS:TAB}
 	; sites.code									= {"MAIN":7343} 4 digit code for sending facility
 	; sites.facility								= {"MAIN":"GB-SCH-SEATTLE"}
+	; sites.data									= wkslocation data
 
 	/*	Read outdocs.csv for Cardiologist and Fellow names 
 	*/
@@ -447,6 +448,8 @@ WQlist() {
 	fldval := {}
 
 	lvDim := "w" dims.wqTab.W-25 " h" dims.wqTab.H-35
+
+	; checkversion(gl.runningVer)
 	
 	pb.title("Scanning worklist...")
 	
