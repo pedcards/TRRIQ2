@@ -518,5 +518,3 @@ parseJSON(txt) {
 	}
 	return out
 }
-
-#Include xml2.ahk
