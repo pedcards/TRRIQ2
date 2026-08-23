@@ -315,8 +315,8 @@ PhaseGUI() {
 	loop parse sites.tracked, "|"
 	{
 		i := A_Index
-		site := A_LoopField
-		WQtab.UseTab(site)
+		siteLoc := A_LoopField
+		WQtab.UseTab(siteLoc)
 		HLV[i] := phase.AddListView("-Multi Grid BackgroundSilver " lvDim
 			, ["ID","Enrolled","FedEx","Uploaded","Notes","MRN","Enrolled Name","Device","Provider"]
 		)
@@ -2021,14 +2021,14 @@ WQclearSites0() {
 
 	loop parse sites.ignored, "|"
 	{
-		site := A_LoopField
-		Loop (ens:=wq.selectNodes("/root/pending/enroll[site=`"" site "`"]")).length
+		siteLoc := A_LoopField
+		Loop (ens:=wq.selectNodes("/root/pending/enroll[site=`"" siteLoc "`"]")).length
 		{
 			k := ens.item(A_Index-1)
 			clone := k.cloneNode(true)
 			wq.selectSingleNode("/root/done").appendChild(clone)						; copy k.clone to DONE
 			k.parentNode.removeChild(k)													; remove k node
-			eventlog("Moved " site " record " k.selectSingleNode("mrn").text " " k.selectSingleNode("name").text)
+			eventlog("Moved " siteLoc " record " k.selectSingleNode("mrn").text " " k.selectSingleNode("name").text)
 		}
 	}
 	Return
@@ -2576,11 +2576,11 @@ WQpendingTabs() {
 	Loop parse sites.tracked, "|"
 	{
 		i := A_Index
-		site := A_LoopField
+		siteLoc := A_LoopField
 		lv[i] := phase.hnd["LV" i]
 		lv[i].Delete()
 		clv[i] := LV_Colors(lv[i],true)
-		Loop (ens:=wq.selectNodes("/root/pending/enroll[site=`"" site "`"]")).length
+		Loop (ens:=wq.selectNodes("/root/pending/enroll[site=`"" siteLoc "`"]")).length
 		{
 			k := ens.item(A_Index-1)
 			id	:= k.getAttribute("id")
