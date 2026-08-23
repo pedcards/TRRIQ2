@@ -2529,11 +2529,11 @@ WQfindMissingWebgrab(&lv) {
 */
 	global wq, path, monStrings, phase
 
-	loop (ens:=wq.selectNodes("/root/pending/enroll")).Length
+	try loop (ens:=wq.selectNodes("/root/pending/enroll")).Length
 	{
-		try en := ens.item(A_Index-1)
-		try id := en.getAttribute("id")
-		try wb := en.selectSingleNode("webgrab").Text
+		en := ens.item(A_Index-1)
+		id := en.getAttribute("id")
+		wb := en.selectSingleNode("webgrab").Text
 		if !(wb) {
 			res := readwq(id)
 			dt := dateDiff(A_Now,res.date,"Days")
