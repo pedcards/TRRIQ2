@@ -2284,21 +2284,23 @@ WQpreventiceResults(&wqfiles,&lv) {
 		x := StrSplit(fileIn,"_")
 
 		tmptxt := fileread(path.PrevHL7in fileIn)
+		msh := StrSplit(StrX(tmptxt,"MSH",1,4,"`r",1),"|")
 		obr:= segSplit("OBR")															; get OBR segment
-		obr.req := trim(obr[3]," ^")													; wqid from Preventice registration (PV1_19)
-		obr.prov := strX(obr[17],"^",1,1,"^",1)
-		obr.site := strX(obr.prov,"-",1,1,"",0)
-		obr.date := obr[8]
+			obr.req := trim(obr[2]," ^")												; wqid from Preventice registration (PV1_19)
+			obr.prov := strX(obr[16],"^",1,1,"^",1)
+			obr.site := sites.data.selectSingleNode("//locations/location[hl7num='" msh[5] "']/tabname").text
 		pv1 := segSplit("PV1")															; get PV1 segment
-		pv1.dt := SubStr(pv1[40],1,8)													; pull out date of entry/registration (will not match for send out)
+			pv1.dt := SubStr(pv1[39],1,8)												; pull out date of entry/registration (will not match for send out)
 		pid := segSplit("PID")
-		pid.mrn := pid[4]
-		pid.name := ParseName(pid[6])
-		pid.nameL := pid.name.last
-		pid.dob := niceDate(pid[8])
+			pid.mrn := pid[3]
+			pid.name := ParseName(pid[5])
+			pid.nameL := pid.name.last
 		obxfull := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
 		match := psr.match("[@PatientLastName=`"" pid.nameL "`"][@MRN1=`"" pid.mrn "`"]")
 
+		; if (obr.site="") {
+		; 	if (siteLoc )
+		; }
 		try if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.clinic) {		; remove all sites0 results
 			eventlog("Unregistered Sites0 report " fileIn " - " obr.site "|" match.clinic ".")
 			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
@@ -2381,8 +2383,10 @@ WQpreventiceResults(&wqfiles,&lv) {
 	}
 	Return
 
-	segSplit(seg) {
-		return strsplit(stregX(tmptxt,"\R+" seg,1,0,"\R+",0),"|")
+	segSplit(segname) {
+		seg := strsplit(stregX(tmptxt,"\R+" segname,1,0,"\R+",0),"|")
+		seg.RemoveAt(1)
+		return seg
 	}
 }
 WQscanHolterPDFs(&wqfiles,&lv) {
