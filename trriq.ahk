@@ -2295,14 +2295,29 @@ WQpreventiceResults(&wqfiles,&lv) {
 			pid.mrn := pid[3]
 			pid.name := ParseName(pid[5])
 			pid.nameL := pid.name.last
+			pid.nameF := pid.name.first
 		obxfull := InStr(tmptxt,"OBX|1|TX|HOLTER^Full Disclosure")						; true if this is Full Disclosure ORU
 		match := psr.match("[@PatientLastName=`"" pid.nameL "`"][@MRN1=`"" pid.mrn "`"]")
 
-		; if (obr.site="") {
-		; 	if (siteLoc )
-		; }
-		try if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.clinic) {		; remove all sites0 results
-			eventlog("Unregistered Sites0 report " fileIn " - " obr.site "|" match.clinic ".")
+		if (obr.site="") {
+			try if (siteLoc:=match.site) {
+				obr.site := siteLoc
+				eventlog(fileIn " - " obr.prov 
+				. ". No site found in ORU. Pulled from Patient Status Report.")
+			} else {
+				obr.site:="MAIN"
+				eventlog(fileIn " - " obr.prov 
+				. ". No site found in ORU or PSR, substituting MAIN. Check ORM and Preventice users.")
+			}
+			; if (changed) {
+			; 	n1 := "/root/pending/enroll[@id=`"" id "`"]"
+			; 	wq.setText(n1 "/site",obr.site)
+			; 	WriteOut(n1,"site")
+			; 	eventlog(fileIn " - " obr.prov ". Changed site to " obr.site ".")
+			; }
+		}
+		try if InStr(sites.ignored,obr.site)||InStr(sites.ignored,match.site) {			; remove all sites0 results
+			eventlog("Unregistered Sites0 report " fileIn " - " obr.site "|" match.site ".")
 			FileMove(path.PrevHL7in fileIn, ".\tempfiles\" fileIn, 1)
 			continue
 		}
@@ -2321,30 +2336,8 @@ WQpreventiceResults(&wqfiles,&lv) {
 		if (id) {
 			hl7dirMap[fileIn] := id
 		}
-		res := readWQ(id)																; wqid should always be present in hl7 downloads
 
-		if (obr.site="") {																; no "-site" in OBR.17 name, incorrectly registered
-			if (res.site=match.site) {
-				changed := false
-			}
-			else if InStr(sites.tracked,match.site) {
-				changed := true
-				obr.site := match.site
-				eventlog(fileIn " - " obr.prov ". Found valid site " match.site " in PSR.")
-			} 
-			else {
-				changed := true
-				obr.site:="MAIN"
-				eventlog(fileIn " - " obr.prov 
-					. ". No site associated with provider, substituting MAIN. Check ORM and Preventice users.")
-			}
-			if (changed) {
-				n1 := "/root/pending/enroll[@id=`"" id "`"]"
-				wq.setText(n1 "/site",obr.site)
-				WriteOut(n1,"site")
-				eventlog(fileIn " - " obr.prov ". Changed site to " obr.site ".")
-			}
-		}
+		res := readWQ(id)																; wqid should always be present in hl7 downloads
 		if (obxfull) {
 			res_in := hl7(path.PrevHL7in . fileIn)										; extract DDE to fldval, and PDF into hl7Dir
 			fldval := res_in.fldval
