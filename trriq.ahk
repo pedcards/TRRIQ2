@@ -2322,7 +2322,7 @@ WQpreventiceResults(&wqfiles,&lv) {
 			continue
 		}
 
-		if (readWQ(obr.req).mrn) {														; check if obr_req is valid wqid
+		try if (readWQ(obr.req).mrn) {													; check if obr_req is valid wqid
 			id := obr.req
 		} 
 		else if (id := findWQid(pv1.dt,x[3]).id) { 										; try to find wqid based on date in PV1.40 and mrn
