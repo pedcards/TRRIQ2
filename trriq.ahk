@@ -2902,6 +2902,7 @@ readWQlv(agc,row,*)
 	ftype := agc.GetText(row,8)															; filetype
 	SplitPath(fileIn,&fname,,&fExt,&fileNam)
 	if (gl.adminMode) {
+		MsgBox("Admin WQlv tasks go here")
 		; adminWQlv(wqid)																		; Troubleshoot result
 		PhaseGUI()
 		Return
