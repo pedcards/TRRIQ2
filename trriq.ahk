@@ -3597,7 +3597,7 @@ outputFiles() {
 	FileDelete(filePDF)																		; Need to use Copy+Delete because if file opened
 	FileDelete(filePDF "-sh.pdf")															;	was never completing filemove
 	;~ FileDelete, % path.PrevHL7in fileNam ".hl7"											; We can delete the original HL7, if exists
-	FileMove(path.PrevHL7in fldval.file.fileNam ".hl7", ".\tempfiles\" fldval.file.fileNam ".hl7")
+	FileMove(path.PrevHL7in fldval.file.fileNam ".hl7", ".\tempfiles\" fldval.file.fileNam ".hl7",1)
 	eventlog("Move files '" fldval.file.fileIn "' -> '" filenameOut)
 
 	/*	Move full disclosure to FullDisclosure folder
