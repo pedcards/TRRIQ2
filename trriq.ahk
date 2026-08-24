@@ -2566,9 +2566,10 @@ WQpendingTabs() {
 
 	lv_all := phase.hnd["all"]
 	lv_all.Delete()
+	CLVa := phase.hnd["CLV_all"]
+
 	lv := Map()
 	clv := Map()
-	CLVa := LV_Colors(lv_all,true)
 
 	Loop parse sites.tracked, "|"
 	{
@@ -2576,7 +2577,7 @@ WQpendingTabs() {
 		siteLoc := A_LoopField
 		lv[i] := phase.hnd["LV" i]
 		lv[i].Delete()
-		clv[i] := LV_Colors(lv[i],true)
+		clv[i] := phase.hnd["CLV" i]
 		Loop (ens:=wq.selectNodes("/root/pending/enroll[site=`"" siteLoc "`"]")).length
 		{
 			k := ens.item(A_Index-1)
