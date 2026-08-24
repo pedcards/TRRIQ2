@@ -726,6 +726,7 @@ recoverDone(uid:="",*)
 		numbers := RegExMatch(find.value,"[0-9]+")
 	}
 
+	klist := ""
 	if ((letters)&&(numbers)) {															; contains letters AND numbers, is UID 2DMKLDFMN329
 		en := readWQ(find.value)
 		if (en.node != "done") {
